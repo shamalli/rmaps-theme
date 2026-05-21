@@ -539,21 +539,14 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 .rmaps-page-content {
 	padding-bottom: clamp(32px, 5vw, 56px);
 }
-.rmaps-page-content > *:not(.alignfull):not(.alignwide):not(.rmaps-engine-switcher) {
+/* No global content-width constraint — children flow at whatever
+ * width their parent gives them: `.rmaps-container` (1180px) on the
+ * standard page template, full viewport on the full-width template.
+ * Opt into a narrower reading column anywhere by wrapping a chunk
+ * in `<div class="rmaps-prose">…</div>` (760px + centered). */
+.rmaps-prose {
 	max-width: 760px;
 	margin-inline: auto;
-}
-/* Full-width template: kill the 760px reading-width constraint AND
- * the side gutters so the content area is genuinely edge-to-edge.
- * The previous version still imposed a `clamp(16px, 4vw, 32px)`
- * inline padding which visibly indented the map and any other
- * block child from the viewport edges. Text-only children that
- * still want a comfortable reading width can opt in by wrapping
- * content in a `.rmaps-prose` div (760px + auto margins). */
-.rmaps-page-content-full > *:not(.alignfull):not(.alignwide):not(.rmaps-engine-switcher) {
-	max-width: none;
-	margin-inline: 0;
-	padding-inline: 0;
 }
 .rmaps-page-content-full > .rmaps-react-mount,
 .rmaps-page-content-full > .rmaps-map-frontend-wrap,
@@ -561,10 +554,6 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 .rmaps-page-content-full .rmaps-map-frontend-wrap {
 	max-width: 100%;
 	padding-inline: 0;
-}
-.rmaps-page-content-full .rmaps-prose {
-	max-width: 760px;
-	margin-inline: auto;
 }
 
 .rmaps-page-content h2 { margin-top: 1.5em; }
@@ -718,21 +707,9 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
  * 8. Map shortcode wrappers — let `[webmap]` breathe
  * inside both standard and full-width layouts.
  * ====================================================*/
-.rmaps-page-content .rmaps-react-mount,
-.rmaps-page-content .rmaps-map-frontend-wrap {
-	margin: 24px auto;
-	border-radius: var(--rmaps-radius-lg);
-	overflow: hidden;
-	box-shadow: var(--rmaps-shadow-md);
-	border: 1px solid var(--rmaps-border-soft);
-}
-.rmaps-page-content-full .rmaps-react-mount,
-.rmaps-page-content-full .rmaps-map-frontend-wrap {
-	max-width: 100%;
-	border-radius: 0;
-	border-left: 0;
-	border-right: 0;
-}
+/* Map wrap previously got `margin: 24px auto`, border-radius,
+ * shadow and border — removed. Map renders raw, host page decides
+ * its own framing. */
 
 /* ====================================================
  * 9. Responsive
