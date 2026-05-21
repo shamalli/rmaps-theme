@@ -1,0 +1,807 @@
+/*
+ * Rocket Maps theme — single bundled stylesheet.
+ *
+ * Sections:
+ *   1. Tokens (CSS custom props — light + dark)
+ *   2. Reset / base
+ *   3. Layout primitives (container, prose)
+ *   4. Header + navigation (incl. dropdown + mobile drawer)
+ *   5. Footer
+ *   6. Engine switcher
+ *   7. Page content + features + hero
+ *   8. Buttons / forms / utilities
+ *   9. Responsive overrides
+ */
+
+/* ====================================================
+ * 1. Tokens
+ * ====================================================*/
+:root {
+	--rmaps-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+	--rmaps-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+
+	--rmaps-bg:           #ffffff;
+	--rmaps-bg-soft:      #f6f7f9;
+	--rmaps-bg-elev:      #ffffff;
+	--rmaps-bg-engine:    #fafbfc;
+	--rmaps-fg:           #0b0d10;
+	--rmaps-fg-soft:      #4b5563;
+	--rmaps-fg-mute:      #6b7280;
+	--rmaps-border:       #e5e7eb;
+	--rmaps-border-soft:  #eef0f3;
+
+	--rmaps-accent:        #2563eb;
+	--rmaps-accent-hover:  #1d4ed8;
+	--rmaps-accent-contrast: #ffffff;
+	--rmaps-accent-soft:   rgba(37, 99, 235, 0.1);
+
+	--rmaps-engine-google:   #1a73e8;
+	--rmaps-engine-mapbox:   #1f82a5;
+	--rmaps-engine-maplibre: #2a9d8f;
+
+	--rmaps-radius-sm: 6px;
+	--rmaps-radius-md: 10px;
+	--rmaps-radius-lg: 16px;
+	--rmaps-radius-pill: 999px;
+
+	--rmaps-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+	--rmaps-shadow-md: 0 4px 14px rgba(15, 23, 42, .08);
+	--rmaps-shadow-lg: 0 16px 40px rgba(15, 23, 42, .14);
+
+	--rmaps-container: 1180px;
+	--rmaps-header-h:  64px;
+
+	color-scheme: light;
+}
+
+html[data-theme="dark"] {
+	--rmaps-bg:           #0b0d10;
+	--rmaps-bg-soft:      #11141a;
+	--rmaps-bg-elev:      #151920;
+	--rmaps-bg-engine:    #0f1217;
+	--rmaps-fg:           #e9ecf1;
+	--rmaps-fg-soft:      #c6cbd6;
+	--rmaps-fg-mute:      #8b93a5;
+	--rmaps-border:       #232831;
+	--rmaps-border-soft:  #1a1e26;
+
+	--rmaps-accent:        #5c9bff;
+	--rmaps-accent-hover:  #7eb0ff;
+	--rmaps-accent-contrast: #0b0d10;
+	--rmaps-accent-soft:   rgba(92, 155, 255, 0.15);
+
+	--rmaps-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+	--rmaps-shadow-md: 0 6px 18px rgba(0, 0, 0, .45);
+	--rmaps-shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
+
+	color-scheme: dark;
+}
+
+/* ====================================================
+ * 2. Reset / base
+ * ====================================================*/
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+	margin: 0;
+	font-family: var(--rmaps-font-sans);
+	font-size: 16px;
+	line-height: 1.55;
+	color: var(--rmaps-fg);
+	background: var(--rmaps-bg);
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+a {
+	color: var(--rmaps-accent);
+	text-decoration: none;
+	transition: color .15s ease;
+}
+a:hover, a:focus-visible { color: var(--rmaps-accent-hover); }
+
+h1, h2, h3, h4 {
+	font-weight: 700;
+	line-height: 1.18;
+	margin: 0 0 .5em;
+	letter-spacing: -0.01em;
+}
+h1 { font-size: clamp(2rem, 1.4rem + 2vw, 3rem); }
+h2 { font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
+h3 { font-size: 1.25rem; }
+
+p { margin: 0 0 1em; }
+
+code, kbd, pre, samp { font-family: var(--rmaps-font-mono); font-size: .9em; }
+code {
+	background: var(--rmaps-bg-soft);
+	border: 1px solid var(--rmaps-border-soft);
+	padding: .15em .4em;
+	border-radius: var(--rmaps-radius-sm);
+}
+
+.screen-reader-text {
+	position: absolute !important;
+	width: 1px; height: 1px;
+	padding: 0; margin: -1px;
+	overflow: hidden;
+	clip: rect(0,0,0,0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.rmaps-skip-link {
+	position: absolute;
+	top: -100px;
+	left: 16px;
+	z-index: 999;
+	background: var(--rmaps-fg);
+	color: var(--rmaps-bg);
+	padding: 8px 12px;
+	border-radius: var(--rmaps-radius-sm);
+}
+.rmaps-skip-link:focus { top: 16px; outline: 2px solid var(--rmaps-accent); }
+
+/* ====================================================
+ * 3. Layout primitives
+ * ====================================================*/
+.rmaps-container {
+	width: 100%;
+	max-width: var(--rmaps-container);
+	margin-inline: auto;
+	padding-inline: clamp(16px, 4vw, 32px);
+}
+
+.rmaps-main { min-height: 60vh; padding-bottom: 64px; }
+
+.rmaps-section { padding: clamp(48px, 6vw, 80px) 0; }
+
+/* ====================================================
+ * 4. Header + navigation
+ * ====================================================*/
+.rmaps-site-header {
+	position: sticky;
+	top: 0;
+	/* Above plugin auto-popups (z 600) and click-popups (z 1000) so
+	 * the site nav stays usable while the map's DOM-popup layer is
+	 * painting cards near the top of the viewport. Stays well below
+	 * the WP admin bar (z 99999) so /wp-admin chrome still wins. */
+	z-index: 1500;
+	background: color-mix(in srgb, var(--rmaps-bg) 88%, transparent);
+	backdrop-filter: saturate(180%) blur(10px);
+	-webkit-backdrop-filter: saturate(180%) blur(10px);
+	border-bottom: 1px solid var(--rmaps-border-soft);
+}
+
+/* WP admin bar offset — `body.admin-bar` is added by core when the
+ * toolbar is visible. Desktop bar is `position: fixed; top: 0; height: 32px`,
+ * so the sticky header must clear those 32px or it slides UNDER it.
+ * On screens ≤782px WP flips the bar to `position: absolute` so it
+ * scrolls off naturally — the sticky header returns to `top: 0`. */
+body.admin-bar .rmaps-site-header {
+	top: 32px;
+}
+@media screen and (max-width: 782px) {
+	body.admin-bar .rmaps-site-header {
+		top: 0;
+	}
+}
+
+.rmaps-header-inner {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	min-height: var(--rmaps-header-h);
+}
+
+.rmaps-brand { display: flex; align-items: center; min-width: 0; }
+.rmaps-brand-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--rmaps-fg);
+	font-weight: 700;
+	font-size: 1.05rem;
+	letter-spacing: -0.01em;
+}
+.rmaps-brand-link:hover, .rmaps-brand-link:focus-visible { color: var(--rmaps-fg); }
+.rmaps-brand-mark {
+	display: inline-flex;
+	width: 32px;
+	height: 32px;
+	color: var(--rmaps-accent);
+}
+.rmaps-brand-mark svg { width: 100%; height: 100%; }
+.custom-logo-link img { max-height: 40px; width: auto; }
+
+.rmaps-primary-nav {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 24px;
+}
+
+.rmaps-menu {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.rmaps-menu > li { position: relative; }
+.rmaps-menu a {
+	display: block;
+	padding: 8px 12px;
+	border-radius: var(--rmaps-radius-md);
+	color: var(--rmaps-fg-soft);
+	font-weight: 500;
+	font-size: .95rem;
+	transition: color .15s ease, background-color .15s ease;
+}
+.rmaps-menu a:hover,
+.rmaps-menu a:focus-visible,
+.rmaps-menu .current-menu-item > a,
+.rmaps-menu .current-menu-ancestor > a {
+	color: var(--rmaps-fg);
+	background: var(--rmaps-bg-soft);
+}
+
+/* dropdown indicator + submenu */
+.rmaps-menu .menu-item-has-children > a::after {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-left: 6px;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: translateY(-2px) rotate(45deg);
+	opacity: .7;
+}
+.rmaps-menu .sub-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	min-width: 220px;
+	margin: 0;
+	padding: 8px;
+	list-style: none;
+	background: var(--rmaps-bg-elev);
+	border: 1px solid var(--rmaps-border);
+	border-radius: var(--rmaps-radius-md);
+	box-shadow: var(--rmaps-shadow-md);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(-4px);
+	transition: opacity .15s ease, transform .15s ease, visibility .15s;
+	z-index: 60;
+}
+.rmaps-menu .menu-item-has-children:hover > .sub-menu,
+.rmaps-menu .menu-item-has-children:focus-within > .sub-menu {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+}
+.rmaps-menu .sub-menu a { padding: 8px 10px; border-radius: var(--rmaps-radius-sm); }
+
+.rmaps-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.rmaps-engine-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	border-radius: var(--rmaps-radius-pill);
+	background: var(--rmaps-bg-soft);
+	border: 1px solid var(--rmaps-border-soft);
+	color: var(--rmaps-fg-soft);
+	font-size: .8rem;
+	font-weight: 500;
+}
+.rmaps-engine-dot {
+	width: 8px; height: 8px;
+	border-radius: 50%;
+	background: var(--rmaps-engine-google);
+}
+.rmaps-engine-mapbox   .rmaps-engine-dot { background: var(--rmaps-engine-mapbox); }
+.rmaps-engine-maplibre .rmaps-engine-dot { background: var(--rmaps-engine-maplibre); }
+
+.rmaps-theme-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: var(--rmaps-radius-pill);
+	border: 1px solid var(--rmaps-border);
+	background: transparent;
+	color: var(--rmaps-fg-soft);
+	cursor: pointer;
+	transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.rmaps-theme-toggle:hover, .rmaps-theme-toggle:focus-visible {
+	color: var(--rmaps-fg);
+	border-color: var(--rmaps-fg-mute);
+	background: var(--rmaps-bg-soft);
+}
+.rmaps-theme-toggle svg { width: 18px; height: 18px; }
+.rmaps-theme-toggle .rmaps-icon-moon { display: none; }
+html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-sun  { display: none; }
+html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-block; }
+
+.rmaps-cta-buy {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 9px 16px;
+	background: var(--rmaps-accent);
+	color: var(--rmaps-accent-contrast);
+	border-radius: var(--rmaps-radius-pill);
+	font-weight: 600;
+	font-size: .9rem;
+	transition: background-color .15s ease, transform .1s ease;
+}
+.rmaps-cta-buy:hover, .rmaps-cta-buy:focus-visible {
+	background: var(--rmaps-accent-hover);
+	color: var(--rmaps-accent-contrast);
+	transform: translateY(-1px);
+}
+
+.rmaps-burger {
+	display: none;
+	width: 40px;
+	height: 40px;
+	border: 1px solid var(--rmaps-border);
+	background: transparent;
+	border-radius: var(--rmaps-radius-md);
+	cursor: pointer;
+	padding: 0;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 4px;
+}
+.rmaps-burger span {
+	display: block;
+	width: 18px;
+	height: 2px;
+	background: var(--rmaps-fg);
+	transition: transform .2s, opacity .2s;
+}
+.rmaps-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.rmaps-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.rmaps-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.rmaps-menu-fallback { gap: 8px; }
+.rmaps-menu-hint { font-size: .85rem; color: var(--rmaps-fg-mute); }
+
+/* ====================================================
+ * 5. Footer
+ * ====================================================*/
+.rmaps-site-footer {
+	border-top: 1px solid var(--rmaps-border-soft);
+	background: var(--rmaps-bg-soft);
+	padding: 48px 0 32px;
+	margin-top: 64px;
+}
+.rmaps-footer-inner {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 32px;
+	align-items: center;
+}
+.rmaps-footer-brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.rmaps-footer-brand .rmaps-brand-mark { color: var(--rmaps-accent); width: 28px; height: 28px; }
+.rmaps-footer-tagline {
+	margin: 0;
+	color: var(--rmaps-fg-soft);
+	font-size: .95rem;
+}
+.rmaps-footer-nav .rmaps-menu { gap: 4px; flex-wrap: wrap; }
+.rmaps-footer-nav .rmaps-menu a {
+	padding: 6px 10px;
+	color: var(--rmaps-fg-soft);
+	font-size: .9rem;
+}
+.rmaps-footer-nav .rmaps-menu a:hover { color: var(--rmaps-fg); }
+.rmaps-colophon {
+	grid-column: 1 / -1;
+	margin: 16px 0 0;
+	padding-top: 16px;
+	border-top: 1px solid var(--rmaps-border-soft);
+	color: var(--rmaps-fg-mute);
+	font-size: .85rem;
+}
+
+/* ====================================================
+ * 6. Engine switcher
+ * ====================================================*/
+.rmaps-engine-switcher {
+	width: 100%;
+	background: var(--rmaps-bg-engine);
+	border-top: 1px solid var(--rmaps-border-soft);
+	border-bottom: 1px solid var(--rmaps-border-soft);
+	padding: 16px clamp(16px, 4vw, 32px);
+}
+.rmaps-engine-switcher-inner {
+	width: 100%;
+	max-width: var(--rmaps-container);
+	margin-inline: auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 12px 24px;
+}
+.rmaps-engine-switcher-label {
+	margin: 0;
+	font-size: .85rem;
+	color: var(--rmaps-fg-mute);
+	font-weight: 500;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+.rmaps-engine-switcher-buttons {
+	display: inline-flex;
+	gap: 8px;
+	padding: 4px;
+	border-radius: var(--rmaps-radius-pill);
+	background: var(--rmaps-bg-elev);
+	border: 1px solid var(--rmaps-border);
+	box-shadow: var(--rmaps-shadow-sm);
+}
+.rmaps-engine-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 16px;
+	border-radius: var(--rmaps-radius-pill);
+	color: var(--rmaps-fg-soft);
+	font-weight: 600;
+	font-size: .9rem;
+	background: transparent;
+	transition: background-color .15s ease, color .15s ease, transform .1s ease;
+	white-space: nowrap;
+}
+.rmaps-engine-button:hover, .rmaps-engine-button:focus-visible {
+	background: var(--rmaps-bg-soft);
+	color: var(--rmaps-fg);
+}
+.rmaps-engine-button.is-active {
+	background: var(--rmaps-fg);
+	color: var(--rmaps-bg);
+	box-shadow: var(--rmaps-shadow-sm);
+}
+.rmaps-engine-button.is-active:hover { background: var(--rmaps-fg); color: var(--rmaps-bg); }
+.rmaps-engine-button-icon {
+	display: inline-flex;
+	width: 18px;
+	height: 18px;
+}
+.rmaps-engine-button-icon svg { width: 100%; height: 100%; }
+
+.rmaps-engine-button-google.is-active   { background: var(--rmaps-engine-google);   color: #fff; }
+.rmaps-engine-button-mapbox.is-active   { background: var(--rmaps-engine-mapbox);   color: #fff; }
+.rmaps-engine-button-maplibre.is-active { background: var(--rmaps-engine-maplibre); color: #fff; }
+
+.rmaps-engine-switcher.is-compact .rmaps-engine-button-label { display: none; }
+.rmaps-engine-switcher.is-compact .rmaps-engine-button { padding: 9px 12px; }
+
+.rmaps-engine-switcher-notice {
+	flex-basis: 100%;
+	margin: 0;
+	padding: 10px 14px;
+	background: rgba(234, 179, 8, .12);
+	border: 1px solid rgba(234, 179, 8, .35);
+	color: var(--rmaps-fg-soft);
+	border-radius: var(--rmaps-radius-md);
+	font-size: .85rem;
+	text-align: center;
+}
+.rmaps-engine-switcher-notice code {
+	background: transparent;
+	border: 0;
+	color: inherit;
+	padding: 0;
+}
+
+/* ====================================================
+ * 7. Page content, features, hero
+ * ====================================================*/
+.rmaps-page-header {
+	padding-top: clamp(32px, 5vw, 56px);
+	padding-bottom: clamp(16px, 3vw, 24px);
+}
+.rmaps-page-title {
+	margin: 0 0 8px;
+}
+.rmaps-page-content {
+	padding-bottom: clamp(32px, 5vw, 56px);
+}
+.rmaps-page-content > *:not(.alignfull):not(.alignwide):not(.rmaps-engine-switcher) {
+	max-width: 760px;
+	margin-inline: auto;
+}
+/* Full-width template: kill the 760px reading-width constraint from
+ * the rule above. The previous version only set `padding-inline`,
+ * which doesn't override `max-width: 760px` — so even on the
+ * full-width template, the map wrap and other block children were
+ * still pinned to 760px. Explicit `max-width: none` + `margin-inline: 0`
+ * is what breaks the chain. Text-only children that still want a
+ * comfortable reading width can opt in by wrapping content in a
+ * `.rmaps-prose` div. */
+.rmaps-page-content-full > *:not(.alignfull):not(.alignwide):not(.rmaps-engine-switcher) {
+	max-width: none;
+	margin-inline: 0;
+	padding-inline: clamp(16px, 4vw, 32px);
+}
+.rmaps-page-content-full > .rmaps-react-mount,
+.rmaps-page-content-full > .rmaps-map-frontend-wrap,
+.rmaps-page-content-full .rmaps-react-mount,
+.rmaps-page-content-full .rmaps-map-frontend-wrap {
+	max-width: 100%;
+	padding-inline: 0;
+}
+.rmaps-page-content-full .rmaps-prose {
+	max-width: 760px;
+	margin-inline: auto;
+}
+
+.rmaps-page-content h2 { margin-top: 1.5em; }
+.rmaps-page-content ul, .rmaps-page-content ol { padding-left: 1.4em; margin: 0 0 1.2em; }
+.rmaps-page-content blockquote {
+	margin: 1.5em 0;
+	padding: 12px 18px;
+	border-left: 3px solid var(--rmaps-accent);
+	color: var(--rmaps-fg-soft);
+	font-style: italic;
+}
+
+/* Hero */
+.rmaps-hero { padding: clamp(56px, 8vw, 96px) 0 clamp(40px, 5vw, 64px); text-align: center; }
+.rmaps-hero-title { font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem); }
+.rmaps-hero-tagline {
+	font-size: clamp(1.05rem, .95rem + .3vw, 1.25rem);
+	color: var(--rmaps-fg-soft);
+	max-width: 640px;
+	margin: 0 auto 28px;
+}
+.rmaps-hero-cta {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+/* Buttons */
+.rmaps-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 18px;
+	border-radius: var(--rmaps-radius-pill);
+	font-weight: 600;
+	font-size: .95rem;
+	transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+}
+.rmaps-button-primary {
+	background: var(--rmaps-accent);
+	color: var(--rmaps-accent-contrast);
+}
+.rmaps-button-primary:hover, .rmaps-button-primary:focus-visible {
+	background: var(--rmaps-accent-hover);
+	color: var(--rmaps-accent-contrast);
+	transform: translateY(-1px);
+}
+.rmaps-button-ghost {
+	background: transparent;
+	color: var(--rmaps-fg);
+	border: 1px solid var(--rmaps-border);
+}
+.rmaps-button-ghost:hover, .rmaps-button-ghost:focus-visible {
+	color: var(--rmaps-fg);
+	border-color: var(--rmaps-fg-mute);
+	background: var(--rmaps-bg-soft);
+}
+
+/* Feature grid */
+.rmaps-features { background: var(--rmaps-bg-soft); }
+.rmaps-feature-grid {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.rmaps-feature-card {
+	background: var(--rmaps-bg-elev);
+	border: 1px solid var(--rmaps-border-soft);
+	border-radius: var(--rmaps-radius-lg);
+	padding: 24px;
+	transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.rmaps-feature-card:hover {
+	border-color: var(--rmaps-border);
+	box-shadow: var(--rmaps-shadow-md);
+	transform: translateY(-2px);
+}
+.rmaps-feature-icon {
+	display: inline-flex;
+	width: 38px;
+	height: 38px;
+	padding: 8px;
+	background: var(--rmaps-accent-soft);
+	color: var(--rmaps-accent);
+	border-radius: var(--rmaps-radius-md);
+	margin-bottom: 14px;
+}
+.rmaps-feature-icon svg { width: 100%; height: 100%; }
+.rmaps-feature-title { margin: 0 0 6px; font-size: 1.05rem; }
+.rmaps-feature-body { margin: 0; color: var(--rmaps-fg-soft); font-size: .95rem; }
+
+/* Post list (blog / archive) */
+.rmaps-post-list {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	margin-top: 24px;
+}
+.rmaps-post-card {
+	background: var(--rmaps-bg-elev);
+	border: 1px solid var(--rmaps-border-soft);
+	border-radius: var(--rmaps-radius-lg);
+	padding: 18px;
+}
+.rmaps-post-thumb img { border-radius: var(--rmaps-radius-md); }
+.rmaps-post-title { font-size: 1.15rem; margin: 12px 0 6px; }
+.rmaps-post-title a { color: var(--rmaps-fg); }
+.rmaps-post-meta { color: var(--rmaps-fg-mute); font-size: .85rem; display: flex; gap: 8px; }
+.rmaps-post-excerpt { color: var(--rmaps-fg-soft); font-size: .95rem; }
+
+/* Search form */
+.rmaps-search-form {
+	display: inline-flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+.rmaps-search-field {
+	padding: 10px 14px;
+	border-radius: var(--rmaps-radius-pill);
+	border: 1px solid var(--rmaps-border);
+	background: var(--rmaps-bg);
+	color: var(--rmaps-fg);
+	font: inherit;
+	min-width: 220px;
+}
+.rmaps-search-submit {
+	padding: 10px 18px;
+	border-radius: var(--rmaps-radius-pill);
+	border: 0;
+	background: var(--rmaps-accent);
+	color: var(--rmaps-accent-contrast);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+/* 404 */
+.rmaps-section-404 { text-align: center; padding: 96px 0; }
+.rmaps-404-code {
+	font-size: clamp(4rem, 8vw, 7rem);
+	margin: 0 0 8px;
+	color: var(--rmaps-accent);
+	letter-spacing: -0.04em;
+}
+
+/* Comments */
+.rmaps-comments { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rmaps-border-soft); }
+
+/* ====================================================
+ * 8. Map shortcode wrappers — let `[webmap]` breathe
+ * inside both standard and full-width layouts.
+ * ====================================================*/
+.rmaps-page-content .rmaps-react-mount,
+.rmaps-page-content .rmaps-map-frontend-wrap {
+	margin: 24px auto;
+	border-radius: var(--rmaps-radius-lg);
+	overflow: hidden;
+	box-shadow: var(--rmaps-shadow-md);
+	border: 1px solid var(--rmaps-border-soft);
+}
+.rmaps-page-content-full .rmaps-react-mount,
+.rmaps-page-content-full .rmaps-map-frontend-wrap {
+	max-width: 100%;
+	border-radius: 0;
+	border-left: 0;
+	border-right: 0;
+}
+
+/* ====================================================
+ * 9. Responsive
+ * ====================================================*/
+@media (max-width: 880px) {
+	.rmaps-burger { display: inline-flex; }
+
+	.rmaps-primary-nav {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 16px;
+		padding: 16px clamp(16px, 4vw, 32px) 24px;
+		background: var(--rmaps-bg);
+		border-bottom: 1px solid var(--rmaps-border-soft);
+		box-shadow: var(--rmaps-shadow-md);
+		transform: translateY(-8px);
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity .15s ease, transform .15s ease, visibility .15s;
+	}
+	.rmaps-primary-nav.is-open {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+	}
+	.rmaps-menu {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 2px;
+	}
+	.rmaps-menu a { padding: 12px 14px; font-size: 1rem; }
+	.rmaps-menu .menu-item-has-children > a::after {
+		float: right;
+		margin-top: 4px;
+	}
+	.rmaps-menu .sub-menu {
+		position: static;
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		box-shadow: none;
+		border: 0;
+		background: var(--rmaps-bg-soft);
+		padding: 4px;
+		margin: 4px 0 4px 16px;
+	}
+	.rmaps-header-actions {
+		flex-wrap: wrap;
+		justify-content: flex-start;
+		padding-top: 8px;
+		border-top: 1px solid var(--rmaps-border-soft);
+	}
+
+	.rmaps-footer-inner {
+		grid-template-columns: 1fr;
+		text-align: left;
+	}
+}
+
+@media (max-width: 540px) {
+	.rmaps-engine-button-label { display: none; }
+	.rmaps-engine-button { padding: 9px 12px; }
+	.rmaps-cta-buy { padding: 9px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		transition: none !important;
+		animation: none !important;
+	}
+}
