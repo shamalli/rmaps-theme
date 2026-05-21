@@ -32,6 +32,19 @@
 				theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
 			btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
 		}
+		// Tell the plugin's React MapApp(s) to swap the rendered map
+		// style to its per-engine dark/light preset — no reload. The
+		// listener lives in
+		// `react/src/maps/components/Map/MapApp.tsx` and PATCH_CONFIGs
+		// `map_style` from `window.rmapsDarkStyles`. Wrapped in a
+		// try/catch because (a) very old browsers without CustomEvent
+		// would throw, and (b) the plugin may not be on this page so
+		// nobody is listening — both cases are non-fatal.
+		try {
+			window.dispatchEvent(new CustomEvent('rmaps:set-map-theme', {
+				detail: { theme: theme }
+			}));
+		} catch (_) { /* no-op */ }
 	}
 
 	function initTheme() {

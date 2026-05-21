@@ -484,6 +484,14 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 	background: var(--rmaps-bg-soft);
 	color: var(--rmaps-fg);
 }
+/* Active state — uniform across all three engines. An earlier
+ * version painted each active button in its engine brand colour
+ * (Google blue / Mapbox teal / MapLibre green), but the inconsistent
+ * accents distracted from the actual signal ("which engine is
+ * active"). Single `var(--rmaps-fg)` pill matches the rest of the
+ * dark-on-light UI and reads cleanly on both themes. The small
+ * engine-dot badge in the header still uses the brand colour for
+ * quick identification. */
 .rmaps-engine-button.is-active {
 	background: var(--rmaps-fg);
 	color: var(--rmaps-bg);
@@ -496,10 +504,6 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 	height: 18px;
 }
 .rmaps-engine-button-icon svg { width: 100%; height: 100%; }
-
-.rmaps-engine-button-google.is-active   { background: var(--rmaps-engine-google);   color: #fff; }
-.rmaps-engine-button-mapbox.is-active   { background: var(--rmaps-engine-mapbox);   color: #fff; }
-.rmaps-engine-button-maplibre.is-active { background: var(--rmaps-engine-maplibre); color: #fff; }
 
 .rmaps-engine-switcher.is-compact .rmaps-engine-button-label { display: none; }
 .rmaps-engine-switcher.is-compact .rmaps-engine-button { padding: 9px 12px; }
@@ -539,18 +543,17 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 	max-width: 760px;
 	margin-inline: auto;
 }
-/* Full-width template: kill the 760px reading-width constraint from
- * the rule above. The previous version only set `padding-inline`,
- * which doesn't override `max-width: 760px` — so even on the
- * full-width template, the map wrap and other block children were
- * still pinned to 760px. Explicit `max-width: none` + `margin-inline: 0`
- * is what breaks the chain. Text-only children that still want a
- * comfortable reading width can opt in by wrapping content in a
- * `.rmaps-prose` div. */
+/* Full-width template: kill the 760px reading-width constraint AND
+ * the side gutters so the content area is genuinely edge-to-edge.
+ * The previous version still imposed a `clamp(16px, 4vw, 32px)`
+ * inline padding which visibly indented the map and any other
+ * block child from the viewport edges. Text-only children that
+ * still want a comfortable reading width can opt in by wrapping
+ * content in a `.rmaps-prose` div (760px + auto margins). */
 .rmaps-page-content-full > *:not(.alignfull):not(.alignwide):not(.rmaps-engine-switcher) {
 	max-width: none;
 	margin-inline: 0;
-	padding-inline: clamp(16px, 4vw, 32px);
+	padding-inline: 0;
 }
 .rmaps-page-content-full > .rmaps-react-mount,
 .rmaps-page-content-full > .rmaps-map-frontend-wrap,
