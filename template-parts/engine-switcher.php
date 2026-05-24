@@ -8,7 +8,7 @@
  *   2. `[rmaps_engine_switcher]` shortcode inside the post content
  *      (registered in functions.php).
  *
- * Reads optional attributes from `rmaps_switcher_atts` (set by the
+ * Reads optional attributes from `rmaps_theme_switcher_atts` (set by the
  * shortcode wrapper) — see `rmaps_engine_switcher` in functions.php.
  *
  * Wiring:
@@ -26,7 +26,7 @@
  * @package rmaps-theme
  */
 
-$atts = get_query_var( 'rmaps_switcher_atts' );
+$atts = get_query_var( 'rmaps_theme_switcher_atts' );
 if ( ! is_array( $atts ) ) $atts = array();
 $compact = isset( $atts['compact'] ) && in_array( strtolower( (string) $atts['compact'] ), array( 'yes', 'true', '1' ), true );
 $label   = isset( $atts['label'] ) ? (string) $atts['label'] : '';
@@ -44,30 +44,30 @@ $base_url       = home_url( $current_path );
 $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 
 ?>
-<section class="rmaps-engine-switcher<?php echo $compact ? ' is-compact' : ''; ?>"
+<section class="rmaps-theme-engine-switcher<?php echo $compact ? ' is-compact' : ''; ?>"
 		role="region"
 		aria-label="<?php esc_attr_e( 'Map engine switcher', 'rmaps-theme' ); ?>">
-	<div class="rmaps-engine-switcher-inner">
+	<div class="rmaps-theme-engine-switcher-inner">
 		<?php if ( $label !== '' ) : ?>
-			<p class="rmaps-engine-switcher-label"><?php echo esc_html( $label ); ?></p>
+			<p class="rmaps-theme-engine-switcher-label"><?php echo esc_html( $label ); ?></p>
 		<?php endif; ?>
 
-		<div class="rmaps-engine-switcher-buttons" role="group"
+		<div class="rmaps-theme-engine-switcher-buttons" role="group"
 				aria-label="<?php esc_attr_e( 'Choose map engine', 'rmaps-theme' ); ?>">
 			<?php foreach ( $engines as $slug => $meta ) :
 				$is_active = $slug === $active_engine;
 				$href      = add_query_arg( 'rmaps_engine', $slug, $base_no_engine );
 				?>
-				<a class="rmaps-engine-button<?php echo $is_active ? ' is-active' : ''; ?> rmaps-engine-button-<?php echo esc_attr( $slug ); ?>"
+				<a class="rmaps-theme-engine-button<?php echo $is_active ? ' is-active' : ''; ?> rmaps-theme-engine-button-<?php echo esc_attr( $slug ); ?>"
 					href="<?php echo esc_url( $href ); ?>"
 					data-engine="<?php echo esc_attr( $slug ); ?>"
 					aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>"
 					rel="nofollow">
-					<span class="rmaps-engine-button-icon" aria-hidden="true">
+					<span class="rmaps-theme-engine-button-icon" aria-hidden="true">
 						<?php echo rmaps_theme_engine_icon_svg( $slug ); // phpcs:ignore — static SVG strings ?>
 					</span>
 					<?php if ( ! $compact ) : ?>
-						<span class="rmaps-engine-button-label"><?php echo esc_html( $meta['label'] ); ?></span>
+						<span class="rmaps-theme-engine-button-label"><?php echo esc_html( $meta['label'] ); ?></span>
 					<?php endif; ?>
 					<?php if ( $is_active ) : ?>
 						<span class="screen-reader-text"><?php esc_html_e( '(active)', 'rmaps-theme' ); ?></span>
@@ -77,7 +77,7 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 		</div>
 
 		<?php if ( ! $override_ok ) : ?>
-			<p class="rmaps-engine-switcher-notice">
+			<p class="rmaps-theme-engine-switcher-notice">
 				<?php
 				printf(
 					/* translators: %s: HTML-escaped wp-config constant snippet. */

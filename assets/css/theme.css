@@ -17,62 +17,62 @@
  * 1. Tokens
  * ====================================================*/
 :root {
-	--rmaps-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
-	--rmaps-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+	--rmaps-theme-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+	--rmaps-theme-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
 
-	--rmaps-bg:           #ffffff;
-	--rmaps-bg-soft:      #f6f7f9;
-	--rmaps-bg-elev:      #ffffff;
-	--rmaps-bg-engine:    #fafbfc;
-	--rmaps-fg:           #0b0d10;
-	--rmaps-fg-soft:      #4b5563;
-	--rmaps-fg-mute:      #6b7280;
-	--rmaps-border:       #e5e7eb;
-	--rmaps-border-soft:  #eef0f3;
+	--rmaps-theme-bg:           #ffffff;
+	--rmaps-theme-bg-soft:      #f6f7f9;
+	--rmaps-theme-bg-elev:      #ffffff;
+	--rmaps-theme-bg-engine:    #fafbfc;
+	--rmaps-theme-fg:           #0b0d10;
+	--rmaps-theme-fg-soft:      #4b5563;
+	--rmaps-theme-fg-mute:      #6b7280;
+	--rmaps-theme-border:       #e5e7eb;
+	--rmaps-theme-border-soft:  #eef0f3;
 
-	--rmaps-accent:        #2563eb;
-	--rmaps-accent-hover:  #1d4ed8;
-	--rmaps-accent-contrast: #ffffff;
-	--rmaps-accent-soft:   rgba(37, 99, 235, 0.1);
+	--rmaps-theme-accent:        #2563eb;
+	--rmaps-theme-accent-hover:  #1d4ed8;
+	--rmaps-theme-accent-contrast: #ffffff;
+	--rmaps-theme-accent-soft:   rgba(37, 99, 235, 0.1);
 
-	--rmaps-engine-google:   #1a73e8;
-	--rmaps-engine-mapbox:   #1f82a5;
-	--rmaps-engine-maplibre: #2a9d8f;
+	--rmaps-theme-engine-google:   #1a73e8;
+	--rmaps-theme-engine-mapbox:   #1f82a5;
+	--rmaps-theme-engine-maplibre: #2a9d8f;
 
-	--rmaps-radius-sm: 6px;
-	--rmaps-radius-md: 10px;
-	--rmaps-radius-lg: 16px;
-	--rmaps-radius-pill: 999px;
+	--rmaps-theme-radius-sm: 6px;
+	--rmaps-theme-radius-md: 10px;
+	--rmaps-theme-radius-lg: 16px;
+	--rmaps-theme-radius-pill: 999px;
 
-	--rmaps-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-	--rmaps-shadow-md: 0 4px 14px rgba(15, 23, 42, .08);
-	--rmaps-shadow-lg: 0 16px 40px rgba(15, 23, 42, .14);
+	--rmaps-theme-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+	--rmaps-theme-shadow-md: 0 4px 14px rgba(15, 23, 42, .08);
+	--rmaps-theme-shadow-lg: 0 16px 40px rgba(15, 23, 42, .14);
 
-	--rmaps-container: 1180px;
-	--rmaps-header-h:  64px;
+	--rmaps-theme-container: 1180px;
+	--rmaps-theme-header-h:  64px;
 
 	color-scheme: light;
 }
 
 html[data-theme="dark"] {
-	--rmaps-bg:           #0b0d10;
-	--rmaps-bg-soft:      #11141a;
-	--rmaps-bg-elev:      #151920;
-	--rmaps-bg-engine:    #0f1217;
-	--rmaps-fg:           #e9ecf1;
-	--rmaps-fg-soft:      #c6cbd6;
-	--rmaps-fg-mute:      #8b93a5;
-	--rmaps-border:       #232831;
-	--rmaps-border-soft:  #1a1e26;
+	--rmaps-theme-bg:           #0b0d10;
+	--rmaps-theme-bg-soft:      #11141a;
+	--rmaps-theme-bg-elev:      #151920;
+	--rmaps-theme-bg-engine:    #0f1217;
+	--rmaps-theme-fg:           #e9ecf1;
+	--rmaps-theme-fg-soft:      #c6cbd6;
+	--rmaps-theme-fg-mute:      #8b93a5;
+	--rmaps-theme-border:       #232831;
+	--rmaps-theme-border-soft:  #1a1e26;
 
-	--rmaps-accent:        #5c9bff;
-	--rmaps-accent-hover:  #7eb0ff;
-	--rmaps-accent-contrast: #0b0d10;
-	--rmaps-accent-soft:   rgba(92, 155, 255, 0.15);
+	--rmaps-theme-accent:        #5c9bff;
+	--rmaps-theme-accent-hover:  #7eb0ff;
+	--rmaps-theme-accent-contrast: #0b0d10;
+	--rmaps-theme-accent-soft:   rgba(92, 155, 255, 0.15);
 
-	--rmaps-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
-	--rmaps-shadow-md: 0 6px 18px rgba(0, 0, 0, .45);
-	--rmaps-shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
+	--rmaps-theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+	--rmaps-theme-shadow-md: 0 6px 18px rgba(0, 0, 0, .45);
+	--rmaps-theme-shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
 
 	color-scheme: dark;
 }
@@ -86,11 +86,11 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
 	margin: 0;
-	font-family: var(--rmaps-font-sans);
+	font-family: var(--rmaps-theme-font-sans);
 	font-size: 16px;
 	line-height: 1.55;
-	color: var(--rmaps-fg);
-	background: var(--rmaps-bg);
+	color: var(--rmaps-theme-fg);
+	background: var(--rmaps-theme-bg);
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
@@ -98,11 +98,11 @@ body {
 img, svg, video { max-width: 100%; height: auto; display: block; }
 
 a {
-	color: var(--rmaps-accent);
+	color: var(--rmaps-theme-accent);
 	text-decoration: none;
 	transition: color .15s ease;
 }
-a:hover, a:focus-visible { color: var(--rmaps-accent-hover); }
+a:hover, a:focus-visible { color: var(--rmaps-theme-accent-hover); }
 
 h1, h2, h3, h4 {
 	font-weight: 700;
@@ -116,12 +116,12 @@ h3 { font-size: 1.25rem; }
 
 p { margin: 0 0 1em; }
 
-code, kbd, pre, samp { font-family: var(--rmaps-font-mono); font-size: .9em; }
+code, kbd, pre, samp { font-family: var(--rmaps-theme-font-mono); font-size: .9em; }
 code {
-	background: var(--rmaps-bg-soft);
-	border: 1px solid var(--rmaps-border-soft);
+	background: var(--rmaps-theme-bg-soft);
+	border: 1px solid var(--rmaps-theme-border-soft);
 	padding: .15em .4em;
-	border-radius: var(--rmaps-radius-sm);
+	border-radius: var(--rmaps-theme-radius-sm);
 }
 
 .screen-reader-text {
@@ -134,36 +134,36 @@ code {
 	border: 0;
 }
 
-.rmaps-skip-link {
+.rmaps-theme-skip-link {
 	position: absolute;
 	top: -100px;
 	left: 16px;
 	z-index: 999;
-	background: var(--rmaps-fg);
-	color: var(--rmaps-bg);
+	background: var(--rmaps-theme-fg);
+	color: var(--rmaps-theme-bg);
 	padding: 8px 12px;
-	border-radius: var(--rmaps-radius-sm);
+	border-radius: var(--rmaps-theme-radius-sm);
 }
-.rmaps-skip-link:focus { top: 16px; outline: 2px solid var(--rmaps-accent); }
+.rmaps-theme-skip-link:focus { top: 16px; outline: 2px solid var(--rmaps-theme-accent); }
 
 /* ====================================================
  * 3. Layout primitives
  * ====================================================*/
-.rmaps-container {
+.rmaps-theme-container {
 	width: 100%;
-	max-width: var(--rmaps-container);
+	max-width: var(--rmaps-theme-container);
 	margin-inline: auto;
 	padding-inline: clamp(16px, 4vw, 32px);
 }
 
-.rmaps-main { min-height: 60vh; padding-bottom: 64px; }
+.rmaps-theme-main { min-height: 60vh; padding-bottom: 64px; }
 
-.rmaps-section { padding: clamp(48px, 6vw, 80px) 0; }
+.rmaps-theme-section { padding: clamp(48px, 6vw, 80px) 0; }
 
 /* ====================================================
  * 4. Header + navigation
  * ====================================================*/
-.rmaps-site-header {
+.rmaps-theme-site-header {
 	position: sticky;
 	top: 0;
 	/* Above plugin auto-popups (z 600) and click-popups (z 1000) so
@@ -171,10 +171,10 @@ code {
 	 * painting cards near the top of the viewport. Stays well below
 	 * the WP admin bar (z 99999) so /wp-admin chrome still wins. */
 	z-index: 1500;
-	background: color-mix(in srgb, var(--rmaps-bg) 88%, transparent);
+	background: color-mix(in srgb, var(--rmaps-theme-bg) 88%, transparent);
 	backdrop-filter: saturate(180%) blur(10px);
 	-webkit-backdrop-filter: saturate(180%) blur(10px);
-	border-bottom: 1px solid var(--rmaps-border-soft);
+	border-bottom: 1px solid var(--rmaps-theme-border-soft);
 }
 
 /* WP admin bar offset — `body.admin-bar` is added by core when the
@@ -182,43 +182,43 @@ code {
  * so the sticky header must clear those 32px or it slides UNDER it.
  * On screens ≤782px WP flips the bar to `position: absolute` so it
  * scrolls off naturally — the sticky header returns to `top: 0`. */
-body.admin-bar .rmaps-site-header {
+body.admin-bar .rmaps-theme-site-header {
 	top: 32px;
 }
 @media screen and (max-width: 782px) {
-	body.admin-bar .rmaps-site-header {
+	body.admin-bar .rmaps-theme-site-header {
 		top: 0;
 	}
 }
 
-.rmaps-header-inner {
+.rmaps-theme-header-inner {
 	display: flex;
 	align-items: center;
 	gap: 24px;
-	min-height: var(--rmaps-header-h);
+	min-height: var(--rmaps-theme-header-h);
 }
 
-.rmaps-brand { display: flex; align-items: center; min-width: 0; }
-.rmaps-brand-link {
+.rmaps-theme-brand { display: flex; align-items: center; min-width: 0; }
+.rmaps-theme-brand-link {
 	display: inline-flex;
 	align-items: center;
 	gap: 10px;
-	color: var(--rmaps-fg);
+	color: var(--rmaps-theme-fg);
 	font-weight: 700;
 	font-size: 1.05rem;
 	letter-spacing: -0.01em;
 }
-.rmaps-brand-link:hover, .rmaps-brand-link:focus-visible { color: var(--rmaps-fg); }
-.rmaps-brand-mark {
+.rmaps-theme-brand-link:hover, .rmaps-theme-brand-link:focus-visible { color: var(--rmaps-theme-fg); }
+.rmaps-theme-brand-mark {
 	display: inline-flex;
 	width: 32px;
 	height: 32px;
-	color: var(--rmaps-accent);
+	color: var(--rmaps-theme-accent);
 }
-.rmaps-brand-mark svg { width: 100%; height: 100%; }
+.rmaps-theme-brand-mark svg { width: 100%; height: 100%; }
 .custom-logo-link img { max-height: 40px; width: auto; }
 
-.rmaps-primary-nav {
+.rmaps-theme-primary-nav {
 	flex: 1;
 	display: flex;
 	align-items: center;
@@ -226,7 +226,7 @@ body.admin-bar .rmaps-site-header {
 	gap: 24px;
 }
 
-.rmaps-menu {
+.rmaps-theme-menu {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -234,26 +234,26 @@ body.admin-bar .rmaps-site-header {
 	align-items: center;
 	gap: 4px;
 }
-.rmaps-menu > li { position: relative; }
-.rmaps-menu a {
+.rmaps-theme-menu > li { position: relative; }
+.rmaps-theme-menu a {
 	display: block;
 	padding: 8px 12px;
-	border-radius: var(--rmaps-radius-md);
-	color: var(--rmaps-fg-soft);
+	border-radius: var(--rmaps-theme-radius-md);
+	color: var(--rmaps-theme-fg-soft);
 	font-weight: 500;
 	font-size: .95rem;
 	transition: color .15s ease, background-color .15s ease;
 }
-.rmaps-menu a:hover,
-.rmaps-menu a:focus-visible,
-.rmaps-menu .current-menu-item > a,
-.rmaps-menu .current-menu-ancestor > a {
-	color: var(--rmaps-fg);
-	background: var(--rmaps-bg-soft);
+.rmaps-theme-menu a:hover,
+.rmaps-theme-menu a:focus-visible,
+.rmaps-theme-menu .current-menu-item > a,
+.rmaps-theme-menu .current-menu-ancestor > a {
+	color: var(--rmaps-theme-fg);
+	background: var(--rmaps-theme-bg-soft);
 }
 
 /* dropdown indicator + submenu */
-.rmaps-menu .menu-item-has-children > a::after {
+.rmaps-theme-menu .menu-item-has-children > a::after {
 	content: "";
 	display: inline-block;
 	width: 8px;
@@ -264,7 +264,7 @@ body.admin-bar .rmaps-site-header {
 	transform: translateY(-2px) rotate(45deg);
 	opacity: .7;
 }
-.rmaps-menu .sub-menu {
+.rmaps-theme-menu .sub-menu {
 	position: absolute;
 	top: calc(100% + 8px);
 	left: 0;
@@ -272,10 +272,10 @@ body.admin-bar .rmaps-site-header {
 	margin: 0;
 	padding: 8px;
 	list-style: none;
-	background: var(--rmaps-bg-elev);
-	border: 1px solid var(--rmaps-border);
-	border-radius: var(--rmaps-radius-md);
-	box-shadow: var(--rmaps-shadow-md);
+	background: var(--rmaps-theme-bg-elev);
+	border: 1px solid var(--rmaps-theme-border);
+	border-radius: var(--rmaps-theme-radius-md);
+	box-shadow: var(--rmaps-theme-shadow-md);
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
@@ -285,88 +285,226 @@ body.admin-bar .rmaps-site-header {
 	transition: opacity .15s ease, transform .15s ease, visibility .15s;
 	z-index: 60;
 }
-.rmaps-menu .menu-item-has-children:hover > .sub-menu,
-.rmaps-menu .menu-item-has-children:focus-within > .sub-menu {
+.rmaps-theme-menu .menu-item-has-children:hover > .sub-menu,
+.rmaps-theme-menu .menu-item-has-children:focus-within > .sub-menu {
 	opacity: 1;
 	visibility: visible;
 	transform: translateY(0);
 }
-.rmaps-menu .sub-menu a { padding: 8px 10px; border-radius: var(--rmaps-radius-sm); }
+.rmaps-theme-menu .sub-menu a { padding: 8px 10px; border-radius: var(--rmaps-theme-radius-sm); }
 
-.rmaps-header-actions {
+.rmaps-theme-header-actions {
 	display: flex;
 	align-items: center;
 	gap: 12px;
 }
 
-.rmaps-engine-badge {
+.rmaps-theme-engine-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 4px 10px;
-	border-radius: var(--rmaps-radius-pill);
-	background: var(--rmaps-bg-soft);
-	border: 1px solid var(--rmaps-border-soft);
-	color: var(--rmaps-fg-soft);
+	border-radius: var(--rmaps-theme-radius-pill);
+	background: var(--rmaps-theme-bg-soft);
+	border: 1px solid var(--rmaps-theme-border-soft);
+	color: var(--rmaps-theme-fg-soft);
 	font-size: .8rem;
 	font-weight: 500;
 }
-.rmaps-engine-dot {
+.rmaps-theme-engine-dot {
 	width: 8px; height: 8px;
 	border-radius: 50%;
-	background: var(--rmaps-engine-google);
+	background: var(--rmaps-theme-engine-google);
 }
-.rmaps-engine-mapbox   .rmaps-engine-dot { background: var(--rmaps-engine-mapbox); }
-.rmaps-engine-maplibre .rmaps-engine-dot { background: var(--rmaps-engine-maplibre); }
+.rmaps-theme-engine-mapbox   .rmaps-theme-engine-dot { background: var(--rmaps-theme-engine-mapbox); }
+.rmaps-theme-engine-maplibre .rmaps-theme-engine-dot { background: var(--rmaps-theme-engine-maplibre); }
 
-.rmaps-theme-toggle {
+/* --- Engine switch (header dropdown) ---------------------------
+ * The active-engine pill in the header doubles as a hover-popover
+ * with the same three engine links `[rmaps_engine_switcher]` emits.
+ * CSS-only on desktop (`:hover` + `:focus-within`); `theme.js` adds
+ * an `is-open` class on touch / keyboard activation so tap-to-open
+ * works on mobile too. */
+.rmaps-theme-engine-switch {
+	position: relative;
+}
+.rmaps-theme-engine-switch-trigger {
+	border: 1px solid var(--rmaps-theme-border-soft);
+	cursor: pointer;
+	font: inherit;
+	font-size: .8rem;
+	font-weight: 500;
+	transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.rmaps-theme-engine-switch-trigger:hover,
+.rmaps-theme-engine-switch-trigger:focus-visible {
+	color: var(--rmaps-theme-fg);
+	border-color: var(--rmaps-theme-fg-mute);
+	background: var(--rmaps-theme-bg-soft);
+	outline: none;
+}
+.rmaps-theme-engine-switch-caret {
+	width: 8px;
+	height: 6px;
+	opacity: .6;
+	transition: transform .15s ease, opacity .15s ease;
+}
+.rmaps-theme-engine-switch:hover .rmaps-theme-engine-switch-caret,
+.rmaps-theme-engine-switch:focus-within .rmaps-theme-engine-switch-caret,
+.rmaps-theme-engine-switch.is-open .rmaps-theme-engine-switch-caret {
+	transform: rotate(180deg);
+	opacity: 1;
+}
+
+.rmaps-theme-engine-switch-menu {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	min-width: 200px;
+	margin: 0;
+	padding: 6px;
+	list-style: none;
+	background: var(--rmaps-theme-bg);
+	border: 1px solid var(--rmaps-theme-border);
+	border-radius: 12px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .14);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(-4px);
+	transition: opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
+	z-index: 200;
+}
+.rmaps-theme-engine-switch:hover .rmaps-theme-engine-switch-menu,
+.rmaps-theme-engine-switch:focus-within .rmaps-theme-engine-switch-menu,
+.rmaps-theme-engine-switch.is-open .rmaps-theme-engine-switch-menu {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+	transition-delay: 0s;
+}
+/* Invisible hover bridge so cursor can travel from the trigger
+ * down to the menu without dropping the :hover state on the gap. */
+.rmaps-theme-engine-switch-menu::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -10px;
+	height: 10px;
+}
+.rmaps-theme-engine-switch-menu li { margin: 0; }
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 9px 12px;
+	border-radius: 8px;
+	color: var(--rmaps-theme-fg-soft);
+	text-decoration: none;
+	font-size: .9rem;
+	font-weight: 500;
+	transition: color .15s ease, background .15s ease;
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button:hover,
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button:focus-visible {
+	color: var(--rmaps-theme-fg);
+	background: var(--rmaps-theme-bg-soft);
+	outline: none;
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button.is-active {
+	color: var(--rmaps-theme-bg);
+	background: var(--rmaps-theme-fg);
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button.is-active:hover {
+	background: var(--rmaps-theme-fg);
+	color: var(--rmaps-theme-bg);
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button-icon {
+	flex: 0 0 18px;
+	width: 18px;
+	height: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button-icon svg {
+	width: 100%;
+	height: 100%;
+}
+.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button-label { flex: 1 1 auto; }
+
+/* Lock + disabled notice — same UX as the shortcode's notice. */
+.rmaps-theme-engine-switch.is-locked .rmaps-theme-engine-switch-menu .rmaps-theme-engine-button {
+	pointer-events: none;
+	opacity: .55;
+}
+.rmaps-theme-engine-switch-notice-row {
+	margin-top: 4px;
+	padding: 8px 12px;
+	border-top: 1px solid var(--rmaps-theme-border-soft);
+}
+.rmaps-theme-engine-switch-notice {
+	margin: 0;
+	font-size: .72rem;
+	line-height: 1.4;
+	color: var(--rmaps-theme-fg-soft);
+}
+.rmaps-theme-engine-switch-notice code {
+	background: var(--rmaps-theme-bg-soft);
+	padding: 1px 5px;
+	border-radius: 4px;
+	font-size: .68rem;
+}
+
+.rmaps-theme-mode-toggle {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	width: 36px;
 	height: 36px;
-	border-radius: var(--rmaps-radius-pill);
-	border: 1px solid var(--rmaps-border);
+	border-radius: var(--rmaps-theme-radius-pill);
+	border: 1px solid var(--rmaps-theme-border);
 	background: transparent;
-	color: var(--rmaps-fg-soft);
+	color: var(--rmaps-theme-fg-soft);
 	cursor: pointer;
 	transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
-.rmaps-theme-toggle:hover, .rmaps-theme-toggle:focus-visible {
-	color: var(--rmaps-fg);
-	border-color: var(--rmaps-fg-mute);
-	background: var(--rmaps-bg-soft);
+.rmaps-theme-mode-toggle:hover, .rmaps-theme-mode-toggle:focus-visible {
+	color: var(--rmaps-theme-fg);
+	border-color: var(--rmaps-theme-fg-mute);
+	background: var(--rmaps-theme-bg-soft);
 }
-.rmaps-theme-toggle svg { width: 18px; height: 18px; }
-.rmaps-theme-toggle .rmaps-icon-moon { display: none; }
-html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-sun  { display: none; }
-html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-block; }
+.rmaps-theme-mode-toggle svg { width: 18px; height: 18px; }
+.rmaps-theme-mode-toggle .rmaps-theme-icon-moon { display: none; }
+html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-sun  { display: none; }
+html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { display: inline-block; }
 
-.rmaps-cta-buy {
+.rmaps-theme-cta-buy {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 9px 16px;
-	background: var(--rmaps-accent);
-	color: var(--rmaps-accent-contrast);
-	border-radius: var(--rmaps-radius-pill);
+	background: var(--rmaps-theme-accent);
+	color: var(--rmaps-theme-accent-contrast);
+	border-radius: var(--rmaps-theme-radius-pill);
 	font-weight: 600;
 	font-size: .9rem;
 	transition: background-color .15s ease, transform .1s ease;
 }
-.rmaps-cta-buy:hover, .rmaps-cta-buy:focus-visible {
-	background: var(--rmaps-accent-hover);
-	color: var(--rmaps-accent-contrast);
+.rmaps-theme-cta-buy:hover, .rmaps-theme-cta-buy:focus-visible {
+	background: var(--rmaps-theme-accent-hover);
+	color: var(--rmaps-theme-accent-contrast);
 	transform: translateY(-1px);
 }
 
-.rmaps-burger {
+.rmaps-theme-burger {
 	display: none;
 	width: 40px;
 	height: 40px;
-	border: 1px solid var(--rmaps-border);
+	border: 1px solid var(--rmaps-theme-border);
 	background: transparent;
-	border-radius: var(--rmaps-radius-md);
+	border-radius: var(--rmaps-theme-radius-md);
 	cursor: pointer;
 	padding: 0;
 	align-items: center;
@@ -374,75 +512,75 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 	flex-direction: column;
 	gap: 4px;
 }
-.rmaps-burger span {
+.rmaps-theme-burger span {
 	display: block;
 	width: 18px;
 	height: 2px;
-	background: var(--rmaps-fg);
+	background: var(--rmaps-theme-fg);
 	transition: transform .2s, opacity .2s;
 }
-.rmaps-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-.rmaps-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-.rmaps-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.rmaps-theme-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.rmaps-theme-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.rmaps-theme-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-.rmaps-menu-fallback { gap: 8px; }
-.rmaps-menu-hint { font-size: .85rem; color: var(--rmaps-fg-mute); }
+.rmaps-theme-menu-fallback { gap: 8px; }
+.rmaps-theme-menu-hint { font-size: .85rem; color: var(--rmaps-theme-fg-mute); }
 
 /* ====================================================
  * 5. Footer
  * ====================================================*/
-.rmaps-site-footer {
-	border-top: 1px solid var(--rmaps-border-soft);
-	background: var(--rmaps-bg-soft);
+.rmaps-theme-site-footer {
+	border-top: 1px solid var(--rmaps-theme-border-soft);
+	background: var(--rmaps-theme-bg-soft);
 	padding: 48px 0 32px;
 	margin-top: 64px;
 }
-.rmaps-footer-inner {
+.rmaps-theme-footer-inner {
 	display: grid;
 	grid-template-columns: 1fr auto;
 	gap: 32px;
 	align-items: center;
 }
-.rmaps-footer-brand {
+.rmaps-theme-footer-brand {
 	display: flex;
 	align-items: center;
 	gap: 12px;
 }
-.rmaps-footer-brand .rmaps-brand-mark { color: var(--rmaps-accent); width: 28px; height: 28px; }
-.rmaps-footer-tagline {
+.rmaps-theme-footer-brand .rmaps-theme-brand-mark { color: var(--rmaps-theme-accent); width: 28px; height: 28px; }
+.rmaps-theme-footer-tagline {
 	margin: 0;
-	color: var(--rmaps-fg-soft);
+	color: var(--rmaps-theme-fg-soft);
 	font-size: .95rem;
 }
-.rmaps-footer-nav .rmaps-menu { gap: 4px; flex-wrap: wrap; }
-.rmaps-footer-nav .rmaps-menu a {
+.rmaps-theme-footer-nav .rmaps-theme-menu { gap: 4px; flex-wrap: wrap; }
+.rmaps-theme-footer-nav .rmaps-theme-menu a {
 	padding: 6px 10px;
-	color: var(--rmaps-fg-soft);
+	color: var(--rmaps-theme-fg-soft);
 	font-size: .9rem;
 }
-.rmaps-footer-nav .rmaps-menu a:hover { color: var(--rmaps-fg); }
-.rmaps-colophon {
+.rmaps-theme-footer-nav .rmaps-theme-menu a:hover { color: var(--rmaps-theme-fg); }
+.rmaps-theme-colophon {
 	grid-column: 1 / -1;
 	margin: 16px 0 0;
 	padding-top: 16px;
-	border-top: 1px solid var(--rmaps-border-soft);
-	color: var(--rmaps-fg-mute);
+	border-top: 1px solid var(--rmaps-theme-border-soft);
+	color: var(--rmaps-theme-fg-mute);
 	font-size: .85rem;
 }
 
 /* ====================================================
  * 6. Engine switcher
  * ====================================================*/
-.rmaps-engine-switcher {
+.rmaps-theme-engine-switcher {
 	width: 100%;
-	background: var(--rmaps-bg-engine);
-	border-top: 1px solid var(--rmaps-border-soft);
-	border-bottom: 1px solid var(--rmaps-border-soft);
+	background: var(--rmaps-theme-bg-engine);
+	border-top: 1px solid var(--rmaps-theme-border-soft);
+	border-bottom: 1px solid var(--rmaps-theme-border-soft);
 	padding: 16px clamp(16px, 4vw, 32px);
 }
-.rmaps-engine-switcher-inner {
+.rmaps-theme-engine-switcher-inner {
 	width: 100%;
-	max-width: var(--rmaps-container);
+	max-width: var(--rmaps-theme-container);
 	margin-inline: auto;
 	display: flex;
 	flex-wrap: wrap;
@@ -450,76 +588,76 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 	justify-content: center;
 	gap: 12px 24px;
 }
-.rmaps-engine-switcher-label {
+.rmaps-theme-engine-switcher-label {
 	margin: 0;
 	font-size: .85rem;
-	color: var(--rmaps-fg-mute);
+	color: var(--rmaps-theme-fg-mute);
 	font-weight: 500;
 	letter-spacing: .02em;
 	text-transform: uppercase;
 }
-.rmaps-engine-switcher-buttons {
+.rmaps-theme-engine-switcher-buttons {
 	display: inline-flex;
 	gap: 8px;
 	padding: 4px;
-	border-radius: var(--rmaps-radius-pill);
-	background: var(--rmaps-bg-elev);
-	border: 1px solid var(--rmaps-border);
-	box-shadow: var(--rmaps-shadow-sm);
+	border-radius: var(--rmaps-theme-radius-pill);
+	background: var(--rmaps-theme-bg-elev);
+	border: 1px solid var(--rmaps-theme-border);
+	box-shadow: var(--rmaps-theme-shadow-sm);
 }
-.rmaps-engine-button {
+.rmaps-theme-engine-button {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 	padding: 9px 16px;
-	border-radius: var(--rmaps-radius-pill);
-	color: var(--rmaps-fg-soft);
+	border-radius: var(--rmaps-theme-radius-pill);
+	color: var(--rmaps-theme-fg-soft);
 	font-weight: 600;
 	font-size: .9rem;
 	background: transparent;
 	transition: background-color .15s ease, color .15s ease, transform .1s ease;
 	white-space: nowrap;
 }
-.rmaps-engine-button:hover, .rmaps-engine-button:focus-visible {
-	background: var(--rmaps-bg-soft);
-	color: var(--rmaps-fg);
+.rmaps-theme-engine-button:hover, .rmaps-theme-engine-button:focus-visible {
+	background: var(--rmaps-theme-bg-soft);
+	color: var(--rmaps-theme-fg);
 }
 /* Active state — uniform across all three engines. An earlier
  * version painted each active button in its engine brand colour
  * (Google blue / Mapbox teal / MapLibre green), but the inconsistent
  * accents distracted from the actual signal ("which engine is
- * active"). Single `var(--rmaps-fg)` pill matches the rest of the
+ * active"). Single `var(--rmaps-theme-fg)` pill matches the rest of the
  * dark-on-light UI and reads cleanly on both themes. The small
  * engine-dot badge in the header still uses the brand colour for
  * quick identification. */
-.rmaps-engine-button.is-active {
-	background: var(--rmaps-fg);
-	color: var(--rmaps-bg);
-	box-shadow: var(--rmaps-shadow-sm);
+.rmaps-theme-engine-button.is-active {
+	background: var(--rmaps-theme-fg);
+	color: var(--rmaps-theme-bg);
+	box-shadow: var(--rmaps-theme-shadow-sm);
 }
-.rmaps-engine-button.is-active:hover { background: var(--rmaps-fg); color: var(--rmaps-bg); }
-.rmaps-engine-button-icon {
+.rmaps-theme-engine-button.is-active:hover { background: var(--rmaps-theme-fg); color: var(--rmaps-theme-bg); }
+.rmaps-theme-engine-button-icon {
 	display: inline-flex;
 	width: 18px;
 	height: 18px;
 }
-.rmaps-engine-button-icon svg { width: 100%; height: 100%; }
+.rmaps-theme-engine-button-icon svg { width: 100%; height: 100%; }
 
-.rmaps-engine-switcher.is-compact .rmaps-engine-button-label { display: none; }
-.rmaps-engine-switcher.is-compact .rmaps-engine-button { padding: 9px 12px; }
+.rmaps-theme-engine-switcher.is-compact .rmaps-theme-engine-button-label { display: none; }
+.rmaps-theme-engine-switcher.is-compact .rmaps-theme-engine-button { padding: 9px 12px; }
 
-.rmaps-engine-switcher-notice {
+.rmaps-theme-engine-switcher-notice {
 	flex-basis: 100%;
 	margin: 0;
 	padding: 10px 14px;
 	background: rgba(234, 179, 8, .12);
 	border: 1px solid rgba(234, 179, 8, .35);
-	color: var(--rmaps-fg-soft);
-	border-radius: var(--rmaps-radius-md);
+	color: var(--rmaps-theme-fg-soft);
+	border-radius: var(--rmaps-theme-radius-md);
 	font-size: .85rem;
 	text-align: center;
 }
-.rmaps-engine-switcher-notice code {
+.rmaps-theme-engine-switcher-notice code {
 	background: transparent;
 	border: 0;
 	color: inherit;
@@ -529,53 +667,53 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 /* ====================================================
  * 7. Page content, features, hero
  * ====================================================*/
-.rmaps-page-header {
+.rmaps-theme-page-header {
 	padding-top: clamp(32px, 5vw, 56px);
 	padding-bottom: clamp(16px, 3vw, 24px);
 }
-.rmaps-page-title {
+.rmaps-theme-page-title {
 	margin: 0 0 8px;
 }
-.rmaps-page-content {
+.rmaps-theme-page-content {
 	padding-bottom: clamp(32px, 5vw, 56px);
 }
 /* No global content-width constraint — children flow at whatever
- * width their parent gives them: `.rmaps-container` (1180px) on the
+ * width their parent gives them: `.rmaps-theme-container` (1180px) on the
  * standard page template, full viewport on the full-width template.
  * Opt into a narrower reading column anywhere by wrapping a chunk
- * in `<div class="rmaps-prose">…</div>` (760px + centered). */
-.rmaps-prose {
+ * in `<div class="rmaps-theme-prose">…</div>` (760px + centered). */
+.rmaps-theme-prose {
 	max-width: 760px;
 	margin-inline: auto;
 }
-.rmaps-page-content-full > .rmaps-react-mount,
-.rmaps-page-content-full > .rmaps-map-frontend-wrap,
-.rmaps-page-content-full .rmaps-react-mount,
-.rmaps-page-content-full .rmaps-map-frontend-wrap {
+.rmaps-theme-page-content-full > .rmaps-react-mount,
+.rmaps-theme-page-content-full > .rmaps-map-frontend-wrap,
+.rmaps-theme-page-content-full .rmaps-react-mount,
+.rmaps-theme-page-content-full .rmaps-map-frontend-wrap {
 	max-width: 100%;
 	padding-inline: 0;
 }
 
-.rmaps-page-content h2 { margin-top: 1.5em; }
-.rmaps-page-content ul, .rmaps-page-content ol { padding-left: 1.4em; margin: 0 0 1.2em; }
-.rmaps-page-content blockquote {
+.rmaps-theme-page-content h2 { margin-top: 1.5em; }
+.rmaps-theme-page-content ul, .rmaps-theme-page-content ol { padding-left: 1.4em; margin: 0 0 1.2em; }
+.rmaps-theme-page-content blockquote {
 	margin: 1.5em 0;
 	padding: 12px 18px;
-	border-left: 3px solid var(--rmaps-accent);
-	color: var(--rmaps-fg-soft);
+	border-left: 3px solid var(--rmaps-theme-accent);
+	color: var(--rmaps-theme-fg-soft);
 	font-style: italic;
 }
 
 /* Hero */
-.rmaps-hero { padding: clamp(56px, 8vw, 96px) 0 clamp(40px, 5vw, 64px); text-align: center; }
-.rmaps-hero-title { font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem); }
-.rmaps-hero-tagline {
+.rmaps-theme-hero { padding: clamp(56px, 8vw, 96px) 0 clamp(40px, 5vw, 64px); text-align: center; }
+.rmaps-theme-hero-title { font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem); }
+.rmaps-theme-hero-tagline {
 	font-size: clamp(1.05rem, .95rem + .3vw, 1.25rem);
-	color: var(--rmaps-fg-soft);
+	color: var(--rmaps-theme-fg-soft);
 	max-width: 640px;
 	margin: 0 auto 28px;
 }
-.rmaps-hero-cta {
+.rmaps-theme-hero-cta {
 	display: flex;
 	gap: 12px;
 	justify-content: center;
@@ -583,125 +721,125 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 }
 
 /* Buttons */
-.rmaps-button {
+.rmaps-theme-button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	padding: 10px 18px;
-	border-radius: var(--rmaps-radius-pill);
+	border-radius: var(--rmaps-theme-radius-pill);
 	font-weight: 600;
 	font-size: .95rem;
 	transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
 }
-.rmaps-button-primary {
-	background: var(--rmaps-accent);
-	color: var(--rmaps-accent-contrast);
+.rmaps-theme-button-primary {
+	background: var(--rmaps-theme-accent);
+	color: var(--rmaps-theme-accent-contrast);
 }
-.rmaps-button-primary:hover, .rmaps-button-primary:focus-visible {
-	background: var(--rmaps-accent-hover);
-	color: var(--rmaps-accent-contrast);
+.rmaps-theme-button-primary:hover, .rmaps-theme-button-primary:focus-visible {
+	background: var(--rmaps-theme-accent-hover);
+	color: var(--rmaps-theme-accent-contrast);
 	transform: translateY(-1px);
 }
-.rmaps-button-ghost {
+.rmaps-theme-button-ghost {
 	background: transparent;
-	color: var(--rmaps-fg);
-	border: 1px solid var(--rmaps-border);
+	color: var(--rmaps-theme-fg);
+	border: 1px solid var(--rmaps-theme-border);
 }
-.rmaps-button-ghost:hover, .rmaps-button-ghost:focus-visible {
-	color: var(--rmaps-fg);
-	border-color: var(--rmaps-fg-mute);
-	background: var(--rmaps-bg-soft);
+.rmaps-theme-button-ghost:hover, .rmaps-theme-button-ghost:focus-visible {
+	color: var(--rmaps-theme-fg);
+	border-color: var(--rmaps-theme-fg-mute);
+	background: var(--rmaps-theme-bg-soft);
 }
 
 /* Feature grid */
-.rmaps-features { background: var(--rmaps-bg-soft); }
-.rmaps-feature-grid {
+.rmaps-theme-features { background: var(--rmaps-theme-bg-soft); }
+.rmaps-theme-feature-grid {
 	display: grid;
 	gap: 20px;
 	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
-.rmaps-feature-card {
-	background: var(--rmaps-bg-elev);
-	border: 1px solid var(--rmaps-border-soft);
-	border-radius: var(--rmaps-radius-lg);
+.rmaps-theme-feature-card {
+	background: var(--rmaps-theme-bg-elev);
+	border: 1px solid var(--rmaps-theme-border-soft);
+	border-radius: var(--rmaps-theme-radius-lg);
 	padding: 24px;
 	transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-.rmaps-feature-card:hover {
-	border-color: var(--rmaps-border);
-	box-shadow: var(--rmaps-shadow-md);
+.rmaps-theme-feature-card:hover {
+	border-color: var(--rmaps-theme-border);
+	box-shadow: var(--rmaps-theme-shadow-md);
 	transform: translateY(-2px);
 }
-.rmaps-feature-icon {
+.rmaps-theme-feature-icon {
 	display: inline-flex;
 	width: 38px;
 	height: 38px;
 	padding: 8px;
-	background: var(--rmaps-accent-soft);
-	color: var(--rmaps-accent);
-	border-radius: var(--rmaps-radius-md);
+	background: var(--rmaps-theme-accent-soft);
+	color: var(--rmaps-theme-accent);
+	border-radius: var(--rmaps-theme-radius-md);
 	margin-bottom: 14px;
 }
-.rmaps-feature-icon svg { width: 100%; height: 100%; }
-.rmaps-feature-title { margin: 0 0 6px; font-size: 1.05rem; }
-.rmaps-feature-body { margin: 0; color: var(--rmaps-fg-soft); font-size: .95rem; }
+.rmaps-theme-feature-icon svg { width: 100%; height: 100%; }
+.rmaps-theme-feature-title { margin: 0 0 6px; font-size: 1.05rem; }
+.rmaps-theme-feature-body { margin: 0; color: var(--rmaps-theme-fg-soft); font-size: .95rem; }
 
 /* Post list (blog / archive) */
-.rmaps-post-list {
+.rmaps-theme-post-list {
 	display: grid;
 	gap: 24px;
 	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	margin-top: 24px;
 }
-.rmaps-post-card {
-	background: var(--rmaps-bg-elev);
-	border: 1px solid var(--rmaps-border-soft);
-	border-radius: var(--rmaps-radius-lg);
+.rmaps-theme-post-card {
+	background: var(--rmaps-theme-bg-elev);
+	border: 1px solid var(--rmaps-theme-border-soft);
+	border-radius: var(--rmaps-theme-radius-lg);
 	padding: 18px;
 }
-.rmaps-post-thumb img { border-radius: var(--rmaps-radius-md); }
-.rmaps-post-title { font-size: 1.15rem; margin: 12px 0 6px; }
-.rmaps-post-title a { color: var(--rmaps-fg); }
-.rmaps-post-meta { color: var(--rmaps-fg-mute); font-size: .85rem; display: flex; gap: 8px; }
-.rmaps-post-excerpt { color: var(--rmaps-fg-soft); font-size: .95rem; }
+.rmaps-theme-post-thumb img { border-radius: var(--rmaps-theme-radius-md); }
+.rmaps-theme-post-title { font-size: 1.15rem; margin: 12px 0 6px; }
+.rmaps-theme-post-title a { color: var(--rmaps-theme-fg); }
+.rmaps-theme-post-meta { color: var(--rmaps-theme-fg-mute); font-size: .85rem; display: flex; gap: 8px; }
+.rmaps-theme-post-excerpt { color: var(--rmaps-theme-fg-soft); font-size: .95rem; }
 
 /* Search form */
-.rmaps-search-form {
+.rmaps-theme-search-form {
 	display: inline-flex;
 	gap: 8px;
 	flex-wrap: wrap;
 	align-items: center;
 }
-.rmaps-search-field {
+.rmaps-theme-search-field {
 	padding: 10px 14px;
-	border-radius: var(--rmaps-radius-pill);
-	border: 1px solid var(--rmaps-border);
-	background: var(--rmaps-bg);
-	color: var(--rmaps-fg);
+	border-radius: var(--rmaps-theme-radius-pill);
+	border: 1px solid var(--rmaps-theme-border);
+	background: var(--rmaps-theme-bg);
+	color: var(--rmaps-theme-fg);
 	font: inherit;
 	min-width: 220px;
 }
-.rmaps-search-submit {
+.rmaps-theme-search-submit {
 	padding: 10px 18px;
-	border-radius: var(--rmaps-radius-pill);
+	border-radius: var(--rmaps-theme-radius-pill);
 	border: 0;
-	background: var(--rmaps-accent);
-	color: var(--rmaps-accent-contrast);
+	background: var(--rmaps-theme-accent);
+	color: var(--rmaps-theme-accent-contrast);
 	font-weight: 600;
 	cursor: pointer;
 }
 
 /* 404 */
-.rmaps-section-404 { text-align: center; padding: 96px 0; }
-.rmaps-404-code {
+.rmaps-theme-section-404 { text-align: center; padding: 96px 0; }
+.rmaps-theme-404-code {
 	font-size: clamp(4rem, 8vw, 7rem);
 	margin: 0 0 8px;
-	color: var(--rmaps-accent);
+	color: var(--rmaps-theme-accent);
 	letter-spacing: -0.04em;
 }
 
 /* Comments */
-.rmaps-comments { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rmaps-border-soft); }
+.rmaps-theme-comments { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rmaps-theme-border-soft); }
 
 /* ====================================================
  * 8. Map shortcode wrappers — let `[webmap]` breathe
@@ -715,9 +853,9 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
  * 9. Responsive
  * ====================================================*/
 @media (max-width: 880px) {
-	.rmaps-burger { display: inline-flex; }
+	.rmaps-theme-burger { display: inline-flex; }
 
-	.rmaps-primary-nav {
+	.rmaps-theme-primary-nav {
 		position: absolute;
 		top: 100%;
 		left: 0;
@@ -726,57 +864,57 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 		align-items: stretch;
 		gap: 16px;
 		padding: 16px clamp(16px, 4vw, 32px) 24px;
-		background: var(--rmaps-bg);
-		border-bottom: 1px solid var(--rmaps-border-soft);
-		box-shadow: var(--rmaps-shadow-md);
+		background: var(--rmaps-theme-bg);
+		border-bottom: 1px solid var(--rmaps-theme-border-soft);
+		box-shadow: var(--rmaps-theme-shadow-md);
 		transform: translateY(-8px);
 		opacity: 0;
 		visibility: hidden;
 		transition: opacity .15s ease, transform .15s ease, visibility .15s;
 	}
-	.rmaps-primary-nav.is-open {
+	.rmaps-theme-primary-nav.is-open {
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0);
 	}
-	.rmaps-menu {
+	.rmaps-theme-menu {
 		flex-direction: column;
 		align-items: stretch;
 		gap: 2px;
 	}
-	.rmaps-menu a { padding: 12px 14px; font-size: 1rem; }
-	.rmaps-menu .menu-item-has-children > a::after {
+	.rmaps-theme-menu a { padding: 12px 14px; font-size: 1rem; }
+	.rmaps-theme-menu .menu-item-has-children > a::after {
 		float: right;
 		margin-top: 4px;
 	}
-	.rmaps-menu .sub-menu {
+	.rmaps-theme-menu .sub-menu {
 		position: static;
 		opacity: 1;
 		visibility: visible;
 		transform: none;
 		box-shadow: none;
 		border: 0;
-		background: var(--rmaps-bg-soft);
+		background: var(--rmaps-theme-bg-soft);
 		padding: 4px;
 		margin: 4px 0 4px 16px;
 	}
-	.rmaps-header-actions {
+	.rmaps-theme-header-actions {
 		flex-wrap: wrap;
 		justify-content: flex-start;
 		padding-top: 8px;
-		border-top: 1px solid var(--rmaps-border-soft);
+		border-top: 1px solid var(--rmaps-theme-border-soft);
 	}
 
-	.rmaps-footer-inner {
+	.rmaps-theme-footer-inner {
 		grid-template-columns: 1fr;
 		text-align: left;
 	}
 }
 
 @media (max-width: 540px) {
-	.rmaps-engine-button-label { display: none; }
-	.rmaps-engine-button { padding: 9px 12px; }
-	.rmaps-cta-buy { padding: 9px 14px; }
+	.rmaps-theme-engine-button-label { display: none; }
+	.rmaps-theme-engine-button { padding: 9px 12px; }
+	.rmaps-theme-cta-buy { padding: 9px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -784,4 +922,44 @@ html[data-theme="dark"] .rmaps-theme-toggle .rmaps-icon-moon { display: inline-b
 		transition: none !important;
 		animation: none !important;
 	}
+}
+
+/* ====================================================
+ * Gutenberg Columns — responsive stacking
+ *
+ * WordPress on this install lazy-loads block CSS per-block, and on
+ * pages where the Columns block isn't auto-detected the structural
+ * `wp-block-library-css` stylesheet (which carries the "Stack on
+ * mobile" + flex-basis rules) doesn't get enqueued. Re-declare the
+ * essentials here so the editor toggle actually does something on
+ * the front-end regardless of what core decides to ship.
+ *
+ * Two markup variants are handled:
+ *   - Modern Gutenberg (>= WP 5.7): stacking is the DEFAULT — the
+ *     opt-out is `.is-not-stacked-on-mobile`.
+ *   - Legacy Gutenberg: stacking is opt-IN via `.is-stacked-on-mobile`.
+ *     The metabox toggle in the editor (the one labelled "Stack on
+ *     mobile") writes whichever variant the user's block version uses.
+ * ====================================================*/
+.wp-block-columns {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wp--style--block-gap, 24px);
+}
+.wp-block-columns > .wp-block-column {
+	flex-basis: 0;
+	flex-grow: 1;
+	min-width: 0;
+	word-break: break-word;
+	overflow-wrap: break-word;
+}
+@media (max-width: 781px) {
+	.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column,
+	.wp-block-columns.is-stacked-on-mobile        > .wp-block-column {
+		flex-basis: 100% !important;
+	}
+}
+@media (min-width: 782px) {
+	.wp-block-columns { flex-wrap: nowrap; }
+	.wp-block-columns > .wp-block-column[style*="flex-basis"] { flex-grow: 0; }
 }

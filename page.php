@@ -8,13 +8,13 @@
  */
 get_header(); ?>
 
-<article id="page-<?php the_ID(); ?>" <?php post_class( 'rmaps-page rmaps-page-standard' ); ?>>
+<article id="page-<?php the_ID(); ?>" <?php post_class( 'rmaps-theme-page rmaps-theme-page-standard' ); ?>>
 	<?php while ( have_posts() ) : the_post(); ?>
-		<header class="rmaps-page-header rmaps-container">
-			<h1 class="rmaps-page-title"><?php the_title(); ?></h1>
+		<header class="rmaps-theme-page-header rmaps-theme-container">
+			<h1 class="rmaps-theme-page-title"><?php the_title(); ?></h1>
 		</header>
 
-		<div class="rmaps-page-content rmaps-container">
+		<div class="rmaps-theme-page-content rmaps-theme-container">
 			<?php the_content(); ?>
 		</div>
 	<?php endwhile; ?>

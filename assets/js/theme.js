@@ -26,10 +26,11 @@
 
 	function applyTheme(theme) {
 		document.documentElement.setAttribute('data-theme', theme);
-		var btn = document.querySelector('.rmaps-theme-toggle');
+		var btn = document.querySelector('.rmaps-theme-mode-toggle');
 		if (btn) {
-			btn.setAttribute('aria-label',
-				theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+			var label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+			btn.setAttribute('aria-label', label);
+			btn.setAttribute('title', label);
 			btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
 		}
 		// Tell the plugin's React MapApp(s) to swap the rendered map
@@ -60,7 +61,7 @@
 		}
 		applyTheme(theme);
 
-		var btn = document.querySelector('.rmaps-theme-toggle');
+		var btn = document.querySelector('.rmaps-theme-mode-toggle');
 		if (!btn) return;
 		btn.addEventListener('click', function () {
 			var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -73,8 +74,8 @@
 	 * Burger menu
 	 * ------------------------------------------------*/
 	function initBurger() {
-		var burger = document.querySelector('.rmaps-burger');
-		var nav    = document.getElementById('rmaps-primary-menu');
+		var burger = document.querySelector('.rmaps-theme-burger');
+		var nav    = document.getElementById('rmaps-theme-primary-menu');
 		if (!burger || !nav) return;
 
 		burger.addEventListener('click', function () {
@@ -108,7 +109,7 @@
 	 * lets us hook analytics later without re-rendering.
 	 * ------------------------------------------------*/
 	function initEngineSwitcher() {
-		var buttons = document.querySelectorAll('.rmaps-engine-button[data-engine]');
+		var buttons = document.querySelectorAll('.rmaps-theme-engine-button[data-engine]');
 		if (!buttons.length) return;
 
 		Array.prototype.forEach.call(buttons, function (btn) {
@@ -122,7 +123,9 @@
 				// to the browser's default handling.
 				if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
-				var wrap = btn.closest('.rmaps-engine-switcher');
+				// Loading state — works for both the `[rmaps_engine_switcher]`
+				// shortcode wrapper and the header pill dropdown.
+				var wrap = btn.closest('.rmaps-theme-engine-switcher, .rmaps-theme-engine-switch');
 				if (wrap) wrap.classList.add('is-loading');
 
 				if (!data.urlOverrideActive) {
@@ -133,12 +136,53 @@
 	}
 
 	/* ------------------------------------------------
+	 * Engine switch — header pill dropdown
+	 * CSS handles desktop hover + keyboard `:focus-within`. JS adds
+	 * an `is-open` class so tap-to-open works on touch devices and
+	 * Esc / outside-click closes the menu.
+	 * ------------------------------------------------*/
+	function initEngineSwitch() {
+		var wrap = document.querySelector('.rmaps-theme-engine-switch');
+		if (!wrap) return;
+		var trigger = wrap.querySelector('.rmaps-theme-engine-switch-trigger');
+		if (!trigger) return;
+
+		function open() {
+			wrap.classList.add('is-open');
+			trigger.setAttribute('aria-expanded', 'true');
+		}
+		function close() {
+			wrap.classList.remove('is-open');
+			trigger.setAttribute('aria-expanded', 'false');
+		}
+
+		trigger.addEventListener('click', function (e) {
+			e.preventDefault();
+			if (wrap.classList.contains('is-open')) close(); else open();
+		});
+
+		document.addEventListener('click', function (e) {
+			if (!wrap.classList.contains('is-open')) return;
+			if (wrap.contains(e.target)) return;
+			close();
+		});
+
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && wrap.classList.contains('is-open')) {
+				close();
+				trigger.focus();
+			}
+		});
+	}
+
+	/* ------------------------------------------------
 	 * Boot
 	 * ------------------------------------------------*/
 	function boot() {
 		initTheme();
 		initBurger();
 		initEngineSwitcher();
+		initEngineSwitch();
 	}
 
 	if (document.readyState === 'loading') {

@@ -107,9 +107,9 @@ add_shortcode( 'rmaps_engine_switcher', function ( $atts ) {
 	), $atts, 'rmaps_engine_switcher' );
 
 	ob_start();
-	set_query_var( 'rmaps_switcher_atts', $atts );
+	set_query_var( 'rmaps_theme_switcher_atts', $atts );
 	get_template_part( 'template-parts/engine-switcher' );
-	set_query_var( 'rmaps_switcher_atts', null );
+	set_query_var( 'rmaps_theme_switcher_atts', null );
 	return ob_get_clean();
 } );
 
@@ -161,7 +161,7 @@ if ( ! function_exists( 'rmaps_theme_active_engine' ) ) {
  * fire.
  */
 if ( ! function_exists( 'rmaps_theme_render_flat_menu' ) ) {
-	function rmaps_theme_render_flat_menu( $location, $classes = 'rmaps-menu rmaps-menu-footer' ) {
+	function rmaps_theme_render_flat_menu( $location, $classes = 'rmaps-theme-menu rmaps-theme-menu-footer' ) {
 		$locations = get_nav_menu_locations();
 		if ( empty( $locations[ $location ] ) ) return false;
 
@@ -271,10 +271,10 @@ add_action( 'wp_head', function () {
 add_filter( 'body_class', function ( $classes ) {
 	$engine = rmaps_theme_active_engine();
 	if ( in_array( $engine, array( 'google', 'mapbox', 'maplibre' ), true ) ) {
-		$classes[] = 'rmaps-engine-' . $engine;
+		$classes[] = 'rmaps-theme-engine-' . $engine;
 	}
 	if ( defined( 'RMAPS_ALLOW_ENGINE_URL_OVERRIDE' ) && RMAPS_ALLOW_ENGINE_URL_OVERRIDE ) {
-		$classes[] = 'rmaps-engine-override-enabled';
+		$classes[] = 'rmaps-theme-engine-override-enabled';
 	}
 	return $classes;
 } );

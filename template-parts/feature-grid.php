@@ -45,18 +45,18 @@ $icons = array(
 );
 ?>
 
-<section class="rmaps-section rmaps-features">
-	<div class="rmaps-container">
-		<div class="rmaps-feature-grid">
+<section class="rmaps-theme-section rmaps-theme-features">
+	<div class="rmaps-theme-container">
+		<div class="rmaps-theme-feature-grid">
 			<?php foreach ( $features as $feat ) :
 				$icon_key = isset( $feat['icon'] ) ? (string) $feat['icon'] : 'pin';
 				?>
-				<article class="rmaps-feature-card">
-					<div class="rmaps-feature-icon" aria-hidden="true">
+				<article class="rmaps-theme-feature-card">
+					<div class="rmaps-theme-feature-icon" aria-hidden="true">
 						<?php echo $icons[ $icon_key ] ?? $icons['pin']; // phpcs:ignore — static SVG ?>
 					</div>
-					<h3 class="rmaps-feature-title"><?php echo esc_html( $feat['title'] ); ?></h3>
-					<p class="rmaps-feature-body"><?php echo esc_html( $feat['body'] ); ?></p>
+					<h3 class="rmaps-theme-feature-title"><?php echo esc_html( $feat['title'] ); ?></h3>
+					<p class="rmaps-theme-feature-body"><?php echo esc_html( $feat['body'] ); ?></p>
 				</article>
 			<?php endforeach; ?>
 		</div>
