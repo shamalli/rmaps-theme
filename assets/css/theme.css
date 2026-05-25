@@ -35,6 +35,10 @@
 	--rmaps-theme-accent-contrast: #ffffff;
 	--rmaps-theme-accent-soft:   rgba(37, 99, 235, 0.1);
 
+	--rmaps-theme-danger:          #dc2626;
+	--rmaps-theme-danger-hover:    #b91c1c;
+	--rmaps-theme-danger-contrast: #ffffff;
+
 	--rmaps-theme-engine-google:   #1a73e8;
 	--rmaps-theme-engine-mapbox:   #1f82a5;
 	--rmaps-theme-engine-maplibre: #2a9d8f;
@@ -69,6 +73,10 @@ html[data-theme="dark"] {
 	--rmaps-theme-accent-hover:  #7eb0ff;
 	--rmaps-theme-accent-contrast: #0b0d10;
 	--rmaps-theme-accent-soft:   rgba(92, 155, 255, 0.15);
+
+	--rmaps-theme-danger:          #ef4444;
+	--rmaps-theme-danger-hover:    #f87171;
+	--rmaps-theme-danger-contrast: #0b0d10;
 
 	--rmaps-theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
 	--rmaps-theme-shadow-md: 0 6px 18px rgba(0, 0, 0, .45);
@@ -480,21 +488,37 @@ body.admin-bar .rmaps-theme-site-header {
 html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-sun  { display: none; }
 html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { display: inline-block; }
 
-.rmaps-theme-cta-buy {
+.rmaps-theme-cta-buy,
+.rmaps-theme-cta-submit {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 9px 16px;
-	background: var(--rmaps-theme-accent);
-	color: var(--rmaps-theme-accent-contrast);
 	border-radius: var(--rmaps-theme-radius-pill);
 	font-weight: 600;
 	font-size: .9rem;
 	transition: background-color .15s ease, transform .1s ease;
 }
+.rmaps-theme-cta-buy {
+	background: var(--rmaps-theme-accent);
+	color: var(--rmaps-theme-accent-contrast);
+}
 .rmaps-theme-cta-buy:hover, .rmaps-theme-cta-buy:focus-visible {
 	background: var(--rmaps-theme-accent-hover);
 	color: var(--rmaps-theme-accent-contrast);
+	transform: translateY(-1px);
+}
+/* Submit-marker CTA — same pill shape as Buy plugin but red so the
+ * two header actions don't compete for the same visual slot. The
+ * red tint also subconsciously signals "contribute / submit", which
+ * matches the action it triggers (open the [webmap-submit] form). */
+.rmaps-theme-cta-submit {
+	background: var(--rmaps-theme-danger);
+	color: var(--rmaps-theme-danger-contrast);
+}
+.rmaps-theme-cta-submit:hover, .rmaps-theme-cta-submit:focus-visible {
+	background: var(--rmaps-theme-danger-hover);
+	color: var(--rmaps-theme-danger-contrast);
 	transform: translateY(-1px);
 }
 
@@ -673,6 +697,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 }
 .rmaps-theme-page-title {
 	margin: 0 0 8px;
+	text-align: center;
 }
 .rmaps-theme-page-content {
 	padding-bottom: clamp(32px, 5vw, 56px);
@@ -849,6 +874,80 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
  * shadow and border — removed. Map renders raw, host page decides
  * its own framing. */
 
+/* `[webmap-listings]` standalone renders the same `MapSidebar`
+ * component the in-map listings use — `.rmaps-react-sidebar` with
+ * `position: absolute` + `top:0; left:0; bottom:0`. In-map that
+ * works because the map wrapper has a known height; standalone
+ * the bare mount div has no height of its own and the absolute
+ * sidebar would stretch to the viewport.
+ *
+ * `StandaloneListings.tsx` now mirrors what `map_controller.php`
+ * does for `[webmap]`: pulls the map's metabox `height` setting
+ * out of the loaded config and writes it inline (along with
+ * `position: relative`) on the mount. We keep the inner wrapper +
+ * empty-paragraph cleanup here so the absolute sidebar lays out
+ * correctly inside the JS-applied height and the listings column
+ * starts flush with the map column's top edge.
+ *
+ * Scoped to `.wp-block-column >` so a page with just
+ * `[webmap-listings]` standing alone (no Columns wrapper) keeps
+ * whatever sizing the host gives it. */
+.rmaps-react-listings-mount > .rmaps-react-listings-standalone {
+	position: relative;
+	height: 100%;
+}
+/* Plugin's `rmaps-react.css` (around line 1483) re-styles
+ * `.rmaps-react-listings-standalone .rmaps-react-sidebar` to
+ * `position: static; height: auto; max-height: none` with
+ * `!important` — that's the standalone flow mode, intended for
+ * "drop `[webmap-listings]` on a page with no Columns wrapper".
+ * In OUR Columns layout (listings as a fixed-height column next
+ * to a map column) the static-flow mode means the sidebar grows
+ * with the card count and escapes the mount.
+ *
+ * Re-enable the absolute-positioned scroll mode but only inside a
+ * `.wp-block-column` — pages that use `[webmap-listings]` standalone
+ * still get the plugin's default flow behaviour. `!important` is
+ * needed to beat the plugin's own `!important`; later in the
+ * cascade (theme.css loads after rmaps-react.css) at same
+ * specificity, ours wins. */
+.wp-block-column > .rmaps-react-listings-mount {
+	overflow: hidden;
+}
+.wp-block-column > .rmaps-react-listings-mount .rmaps-react-listings-standalone .rmaps-react-sidebar {
+	position: absolute !important;
+	top: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	height: auto !important;
+	max-height: none !important;
+}
+/* Plugin's `.rmaps-react-sidebar__scroll` brings two defaults
+ * that fight the column layout:
+ *   - `padding: 10px` — pushes the first card down off the map
+ *     column's top edge. Drop the vertical part; horizontal 10 px
+ *     stays so cards keep a breathing gap from the column edges.
+ *   - `max-height: 80vh` (the standalone-mode cap, sensible for a
+ *     loose listings block on a long page, breaking for our
+ *     fixed-height-from-map approach) — when the map is e.g.
+ *     800 px on a 700 px viewport, the scroll stops growing past
+ *     ~560 px and visually "ends early". Lift the cap so the
+ *     scroll matches whatever height we set on the mount. */
+.wp-block-column > .rmaps-react-listings-mount .rmaps-react-sidebar__scroll {
+	padding-block: 0;
+	max-height: none;
+}
+/* Gutenberg's column editor leaves stray empty `<p></p>` blocks
+ * around any shortcode that produces non-text output. They take
+ * ~30 px each and visually shift the listings column down relative
+ * to the map column starting edge — so the cards line up below the
+ * map's top, not flush with it. Collapsing them brings both column
+ * contents to the same Y. */
+.wp-block-column > p:empty {
+	display: none;
+	margin: 0;
+}
+
 /* ====================================================
  * 9. Responsive
  * ====================================================*/
@@ -914,7 +1013,8 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 @media (max-width: 540px) {
 	.rmaps-theme-engine-button-label { display: none; }
 	.rmaps-theme-engine-button { padding: 9px 12px; }
-	.rmaps-theme-cta-buy { padding: 9px 14px; }
+	.rmaps-theme-cta-buy,
+	.rmaps-theme-cta-submit { padding: 9px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -149,6 +149,34 @@
 					</svg>
 				</button>
 
+				<?php
+				// "Submit marker" — auto-discovers the page that
+				// carries the `[webmap-submit]` shortcode via the
+				// plugin's `RMAPS_Dashboard_Helpers::find_page_id()`
+				// (cached scan of post_content). Site owners can still
+				// hard-code a URL by setting the `rmaps_theme_submit_url`
+				// theme mod in Appearance → Customize — overrides the
+				// auto-discovery.
+				//
+				// Button is hidden entirely when no submit page exists
+				// AND no override is set — better than dangling a CTA
+				// that lands the visitor on the homepage.
+				$rmaps_theme_submit_override = get_theme_mod( 'rmaps_theme_submit_url', '' );
+				$rmaps_theme_submit_url      = '';
+				if ( $rmaps_theme_submit_override !== '' ) {
+					$rmaps_theme_submit_url = $rmaps_theme_submit_override;
+				} elseif ( class_exists( 'RMAPS_Dashboard_Helpers' ) ) {
+					$rmaps_theme_submit_page_id = RMAPS_Dashboard_Helpers::find_page_id( 'webmap-submit' );
+					if ( $rmaps_theme_submit_page_id ) {
+						$rmaps_theme_submit_url = (string) get_permalink( $rmaps_theme_submit_page_id );
+					}
+				}
+				if ( $rmaps_theme_submit_url !== '' ) : ?>
+					<a class="rmaps-theme-cta-submit" href="<?php echo esc_url( $rmaps_theme_submit_url ); ?>">
+						<?php esc_html_e( 'Submit marker', 'rmaps-theme' ); ?>
+					</a>
+				<?php endif; ?>
+
 				<a class="rmaps-theme-cta-buy" href="<?php
 					$buy = get_theme_mod( 'rmaps_theme_buy_url', 'https://www.salephpscripts.com/wordpress_maps/' );
 					echo esc_url( $buy );

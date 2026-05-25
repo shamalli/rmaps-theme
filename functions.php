@@ -206,16 +206,37 @@ if ( ! function_exists( 'rmaps_theme_render_flat_menu' ) ) {
  */
 if ( ! function_exists( 'rmaps_theme_engine_icon_svg' ) ) {
 	function rmaps_theme_engine_icon_svg( $engine ) {
+		// Common outline-icon style (Lucide / Feather family) — 2 px
+		// stroke, rounded joins, `currentColor` so the button text
+		// colour propagates. All three icons share the same visual
+		// weight so the row reads as one switcher control. Brand-
+		// agnostic on purpose: pin / compass / folded map evoke the
+		// engines without copying any vendor wordmark.
+		$open  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
+		$close = '</svg>';
+
 		switch ( $engine ) {
 			case 'google':
-				return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-					. '<path fill="currentColor" d="M12 2C7.6 2 4 5.6 4 10c0 5.4 6.6 11 7.4 11.6.3.3.9.3 1.2 0C13.4 21 20 15.4 20 10c0-4.4-3.6-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>';
+				// Map pin — universal location-marker glyph.
+				return $open
+					. '<path d="M20 10c0 6.5-8 12-8 12s-8-5.5-8-12a8 8 0 1 1 16 0z"/>'
+					. '<circle cx="12" cy="10" r="3"/>'
+					. $close;
+
 			case 'mapbox':
-				return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-					. '<path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm.7 14.5l-1-4-4-1L13 9.3l-.3 4.5 4.3-1.8-4.3 4.5z"/></svg>';
+				// Compass with needle — navigation / wayfinding feel.
+				return $open
+					. '<circle cx="12" cy="12" r="10"/>'
+					. '<polygon points="16.2 7.8 14.1 14.1 7.8 16.2 9.9 9.9" fill="currentColor" stroke="none"/>'
+					. $close;
+
 			case 'maplibre':
-				return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-					. '<path fill="currentColor" d="M2 18l7-2 6 2 7-2v-9l-7 2-6-2-7 2zm7-9.5l6 2v7l-6-2z"/></svg>';
+				// Folded paper map — three panels, two creases.
+				return $open
+					. '<path d="M1 6 8 3l8 3 7-3v15l-7 3-8-3-7 3z"/>'
+					. '<path d="M8 3v18"/>'
+					. '<path d="M16 6v18"/>'
+					. $close;
 		}
 		return '';
 	}
