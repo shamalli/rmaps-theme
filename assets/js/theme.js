@@ -161,6 +161,19 @@
 			if (wrap.classList.contains('is-open')) close(); else open();
 		});
 
+		/* Engine selection — close the dropdown immediately on click.
+		 * For a non-active engine the page is about to navigate
+		 * anyway (anchor href), but on slow networks the menu would
+		 * otherwise linger open until the new page loaded. For the
+		 * active engine the handler in `initEngineSwitcher()` runs
+		 * `e.preventDefault()` (no nav) and without this close()
+		 * the menu would stay open with nothing happening — the user
+		 * reads that as "click does nothing". */
+		var engineBtns = wrap.querySelectorAll('.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button');
+		Array.prototype.forEach.call(engineBtns, function (btn) {
+			btn.addEventListener('click', function () { close(); });
+		});
+
 		document.addEventListener('click', function (e) {
 			if (!wrap.classList.contains('is-open')) return;
 			if (wrap.contains(e.target)) return;

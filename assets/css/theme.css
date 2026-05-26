@@ -951,7 +951,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 /* ====================================================
  * 9. Responsive
  * ====================================================*/
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
 	.rmaps-theme-burger { display: inline-flex; }
 
 	.rmaps-theme-primary-nav {
@@ -969,12 +969,22 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 		transform: translateY(-8px);
 		opacity: 0;
 		visibility: hidden;
+		/* Block pointer interaction when the drawer is closed. Without
+		 * this, the sub-menu links (which re-enable themselves with
+		 * `visibility: visible` further below so they expand inline when
+		 * the parent IS open) stay hit-testable on top of page content
+		 * even with the drawer invisible — the user moves the cursor
+		 * across what looks like the in-map search form and the status
+		 * bar shows random menu link URLs. Toggling `pointer-events` on
+		 * the .is-open state is the cleanest gate. */
+		pointer-events: none;
 		transition: opacity .15s ease, transform .15s ease, visibility .15s;
 	}
 	.rmaps-theme-primary-nav.is-open {
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0);
+		pointer-events: auto;
 	}
 	.rmaps-theme-menu {
 		flex-direction: column;
@@ -1004,6 +1014,41 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 		border-top: 1px solid var(--rmaps-theme-border-soft);
 	}
 
+	/* Engine-switch on mobile — the desktop popover (position:absolute;
+	 * right:0; min-width:200px) overflows or covers the drawer body when
+	 * it drops from the small pill trigger. Flatten it: keep the pill as
+	 * the tap target, but render the open menu as a full-width inline
+	 * panel below the pill so the three engine buttons sit cleanly
+	 * inside the drawer's content flow. */
+	.rmaps-theme-engine-switch {
+		flex: 0 0 100%;
+	}
+	.rmaps-theme-engine-switch-menu {
+		position: static;
+		min-width: 0;
+		width: 100%;
+		margin-top: 6px;
+		box-shadow: none;
+		border-radius: var(--rmaps-theme-radius-md);
+		transform: none;
+		/* `display: none` when closed so the inline-flow menu doesn't
+		 * reserve layout space inside the drawer between taps. The
+		 * desktop popover used `visibility: hidden + opacity: 0` to
+		 * keep the box reflow-stable for transitions, but on mobile
+		 * the menu is `position: static` (in flow) — visibility:hidden
+		 * would leave an empty gap between the pill and the CTAs
+		 * below until the user taps to open. */
+		display: none;
+	}
+	.rmaps-theme-engine-switch.is-open .rmaps-theme-engine-switch-menu {
+		display: block;
+	}
+	.rmaps-theme-engine-switch-menu::before { display: none; }
+	.rmaps-theme-engine-switch-menu .rmaps-theme-engine-button {
+		font-size: 1rem;
+		padding: 12px 14px;
+	}
+
 	.rmaps-theme-footer-inner {
 		grid-template-columns: 1fr;
 		text-align: left;
@@ -1011,8 +1056,13 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 }
 
 @media (max-width: 540px) {
-	.rmaps-theme-engine-button-label { display: none; }
-	.rmaps-theme-engine-button { padding: 9px 12px; }
+	/* Scope label-hide to the STANDALONE `[rmaps_engine_switcher]`
+	 * shortcode container — the header pill's dropdown menu lives in
+	 * its own drawer with plenty of horizontal space, so labels stay
+	 * visible there. Without this scoping the dropdown showed three
+	 * icons and no engine names on narrow phones. */
+	.rmaps-theme-engine-switcher .rmaps-theme-engine-button-label { display: none; }
+	.rmaps-theme-engine-switcher .rmaps-theme-engine-button { padding: 9px 12px; }
 	.rmaps-theme-cta-buy,
 	.rmaps-theme-cta-submit { padding: 9px 14px; }
 }
@@ -1057,6 +1107,34 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column,
 	.wp-block-columns.is-stacked-on-mobile        > .wp-block-column {
 		flex-basis: 100% !important;
+	}
+
+	/* Force stacking for Columns blocks that host any plugin mount,
+	 * even when the block has `is-not-stacked-on-mobile` set. A 200px-
+	 * wide map column is unreadable; the listings sidebar's inline
+	 * `width: 300px` overflows past it. Stacking puts each mount on
+	 * its own row at full viewport width, which is what every mobile
+	 * demo page actually wants. */
+	.wp-block-columns:has(.rmaps-react-mount),
+	.wp-block-columns:has(.rmaps-react-listings-mount),
+	.wp-block-columns:has(.rmaps-react-search-mount) {
+		flex-wrap: wrap !important;
+	}
+	.wp-block-columns:has(.rmaps-react-mount) > .wp-block-column,
+	.wp-block-columns:has(.rmaps-react-listings-mount) > .wp-block-column,
+	.wp-block-columns:has(.rmaps-react-search-mount) > .wp-block-column {
+		flex-basis: 100% !important;
+		margin-left: 0 !important;
+	}
+
+	/* MapSidebar applies `width: 300px` inline (set by React from the
+	 * metabox `sidebar_size` setting). On a < 300 px column the
+	 * sidebar would overflow into the next column / off-screen.
+	 * Override to the full column width on mobile — the absolute
+	 * positioning + `top:0; bottom:0` already handle height. */
+	.wp-block-column .rmaps-react-listings-mount .rmaps-react-sidebar {
+		width: 100% !important;
+		max-width: 100% !important;
 	}
 }
 @media (min-width: 782px) {
