@@ -2,6 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/theme.json",
 	"version": 2,
 	"settings": {
+		"layout": {
+			"contentSize": "1180px",
+			"wideSize": "1180px"
+		},
 		"spacing": {
 			"blockGap": true,
 			"padding": true,

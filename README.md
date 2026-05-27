@@ -35,7 +35,7 @@ A demo/marketing theme for the Rocket Maps WordPress plugin.
 Create a page (e.g. *Demo · Restaurants*), pick template *Default template*, drop:
 
 ```
-[rmaps_engine_switcher]
+[rmaps-engine-switcher]
 
 [webmap id="42"]
 
@@ -53,7 +53,7 @@ Same content, but pick template *Full width (100%)*. The engine switcher then sp
 
 Two ways:
 
-- **Shortcode** anywhere in post content: `[rmaps_engine_switcher]`. Optional attrs: `compact="yes"` (icon-only), `label="Pick an engine"` (small caption above).
+- **Shortcode** anywhere in post content: `[rmaps-engine-switcher]` (the old `[rmaps_engine_switcher]` underscore form still works for back-compat). Optional attrs: `compact="yes"` (icon-only), `label="Pick an engine"` (small caption above).
 - **Template part** from inside a custom page template:
 
   ```php

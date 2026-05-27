@@ -3,7 +3,7 @@
  * Rocket Maps theme bootstrap.
  *
  * Registers theme supports, nav menus, the standard + full-width page
- * templates, the `[rmaps_engine_switcher]` shortcode, and enqueues
+ * templates, the `[rmaps-engine-switcher]` shortcode, and enqueues
  * the single bundled stylesheet + tiny script (dark-mode toggle +
  * engine-switcher click handler). No build step — all assets live
  * under `assets/`.
@@ -99,18 +99,95 @@ add_action( 'wp_enqueue_scripts', function () {
  * the constant on — clicking still updates the URL but the plugin
  * ignores it. Better than silently doing nothing on a misconfigured
  * install.
+ *
+ * Canonical tag: `[rmaps-engine-switcher]` (hyphen). The
+ * underscore variant `[rmaps_engine_switcher]` stays registered as a
+ * back-compat alias so pages saved before the rename keep working.
  * ---------------------------------------------------------------*/
-add_shortcode( 'rmaps_engine_switcher', function ( $atts ) {
+$rmaps_theme_engine_switcher_cb = function ( $atts, $content = null, $tag = '' ) {
 	$atts = shortcode_atts( array(
 		'compact' => 'no',   // `yes` strips labels, keeps just the icon
 		'label'   => '',     // optional caption above the buttons
-	), $atts, 'rmaps_engine_switcher' );
+	), $atts, $tag ?: 'rmaps-engine-switcher' );
+
+	// Enclosing form: `[rmaps-engine-switcher]<p>Pick an engine</p>[/rmaps-engine-switcher]`
+	// — the inner content renders ABOVE the engine buttons inside the
+	// switcher block. Run through `do_shortcode` so nested shortcodes
+	// (e.g. translations, icons) still resolve, then trim — WordPress's
+	// autop wraps the bare shortcode in <p> with stray whitespace and
+	// that leaks into the rendered switcher as an empty paragraph.
+	$rendered_content = '';
+	if ( $content !== null && $content !== '' ) {
+		$rendered_content = trim( do_shortcode( $content ) );
+	}
 
 	ob_start();
-	set_query_var( 'rmaps_theme_switcher_atts', $atts );
+	set_query_var( 'rmaps_theme_switcher_atts',    $atts );
+	set_query_var( 'rmaps_theme_switcher_content', $rendered_content );
 	get_template_part( 'template-parts/engine-switcher' );
-	set_query_var( 'rmaps_theme_switcher_atts', null );
+	set_query_var( 'rmaps_theme_switcher_atts',    null );
+	set_query_var( 'rmaps_theme_switcher_content', null );
 	return ob_get_clean();
+};
+add_shortcode( 'rmaps-engine-switcher', $rmaps_theme_engine_switcher_cb );
+add_shortcode( 'rmaps_engine_switcher', $rmaps_theme_engine_switcher_cb ); // back-compat
+
+/* ---------------------------------------------------------------
+ * Gutenberg block — `rmaps/engine-switcher`
+ *
+ * Editor-friendly wrapper over the same engine-switcher template part.
+ * The block is DYNAMIC: the editor saves only the InnerBlocks content
+ * (the rich markup placed ABOVE the buttons) and PHP renders the
+ * wrapper + live engine buttons at display time via the render
+ * callback below. `block.json` lives in `blocks/engine-switcher/` and
+ * declares the editor script/style; `register_block_type` reads it and
+ * wires the render callback.
+ *
+ * `$content` here is the SERVER-RENDERED InnerBlocks HTML — already
+ * safe block output, so we mark it `_content_safe` to skip the
+ * template's `wp_kses_post` pass (which would otherwise strip block
+ * wrapper classes / inline layout styles the editor emits).
+ * ---------------------------------------------------------------*/
+add_action( 'init', function () {
+	$block_dir = get_template_directory() . '/blocks/engine-switcher';
+	if ( ! file_exists( $block_dir . '/block.json' ) ) return;
+
+	register_block_type( $block_dir, array(
+		'render_callback' => function ( $attributes, $content ) {
+			$atts = array(
+				'compact' => ! empty( $attributes['compact'] ) ? 'yes' : 'no',
+				'label'   => '',
+			);
+
+			// Content max-width (px) — caps just the above-buttons
+			// content column. 0 / empty = full width. The divider + the
+			// buttons row are NOT inside the content wrapper, so they
+			// stay full-width regardless of this cap.
+			$content_w  = isset( $attributes['contentMaxWidth'] ) ? (int) $attributes['contentMaxWidth'] : 0;
+			$content_wv = $content_w > 0 ? $content_w . 'px' : '';
+
+			ob_start();
+			set_query_var( 'rmaps_theme_switcher_atts',          $atts );
+			set_query_var( 'rmaps_theme_switcher_content',       (string) $content );
+			set_query_var( 'rmaps_theme_switcher_content_safe',  true );
+			set_query_var( 'rmaps_theme_switcher_content_width', $content_wv );
+			get_template_part( 'template-parts/engine-switcher' );
+			set_query_var( 'rmaps_theme_switcher_atts',          null );
+			set_query_var( 'rmaps_theme_switcher_content',       null );
+			set_query_var( 'rmaps_theme_switcher_content_safe',  null );
+			set_query_var( 'rmaps_theme_switcher_content_width', null );
+			$switcher = ob_get_clean();
+
+			// Wrap so the block's align (wide/full), anchor id, and any
+			// editor-added custom classes land on a real element. The
+			// switcher section inside is `width: 100%`, so the wrapper's
+			// alignfull/alignwide width is what positions the strip.
+			$wrapper_attributes = function_exists( 'get_block_wrapper_attributes' )
+				? get_block_wrapper_attributes()
+				: '';
+			return sprintf( '<div %s>%s</div>', $wrapper_attributes, $switcher );
+		},
+	) );
 } );
 
 /* ---------------------------------------------------------------
@@ -146,6 +223,189 @@ if ( ! function_exists( 'rmaps_theme_active_engine' ) ) {
 		return get_option( 'rmaps_map_engine', 'google' );
 	}
 }
+
+/* ---------------------------------------------------------------
+ * Typography — Customizer-driven Google Font for body text
+ *
+ * Adds a "Typography" section under Appearance → Customize with a
+ * dropdown of curated Google Fonts. The chosen font applies to body
+ * copy, headings, buttons, and inline UI throughout the theme via
+ * `var(--rmaps-theme-font-family)` (set as an inline `<style>` on
+ * `<head>`), but the SITE NAV is explicitly excluded with its own
+ * `--rmaps-theme-menu-font-family` override — admins who pick a
+ * decorative display font for body text won't accidentally make the
+ * primary navigation hard to read at small sizes.
+ *
+ * Stored as the slug (e.g. `Inter`) under option key
+ * `rmaps_theme_body_font`. `Default` (system stack) skips the
+ * Google Fonts request entirely — no needless network call when the
+ * admin hasn't customized.
+ * ---------------------------------------------------------------*/
+if ( ! function_exists( 'rmaps_theme_google_fonts' ) ) {
+	/**
+	 * Curated Google Font list. Each entry maps slug → display label.
+	 * Slug is the family name as Google Fonts expects it (spaces
+	 * preserved — `add_query_arg` URL-encodes for us).
+	 *
+	 * "Default" is a sentinel: when chosen, no Google Fonts call is
+	 * made and `--rmaps-theme-font-family` falls back to the system
+	 * stack (see assets/css/theme.css).
+	 */
+	function rmaps_theme_google_fonts() {
+		return array(
+			'Default'          => __( 'Default (system)', 'rmaps-theme' ),
+			'Inter'            => 'Inter',
+			'Roboto'           => 'Roboto',
+			'Open Sans'        => 'Open Sans',
+			'Lato'             => 'Lato',
+			'Montserrat'       => 'Montserrat',
+			'Poppins'          => 'Poppins',
+			'Nunito'           => 'Nunito',
+			'Nunito Sans'      => 'Nunito Sans',
+			'Source Sans 3'    => 'Source Sans 3',
+			'Work Sans'        => 'Work Sans',
+			'Raleway'          => 'Raleway',
+			'PT Sans'          => 'PT Sans',
+			'Mulish'           => 'Mulish',
+			'Manrope'          => 'Manrope',
+			'DM Sans'          => 'DM Sans',
+			'Merriweather'     => 'Merriweather',
+			'Lora'             => 'Lora',
+			'Playfair Display' => 'Playfair Display',
+			'Source Serif 4'   => 'Source Serif 4',
+		);
+	}
+}
+
+if ( ! function_exists( 'rmaps_theme_get_body_font' ) ) {
+	function rmaps_theme_get_body_font() {
+		$saved = get_theme_mod( 'rmaps_theme_body_font', 'Default' );
+		$valid = array_keys( rmaps_theme_google_fonts() );
+		return in_array( $saved, $valid, true ) ? $saved : 'Default';
+	}
+}
+
+// Customizer registration
+add_action( 'customize_register', function ( $wp_customize ) {
+	$wp_customize->add_section( 'rmaps_theme_typography', array(
+		'title'       => __( 'Typography', 'rmaps-theme' ),
+		'priority'    => 40,
+		'description' => __( 'Choose a Google Font for body text. The site navigation menu stays in the default system font for readability.', 'rmaps-theme' ),
+	) );
+
+	$wp_customize->add_setting( 'rmaps_theme_body_font', array(
+		'default'           => 'Default',
+		'sanitize_callback' => function ( $value ) {
+			$valid = array_keys( rmaps_theme_google_fonts() );
+			return in_array( $value, $valid, true ) ? $value : 'Default';
+		},
+		'transport'         => 'refresh',
+	) );
+
+	$wp_customize->add_control( 'rmaps_theme_body_font', array(
+		'label'       => __( 'Body font', 'rmaps-theme' ),
+		'description' => __( 'Applied to all theme text except the site menu.', 'rmaps-theme' ),
+		'section'     => 'rmaps_theme_typography',
+		'type'        => 'select',
+		'choices'     => rmaps_theme_google_fonts(),
+	) );
+
+	// ---- Colors section --------------------------------------------
+	$wp_customize->add_section( 'rmaps_theme_colors', array(
+		'title'       => __( 'Colors', 'rmaps-theme' ),
+		'priority'    => 41,
+		'description' => __( 'Override heading and site-name colors. Leave empty to follow the light/dark theme default.', 'rmaps-theme' ),
+	) );
+
+	// Heading color (h1–h6)
+	$wp_customize->add_setting( 'rmaps_theme_heading_color', array(
+		'default'           => '',
+		'sanitize_callback' => 'sanitize_hex_color',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control(
+		$wp_customize,
+		'rmaps_theme_heading_color',
+		array(
+			'label'       => __( 'Heading color', 'rmaps-theme' ),
+			'description' => __( 'Applies to all headings (h1–h6).', 'rmaps-theme' ),
+			'section'     => 'rmaps_theme_colors',
+		)
+	) );
+
+	// Brand / site-name color
+	$wp_customize->add_setting( 'rmaps_theme_brand_color', array(
+		'default'           => '',
+		'sanitize_callback' => 'sanitize_hex_color',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control(
+		$wp_customize,
+		'rmaps_theme_brand_color',
+		array(
+			'label'       => __( 'Site name color', 'rmaps-theme' ),
+			'description' => __( 'Tints the header site name (.rmaps-theme-brand-name).', 'rmaps-theme' ),
+			'section'     => 'rmaps_theme_colors',
+		)
+	) );
+} );
+
+// Enqueue the chosen Google Font + inject Customizer-driven CSS vars
+// (body font + heading / brand colors).
+// Hooked at priority 11 so it runs AFTER the main `wp_enqueue_scripts`
+// handler above registered `rmaps-theme` — we attach the inline style
+// to that handle so the vars live in the same cascade slot as the
+// theme stylesheet (and so cache invalidation follows naturally).
+add_action( 'wp_enqueue_scripts', function () {
+	$global_vars = array(); // applied on :root, both light + dark
+	$light_vars  = array(); // applied ONLY in light mode
+
+	// --- Body font (Google Font) — global, theme-independent ---
+	$font = rmaps_theme_get_body_font();
+	if ( $font !== 'Default' ) {
+		// Standard weight set covering body (400), emphasised (500),
+		// strong (600) and headings (700). Italic 400 for em /
+		// blockquote. `display=swap` so text renders in the system
+		// fallback while the font fetches — no FOIT on slow networks.
+		$url = add_query_arg( array(
+			'family'  => str_replace( ' ', '+', $font ) . ':ital,wght@0,400;0,500;0,600;0,700;1,400',
+			'display' => 'swap',
+		), 'https://fonts.googleapis.com/css2' );
+		wp_enqueue_style( 'rmaps-theme-google-font', $url, array(), null );
+
+		$global_vars[] = sprintf(
+			'--rmaps-theme-font-family: %s, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;',
+			"'" . esc_attr( $font ) . "'"
+		);
+	}
+
+	// --- Colors (heading + brand) — LIGHT MODE ONLY ---
+	// A heading / brand colour picked in the Customizer is chosen
+	// against the light background, so applying it in dark mode would
+	// render dark text on the dark canvas (invisible). Scope these to
+	// `html:not([data-theme="dark"])`; in dark mode the vars fall back
+	// to their `:root` default (`var(--rmaps-theme-fg)` = the theme's
+	// near-white foreground), so headings + site name stay readable.
+	$heading_color = sanitize_hex_color( (string) get_theme_mod( 'rmaps_theme_heading_color', '' ) );
+	if ( $heading_color ) {
+		$light_vars[] = sprintf( '--rmaps-theme-heading-color: %s;', esc_attr( $heading_color ) );
+	}
+	$brand_color = sanitize_hex_color( (string) get_theme_mod( 'rmaps_theme_brand_color', '' ) );
+	if ( $brand_color ) {
+		$light_vars[] = sprintf( '--rmaps-theme-brand-color: %s;', esc_attr( $brand_color ) );
+	}
+
+	$css = '';
+	if ( $global_vars ) {
+		$css .= ':root { ' . implode( ' ', $global_vars ) . ' }';
+	}
+	if ( $light_vars ) {
+		$css .= 'html:not([data-theme="dark"]) { ' . implode( ' ', $light_vars ) . ' }';
+	}
+	if ( $css !== '' ) {
+		wp_add_inline_style( 'rmaps-theme', $css );
+	}
+}, 11 );
 
 /**
  * Footer menu — flattened.

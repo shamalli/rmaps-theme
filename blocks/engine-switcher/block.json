@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "rmaps/engine-switcher",
+	"version": "1.0.0",
+	"title": "Engine Switcher",
+	"category": "embed",
+	"icon": "admin-site-alt3",
+	"description": "Map engine switcher buttons (Google / Mapbox / MapLibre) with optional rich content above them.",
+	"keywords": ["map", "engine", "switcher", "rocket maps", "rmaps"],
+	"textdomain": "rmaps-theme",
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"anchor": true
+	},
+	"attributes": {
+		"compact": {
+			"type": "boolean",
+			"default": false
+		},
+		"contentMaxWidth": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"editorScript": "file:./editor.js",
+	"editorStyle": "file:./editor.css"
+}

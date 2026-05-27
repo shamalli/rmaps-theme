@@ -77,7 +77,7 @@
 				$active_engine = rmaps_theme_active_engine();
 				$engines       = rmaps_theme_engine_options();
 				$engine_label  = $engines[ $active_engine ]['short'] ?? $active_engine;
-				// Same URL chain `[rmaps_engine_switcher]` builds: drop
+				// Same URL chain `[rmaps-engine-switcher]` builds: drop
 				// `rmaps_engine` from the current URL so we don't stack
 				// duplicates when re-attaching it per item.
 				$rmaps_theme_path        = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';

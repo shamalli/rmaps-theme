@@ -19,16 +19,31 @@
 :root {
 	--rmaps-theme-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
 	--rmaps-theme-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+	/* Body text font — defaults to the system stack. The Customizer
+	 * (Appearance → Customize → Typography) overrides this var with
+	 * the admin-selected Google Font via a wp_add_inline_style on
+	 * `:root`. The site menu has its own variable
+	 * (`--rmaps-theme-menu-font-family`) so a decorative body font
+	 * doesn't affect navigation readability. */
+	--rmaps-theme-font-family: var(--rmaps-theme-font-sans);
+	--rmaps-theme-menu-font-family: var(--rmaps-theme-font-sans);
 
 	--rmaps-theme-bg:           #ffffff;
 	--rmaps-theme-bg-soft:      #f6f7f9;
 	--rmaps-theme-bg-elev:      #ffffff;
 	--rmaps-theme-bg-engine:    #fafbfc;
-	--rmaps-theme-fg:           #0b0d10;
+	--rmaps-theme-fg:           #191e25;
 	--rmaps-theme-fg-soft:      #4b5563;
 	--rmaps-theme-fg-mute:      #6b7280;
 	--rmaps-theme-border:       #e5e7eb;
 	--rmaps-theme-border-soft:  #eef0f3;
+
+	/* Heading + brand-name colours — default to the base foreground so
+	 * they follow the light/dark theme until an admin overrides them in
+	 * the Customizer (Appearance → Customize → Colors). When set there,
+	 * a fixed hex is injected on `:root` and applies in BOTH themes. */
+	--rmaps-theme-heading-color: var(--rmaps-theme-fg);
+	--rmaps-theme-brand-color:   var(--rmaps-theme-fg);
 
 	--rmaps-theme-accent:        #2563eb;
 	--rmaps-theme-accent-hover:  #1d4ed8;
@@ -94,7 +109,11 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
 	margin: 0;
-	font-family: var(--rmaps-theme-font-sans);
+	/* Read from `--rmaps-theme-font-family` so the Customizer-driven
+	 * Google Font override (Appearance → Customize → Typography)
+	 * applies site-wide. Defaults to the system sans stack via the
+	 * fallback chain set on `:root`. */
+	font-family: var(--rmaps-theme-font-family);
 	font-size: 16px;
 	line-height: 1.55;
 	color: var(--rmaps-theme-fg);
@@ -112,17 +131,30 @@ a {
 }
 a:hover, a:focus-visible { color: var(--rmaps-theme-accent-hover); }
 
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
 	font-weight: 700;
 	line-height: 1.18;
-	margin: 0 0 .5em;
+	margin: 0 0 1em;
 	letter-spacing: -0.01em;
+	color: var(--rmaps-theme-heading-color);
 }
 h1 { font-size: clamp(2rem, 1.4rem + 2vw, 3rem); }
 h2 { font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
 h3 { font-size: 1.25rem; }
 
 p { margin: 0 0 1em; }
+
+/* Horizontal rule — full-width divider, 50px vertical breathing room,
+ * solid slate (#334155). `border: 0` clears the browser's default
+ * bevelled 3D border so only our single top border paints; height 0
+ * keeps the element flush to that 1px line. */
+hr {
+	width: 100%;
+	height: 0;
+	margin: 50px 0;
+	border: 0;
+	border-top: 1px solid #334155;
+}
 
 code, kbd, pre, samp { font-family: var(--rmaps-theme-font-mono); font-size: .9em; }
 code {
@@ -164,7 +196,7 @@ code {
 	padding-inline: clamp(16px, 4vw, 32px);
 }
 
-.rmaps-theme-main { min-height: 60vh; padding-bottom: 64px; }
+.rmaps-theme-main { min-height: 60vh; }
 
 .rmaps-theme-section { padding: clamp(48px, 6vw, 80px) 0; }
 
@@ -224,6 +256,10 @@ body.admin-bar .rmaps-theme-site-header {
 	color: var(--rmaps-theme-accent);
 }
 .rmaps-theme-brand-mark svg { width: 100%; height: 100%; }
+/* Brand (site) name — own colour var so the Customizer can tint just
+ * the wordmark without touching the icon mark or the rest of the
+ * header. Defaults to the base foreground. */
+.rmaps-theme-brand-name { color: var(--rmaps-theme-brand-color); }
 .custom-logo-link img { max-height: 40px; width: auto; }
 
 .rmaps-theme-primary-nav {
@@ -241,6 +277,13 @@ body.admin-bar .rmaps-theme-site-header {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	/* Menu uses its OWN font variable so the body-text Google Font
+	 * override (Customizer → Typography) can't replace the
+	 * navigation typeface — decorative display fonts hurt menu
+	 * readability at the small sizes nav uses. Inherits down to the
+	 * <a> children so footer nav (same `.rmaps-theme-menu` class) is
+	 * also protected. */
+	font-family: var(--rmaps-theme-menu-font-family);
 }
 .rmaps-theme-menu > li { position: relative; }
 .rmaps-theme-menu a {
@@ -329,7 +372,7 @@ body.admin-bar .rmaps-theme-site-header {
 
 /* --- Engine switch (header dropdown) ---------------------------
  * The active-engine pill in the header doubles as a hover-popover
- * with the same three engine links `[rmaps_engine_switcher]` emits.
+ * with the same three engine links `[rmaps-engine-switcher]` emits.
  * CSS-only on desktop (`:hover` + `:focus-within`); `theme.js` adds
  * an `is-open` class on touch / keyboard activation so tap-to-open
  * works on mobile too. */
@@ -557,7 +600,6 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	border-top: 1px solid var(--rmaps-theme-border-soft);
 	background: var(--rmaps-theme-bg-soft);
 	padding: 48px 0 32px;
-	margin-top: 64px;
 }
 .rmaps-theme-footer-inner {
 	display: grid;
@@ -595,23 +637,73 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 /* ====================================================
  * 6. Engine switcher
  * ====================================================*/
+/* Gutenberg block wrapper (`render_callback` wraps the switcher section
+ * in this `.wp-block-rmaps-engine-switcher` div via
+ * `get_block_wrapper_attributes()`). Pass 100% height + flex through
+ * so the inner section's `height: 100%` resolves against a real height
+ * instead of collapsing to auto when the block sits in a fixed-height
+ * column / group. */
+.wp-block-rmaps-engine-switcher {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.wp-block-rmaps-engine-switcher > .rmaps-theme-engine-switcher {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+/* Divider between above-buttons content and the buttons (block /
+ * enclosing-shortcode usage). Tighter vertical rhythm than the global
+ * `hr` (50px) so it reads as an in-component separator, and tinted to
+ * the theme's soft border so it adapts to light/dark. */
+.rmaps-theme-engine-switcher-divider {
+	width: 100%;
+	height: 0;
+	margin: 16px 0;
+	border: 0;
+	border-top: 1px solid var(--rmaps-theme-border);
+}
+
 .rmaps-theme-engine-switcher {
 	width: 100%;
+	height: 100%;
 	background: var(--rmaps-theme-bg-engine);
 	border-top: 1px solid var(--rmaps-theme-border-soft);
 	border-bottom: 1px solid var(--rmaps-theme-border-soft);
 	padding: 16px clamp(16px, 4vw, 32px);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
 }
 .rmaps-theme-engine-switcher-inner {
 	width: 100%;
 	max-width: var(--rmaps-theme-container);
 	margin-inline: auto;
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
 	align-items: center;
 	justify-content: center;
 	gap: 12px 24px;
 }
+.rmaps-theme-engine-switcher-content {
+	width: 100%;
+	/* Optional width cap from the block's "Content max width" control,
+	 * fed as `--rmaps-esb-content-width` on the section. Defaults to
+	 * 100% (full width). `margin-inline: auto` centres the capped
+	 * column. The divider + buttons are siblings of this element (not
+	 * children), so they stay full width regardless of this cap. */
+	max-width: var(--rmaps-esb-content-width, 100%);
+	margin-inline: auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.rmaps-theme-engine-switcher-content > *:first-child { margin-top: 0; }
+.rmaps-theme-engine-switcher-content > *:last-child  { margin-bottom: 0; }
 .rmaps-theme-engine-switcher-label {
 	margin: 0;
 	font-size: .85rem;
@@ -696,11 +788,8 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	padding-bottom: clamp(16px, 3vw, 24px);
 }
 .rmaps-theme-page-title {
-	margin: 0 0 8px;
+	margin: 0 0 50px;
 	text-align: center;
-}
-.rmaps-theme-page-content {
-	padding-bottom: clamp(32px, 5vw, 56px);
 }
 /* No global content-width constraint — children flow at whatever
  * width their parent gives them: `.rmaps-theme-container` (1180px) on the
@@ -1056,7 +1145,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 }
 
 @media (max-width: 540px) {
-	/* Scope label-hide to the STANDALONE `[rmaps_engine_switcher]`
+	/* Scope label-hide to the STANDALONE `[rmaps-engine-switcher]`
 	 * shortcode container — the header pill's dropdown menu lives in
 	 * its own drawer with plenty of horizontal space, so labels stay
 	 * visible there. Without this scoping the dropdown showed three

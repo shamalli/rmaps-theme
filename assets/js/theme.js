@@ -123,7 +123,7 @@
 				// to the browser's default handling.
 				if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
-				// Loading state — works for both the `[rmaps_engine_switcher]`
+				// Loading state — works for both the `[rmaps-engine-switcher]`
 				// shortcode wrapper and the header pill dropdown.
 				var wrap = btn.closest('.rmaps-theme-engine-switcher, .rmaps-theme-engine-switch');
 				if (wrap) wrap.classList.add('is-loading');
