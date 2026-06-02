@@ -780,6 +780,72 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	padding: 0;
 }
 
+/* --- Prev / next demo navigation -------------------------------
+ * Sits directly under the engine buttons inside the switcher. The
+ * page sequence comes from the Header (`primary`) menu — see
+ * `rmaps_theme_demo_nav()`. Two mirrored pill buttons that reuse the
+ * same tokens as the engine buttons, so they adapt to light/dark. */
+.rmaps-theme-demo-nav {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	max-width: 520px;
+}
+.rmaps-theme-demo-nav-btn {
+	flex: 1 1 0;
+	min-width: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 16px;
+	border-radius: var(--rmaps-theme-radius-pill);
+	background: var(--rmaps-theme-bg-elev);
+	border: 1px solid var(--rmaps-theme-border);
+	box-shadow: var(--rmaps-theme-shadow-sm);
+	color: var(--rmaps-theme-fg-soft);
+	text-decoration: none;
+	transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+}
+.rmaps-theme-demo-nav-btn:hover,
+.rmaps-theme-demo-nav-btn:focus-visible {
+	background: var(--rmaps-theme-bg-soft);
+	color: var(--rmaps-theme-fg);
+	border-color: var(--rmaps-theme-fg-soft);
+	transform: translateY(-1px);
+}
+.rmaps-theme-demo-nav-prev { justify-content: flex-start; }
+.rmaps-theme-demo-nav-next { justify-content: flex-end; }
+.rmaps-theme-demo-nav-arrow {
+	flex: none;
+	font-size: 1.1rem;
+	line-height: 1;
+	opacity: .7;
+}
+.rmaps-theme-demo-nav-labels {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.25;
+}
+.rmaps-theme-demo-nav-next .rmaps-theme-demo-nav-labels { align-items: flex-end; }
+.rmaps-theme-demo-nav-kicker {
+	font-size: .7rem;
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--rmaps-theme-fg-mute);
+}
+.rmaps-theme-demo-nav-title {
+	font-size: .9rem;
+	font-weight: 600;
+	max-width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
 /* ====================================================
  * 7. Page content, features, hero
  * ====================================================*/
@@ -816,6 +882,14 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	border-left: 3px solid var(--rmaps-theme-accent);
 	color: var(--rmaps-theme-fg-soft);
 	font-style: italic;
+}
+
+/* Front page has no page-header/title in the content case, so its
+ * content would butt up against the site header. Add a small top
+ * offset — only the content variant; the hero variant (shown when
+ * there's no editor content) already carries its own generous padding. */
+.rmaps-theme-front-page > .rmaps-theme-page-content {
+	padding-top: clamp(20px, 3vw, 32px);
 }
 
 /* Hero */

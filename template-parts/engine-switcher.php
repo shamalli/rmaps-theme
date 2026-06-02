@@ -127,6 +127,38 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 			<?php endforeach; ?>
 		</div>
 
+		<?php
+		// Prev / next demo navigation — sits directly under the engine
+		// buttons. Page sequence comes from the `primary` (Header) menu via
+		// `rmaps_theme_demo_nav()`; renders only when the current page is in
+		// that menu and has neighbours. The active engine rides along on
+		// each link (when URL override is on) so flipping demos keeps it.
+		$rmaps_demo_nav = function_exists( 'rmaps_theme_demo_nav' ) ? rmaps_theme_demo_nav() : null;
+		if ( $rmaps_demo_nav ) :
+			$rmaps_demo_link = static function ( $url ) use ( $override_ok, $active_engine ) {
+				return $override_ok ? add_query_arg( 'rmaps_engine', $active_engine, $url ) : $url;
+			};
+		?>
+			<nav class="rmaps-theme-demo-nav" aria-label="<?php esc_attr_e( 'Demo navigation', 'rmaps-theme' ); ?>">
+				<a class="rmaps-theme-demo-nav-btn rmaps-theme-demo-nav-prev" rel="prev"
+					href="<?php echo esc_url( $rmaps_demo_link( $rmaps_demo_nav['prev']['url'] ) ); ?>">
+					<span class="rmaps-theme-demo-nav-arrow" aria-hidden="true">&#8592;</span>
+					<span class="rmaps-theme-demo-nav-labels">
+						<span class="rmaps-theme-demo-nav-kicker"><?php esc_html_e( 'Prev demo', 'rmaps-theme' ); ?></span>
+						<span class="rmaps-theme-demo-nav-title"><?php echo esc_html( $rmaps_demo_nav['prev']['title'] ); ?></span>
+					</span>
+				</a>
+				<a class="rmaps-theme-demo-nav-btn rmaps-theme-demo-nav-next" rel="next"
+					href="<?php echo esc_url( $rmaps_demo_link( $rmaps_demo_nav['next']['url'] ) ); ?>">
+					<span class="rmaps-theme-demo-nav-labels">
+						<span class="rmaps-theme-demo-nav-kicker"><?php esc_html_e( 'Next demo', 'rmaps-theme' ); ?></span>
+						<span class="rmaps-theme-demo-nav-title"><?php echo esc_html( $rmaps_demo_nav['next']['title'] ); ?></span>
+					</span>
+					<span class="rmaps-theme-demo-nav-arrow" aria-hidden="true">&#8594;</span>
+				</a>
+			</nav>
+		<?php endif; ?>
+
 		<?php if ( ! $override_ok ) : ?>
 			<p class="rmaps-theme-engine-switcher-notice">
 				<?php

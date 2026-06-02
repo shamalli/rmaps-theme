@@ -100,9 +100,7 @@ add_action( 'wp_enqueue_scripts', function () {
  * ignores it. Better than silently doing nothing on a misconfigured
  * install.
  *
- * Canonical tag: `[rmaps-engine-switcher]` (hyphen). The
- * underscore variant `[rmaps_engine_switcher]` stays registered as a
- * back-compat alias so pages saved before the rename keep working.
+ * Canonical tag: `[rmaps-engine-switcher]` (hyphen only).
  * ---------------------------------------------------------------*/
 $rmaps_theme_engine_switcher_cb = function ( $atts, $content = null, $tag = '' ) {
 	$atts = shortcode_atts( array(
@@ -130,7 +128,6 @@ $rmaps_theme_engine_switcher_cb = function ( $atts, $content = null, $tag = '' )
 	return ob_get_clean();
 };
 add_shortcode( 'rmaps-engine-switcher', $rmaps_theme_engine_switcher_cb );
-add_shortcode( 'rmaps_engine_switcher', $rmaps_theme_engine_switcher_cb ); // back-compat
 
 /* ---------------------------------------------------------------
  * Gutenberg block — `rmaps/engine-switcher`
@@ -453,6 +450,118 @@ if ( ! function_exists( 'rmaps_theme_render_flat_menu' ) ) {
 		}
 		echo '</ul>';
 		return true;
+	}
+}
+
+/**
+ * Prev / next demo navigation, sourced from the `primary` (Header) menu.
+ *
+ * The demo tour is the SUBMENU under the top-level "Demo" item in the
+ * header menu: its direct children (in menu order) are the demo
+ * sequence. Returns the items immediately before and after the page
+ * currently being viewed, wrapping around at both ends so the switcher
+ * can cycle endlessly. Other top-level items (Home, Docs, …) are ignored.
+ *
+ * `#`/empty placeholder children are skipped so they don't become a dead
+ * stop.
+ *
+ * Returns null when there is no `primary` menu, fewer than two navigable
+ * items, or the current page isn't one of them (front page, non-demo
+ * template, …) — the caller then renders no prev/next strip.
+ *
+ * @return array{prev:array{url:string,title:string},next:array{url:string,title:string},index:int,total:int}|null
+ */
+if ( ! function_exists( 'rmaps_theme_demo_nav' ) ) {
+	function rmaps_theme_demo_nav() {
+		$locations = get_nav_menu_locations();
+		if ( empty( $locations['primary'] ) ) {
+			return null;
+		}
+
+		$menu = wp_get_nav_menu_object( $locations['primary'] );
+		if ( ! $menu ) {
+			return null;
+		}
+
+		$items = wp_get_nav_menu_items( $menu->term_id );
+		if ( empty( $items ) ) {
+			return null;
+		}
+
+		// The demo tour is the submenu under the top-level "Demo" item:
+		// find that parent, then collect its direct children in menu
+		// order. Other top-level items (Home, Docs, …) are ignored.
+		$demo_parent_id = 0;
+		foreach ( $items as $item ) {
+			if ( 0 === (int) $item->menu_item_parent
+				&& 0 === stripos( trim( (string) $item->title ), 'demo' ) ) {
+				$demo_parent_id = (int) $item->ID;
+				break;
+			}
+		}
+		if ( ! $demo_parent_id ) {
+			return null;
+		}
+
+		$seq = array();
+		foreach ( $items as $item ) {
+			if ( (int) $item->menu_item_parent !== $demo_parent_id ) {
+				continue;
+			}
+			$url = isset( $item->url ) ? trim( (string) $item->url ) : '';
+			if ( $url === '' || $url === '#' ) {
+				continue;
+			}
+			$seq[] = $item;
+		}
+
+		$total = count( $seq );
+		if ( $total < 2 ) {
+			return null;
+		}
+
+		// Locate the current page. Prefer each item's `object_id` (the
+		// page ID for post-type items); fall back to a forgiving URL
+		// compare (scheme/engine-param/fragment/trailing-slash stripped)
+		// for custom-link items.
+		$current_id = (int) get_queried_object_id();
+		$idx        = -1;
+		if ( $current_id ) {
+			foreach ( $seq as $i => $item ) {
+				if ( (int) $item->object_id === $current_id ) {
+					$idx = $i;
+					break;
+				}
+			}
+		}
+		if ( $idx === -1 ) {
+			$norm = static function ( $url ) {
+				$url = remove_query_arg( 'rmaps_engine', (string) $url );
+				$url = preg_replace( '#^https?://#i', '', $url );
+				$url = strtok( $url, '#' );
+				return untrailingslashit( (string) $url );
+			};
+			$current_url = $norm( home_url( add_query_arg( array() ) ) );
+			foreach ( $seq as $i => $item ) {
+				if ( $norm( $item->url ) === $current_url ) {
+					$idx = $i;
+					break;
+				}
+			}
+		}
+		if ( $idx === -1 ) {
+			return null;
+		}
+
+		$prev = $seq[ ( $idx - 1 + $total ) % $total ];
+		$next = $seq[ ( $idx + 1 ) % $total ];
+
+		return array(
+			'prev'  => array( 'url' => (string) $prev->url, 'title' => (string) $prev->title ),
+			'next'  => array( 'url' => (string) $next->url, 'title' => (string) $next->title ),
+			'index' => $idx,
+			'total' => $total,
+		);
 	}
 }
 
