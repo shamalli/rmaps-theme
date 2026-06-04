@@ -6,7 +6,7 @@
  * this theme is build-free we hand-write it. `register_block_type` reads
  * `editor.asset.php` (matching the `editor.js` basename) and uses its
  * `dependencies` array as the script's deps + `version` for cache-
- * busting — so the editor bundle loads only after the listed `wp-*`
+ * busting - so the editor bundle loads only after the listed `wp-*`
  * packages are available on `window.wp`.
  */
 return array(

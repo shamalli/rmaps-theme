@@ -1,6 +1,6 @@
 <?php
 /**
- * Front page — same shape as a full-width page but always renders
+ * Front page - same shape as a full-width page but always renders
  * the feature grid below the content. Falls back to a hero when
  * there's no editor content yet.
  *

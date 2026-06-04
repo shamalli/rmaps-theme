@@ -1,6 +1,6 @@
 <?php
 /**
- * Header — site-wide top of every page.
+ * Header - site-wide top of every page.
  *
  * Skip-link, custom logo, primary nav (with dropdown support via
  * the default WP walker), the engine badge for the currently
@@ -29,18 +29,23 @@
 <header class="rmaps-theme-site-header" role="banner">
 	<div class="rmaps-theme-container rmaps-theme-header-inner">
 		<div class="rmaps-theme-brand">
-			<?php if ( has_custom_logo() ) : ?>
-				<?php the_custom_logo(); ?>
-			<?php else : ?>
-				<a class="rmaps-theme-brand-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-					<span class="rmaps-theme-brand-mark" aria-hidden="true">
-						<svg viewBox="0 0 32 32" focusable="false">
-							<path fill="currentColor" d="M16 2c5 0 9 4 9 9 0 6.5-7.7 18-8.1 18.6a1 1 0 0 1-1.8 0C14.7 29 7 17.5 7 11c0-5 4-9 9-9zm0 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-						</svg>
-					</span>
-					<span class="rmaps-theme-brand-name"><?php bloginfo( 'name' ); ?></span>
-				</a>
-			<?php endif; ?>
+			<a class="rmaps-theme-brand-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+				<span class="rmaps-theme-brand-mark rmaps-theme-brand-mark--logo" aria-hidden="true">
+					<?php
+					// Logo + site title share ONE brand link, so both always show.
+					// With an uploaded logo we print just its <img> (a nested anchor
+					// would be invalid markup); otherwise the bundled rocket mark.
+					if ( has_custom_logo() ) {
+						echo wp_get_attachment_image( (int) get_theme_mod( 'custom_logo' ), 'full', false, array( 'class' => 'rmaps-theme-logo-img', 'alt' => '' ) );
+					} else {
+						?>
+						<img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/logo-mark.png' ) ); ?>" alt="" width="258" height="512" decoding="async" />
+						<?php
+					}
+					?>
+				</span>
+				<span class="rmaps-theme-brand-name"><?php bloginfo( 'name' ); ?></span>
+			</a>
 		</div>
 
 		<button class="rmaps-theme-burger" type="button" aria-expanded="false"
@@ -112,7 +117,7 @@
 									aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>"
 									rel="nofollow">
 									<span class="rmaps-theme-engine-button-icon" aria-hidden="true">
-										<?php echo rmaps_theme_engine_icon_svg( $slug ); // phpcs:ignore — static SVG strings ?>
+										<?php echo rmaps_theme_engine_icon_svg( $slug ); // phpcs:ignore - static SVG strings ?>
 									</span>
 									<span class="rmaps-theme-engine-button-label"><?php echo esc_html( $meta['label'] ); ?></span>
 									<?php if ( $is_active ) : ?>
@@ -150,16 +155,16 @@
 				</button>
 
 				<?php
-				// "Submit marker" — auto-discovers the page that
+				// "Submit marker" - auto-discovers the page that
 				// carries the `[webmap-submit]` shortcode via the
 				// plugin's `RMAPS_Dashboard_Helpers::find_page_id()`
 				// (cached scan of post_content). Site owners can still
 				// hard-code a URL by setting the `rmaps_theme_submit_url`
-				// theme mod in Appearance → Customize — overrides the
+				// theme mod in Appearance -> Customize - overrides the
 				// auto-discovery.
 				//
 				// Button is hidden entirely when no submit page exists
-				// AND no override is set — better than dangling a CTA
+				// AND no override is set - better than dangling a CTA
 				// that lands the visitor on the homepage.
 				$rmaps_theme_submit_override = get_theme_mod( 'rmaps_theme_submit_url', '' );
 				$rmaps_theme_submit_url      = '';

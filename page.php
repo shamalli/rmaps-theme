@@ -1,6 +1,6 @@
 <?php
 /**
- * Default page template — standard centered layout, content wrapped
+ * Default page template - standard centered layout, content wrapped
  * in a container. The 100%-width variant lives in
  * `page-fullwidth.php`. Both share the same header/footer.
  *

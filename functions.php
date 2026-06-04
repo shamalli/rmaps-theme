@@ -1,21 +1,9 @@
 <?php
 /**
- * Rocket Maps theme bootstrap.
- *
- * Registers theme supports, nav menus, the standard + full-width page
- * templates, the `[rmaps-engine-switcher]` shortcode, and enqueues
- * the single bundled stylesheet + tiny script (dark-mode toggle +
- * engine-switcher click handler). No build step — all assets live
- * under `assets/`.
- *
- * The engine switcher itself talks to the plugin via the
- * `?rmaps_engine=<slug>` URL parameter, which the plugin honours
- * only when `define( 'RMAPS_ALLOW_ENGINE_URL_OVERRIDE', true );` is
- * set in `wp-config.php` (see helper `rmaps_get_active_map_engine()`
- * in the plugin's functions.php). The switcher is rendered both as
- * a template part (`get_template_part('template-parts/engine-switcher')`)
- * and as a shortcode so the admin can drop it anywhere inside post
- * content.
+ * Rocket Maps theme bootstrap: theme supports, nav menus, page templates,
+ * the `[rmaps-engine-switcher]` shortcode/block, and asset enqueues. The
+ * switcher flips the plugin's `?rmaps_engine=<slug>` param (honoured only
+ * when RMAPS_ALLOW_ENGINE_URL_OVERRIDE is defined in wp-config.php).
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -53,6 +41,31 @@ add_action( 'after_setup_theme', function () {
 } );
 
 /* ---------------------------------------------------------------
+ * Default site logo
+ *
+ * Bundles the Rocket Maps mark (assets/images/logo-mark.png) as the
+ * theme's default custom-logo. WordPress only emits a logo through
+ * the_custom_logo()/get_custom_logo() once an admin uploads one (a
+ * custom_logo theme-mod -> media attachment). This filter supplies the
+ * bundled mark as the fallback so the brand shows out of the box -- in
+ * the Site Logo block and the Customizer preview -- with no manual
+ * upload. Uploading a logo via Appearance -> Customize -> Site Identity
+ * overrides it automatically. (The classic header/footer already render
+ * the mark + site-name lockup directly.)
+ * ---------------------------------------------------------------*/
+add_filter( 'get_custom_logo', function ( $html ) {
+	if ( has_custom_logo() ) {
+		return $html; // admin-uploaded logo wins
+	}
+	return sprintf(
+		'<a href="%1$s" class="custom-logo-link rmaps-theme-default-logo" rel="home"><img src="%2$s" class="custom-logo" alt="%3$s" width="258" height="512" decoding="async" /></a>',
+		esc_url( home_url( '/' ) ),
+		esc_url( get_theme_file_uri( 'assets/images/logo-mark.png' ) ),
+		esc_attr( get_bloginfo( 'name', 'display' ) )
+	);
+} );
+
+/* ---------------------------------------------------------------
  * Enqueue assets
  * ---------------------------------------------------------------*/
 add_action( 'wp_enqueue_scripts', function () {
@@ -86,7 +99,7 @@ add_action( 'wp_enqueue_scripts', function () {
 } );
 
 /* ---------------------------------------------------------------
- * Engine switcher — template part + shortcode
+ * Engine switcher - template part + shortcode
  *
  * Renders a 100%-width strip of three engine buttons. Active button
  * is highlighted based on the live `?rmaps_engine=<slug>` URL param,
@@ -96,7 +109,7 @@ add_action( 'wp_enqueue_scripts', function () {
  *
  * When `RMAPS_ALLOW_ENGINE_URL_OVERRIDE` is NOT defined the switcher
  * still renders but shows a small notice telling the admin to flip
- * the constant on — clicking still updates the URL but the plugin
+ * the constant on - clicking still updates the URL but the plugin
  * ignores it. Better than silently doing nothing on a misconfigured
  * install.
  *
@@ -109,9 +122,9 @@ $rmaps_theme_engine_switcher_cb = function ( $atts, $content = null, $tag = '' )
 	), $atts, $tag ?: 'rmaps-engine-switcher' );
 
 	// Enclosing form: `[rmaps-engine-switcher]<p>Pick an engine</p>[/rmaps-engine-switcher]`
-	// — the inner content renders ABOVE the engine buttons inside the
+	// - the inner content renders ABOVE the engine buttons inside the
 	// switcher block. Run through `do_shortcode` so nested shortcodes
-	// (e.g. translations, icons) still resolve, then trim — WordPress's
+	// (e.g. translations, icons) still resolve, then trim - WordPress's
 	// autop wraps the bare shortcode in <p> with stray whitespace and
 	// that leaks into the rendered switcher as an empty paragraph.
 	$rendered_content = '';
@@ -130,7 +143,7 @@ $rmaps_theme_engine_switcher_cb = function ( $atts, $content = null, $tag = '' )
 add_shortcode( 'rmaps-engine-switcher', $rmaps_theme_engine_switcher_cb );
 
 /* ---------------------------------------------------------------
- * Gutenberg block — `rmaps/engine-switcher`
+ * Gutenberg block - `rmaps/engine-switcher`
  *
  * Editor-friendly wrapper over the same engine-switcher template part.
  * The block is DYNAMIC: the editor saves only the InnerBlocks content
@@ -140,7 +153,7 @@ add_shortcode( 'rmaps-engine-switcher', $rmaps_theme_engine_switcher_cb );
  * declares the editor script/style; `register_block_type` reads it and
  * wires the render callback.
  *
- * `$content` here is the SERVER-RENDERED InnerBlocks HTML — already
+ * `$content` here is the SERVER-RENDERED InnerBlocks HTML - already
  * safe block output, so we mark it `_content_safe` to skip the
  * template's `wp_kses_post` pass (which would otherwise strip block
  * wrapper classes / inline layout styles the editor emits).
@@ -156,7 +169,7 @@ add_action( 'init', function () {
 				'label'   => '',
 			);
 
-			// Content max-width (px) — caps just the above-buttons
+			// Content max-width (px) - caps just the above-buttons
 			// content column. 0 / empty = full width. The divider + the
 			// buttons row are NOT inside the content wrapper, so they
 			// stay full-width regardless of this cap.
@@ -222,27 +235,27 @@ if ( ! function_exists( 'rmaps_theme_active_engine' ) ) {
 }
 
 /* ---------------------------------------------------------------
- * Typography — Customizer-driven Google Font for body text
+ * Typography - Customizer-driven Google Font for body text
  *
- * Adds a "Typography" section under Appearance → Customize with a
+ * Adds a "Typography" section under Appearance -> Customize with a
  * dropdown of curated Google Fonts. The chosen font applies to body
  * copy, headings, buttons, and inline UI throughout the theme via
  * `var(--rmaps-theme-font-family)` (set as an inline `<style>` on
  * `<head>`), but the SITE NAV is explicitly excluded with its own
- * `--rmaps-theme-menu-font-family` override — admins who pick a
+ * `--rmaps-theme-menu-font-family` override - admins who pick a
  * decorative display font for body text won't accidentally make the
  * primary navigation hard to read at small sizes.
  *
  * Stored as the slug (e.g. `Inter`) under option key
  * `rmaps_theme_body_font`. `Default` (system stack) skips the
- * Google Fonts request entirely — no needless network call when the
+ * Google Fonts request entirely - no needless network call when the
  * admin hasn't customized.
  * ---------------------------------------------------------------*/
 if ( ! function_exists( 'rmaps_theme_google_fonts' ) ) {
 	/**
-	 * Curated Google Font list. Each entry maps slug → display label.
+	 * Curated Google Font list. Each entry maps slug -> display label.
 	 * Slug is the family name as Google Fonts expects it (spaces
-	 * preserved — `add_query_arg` URL-encodes for us).
+	 * preserved - `add_query_arg` URL-encodes for us).
 	 *
 	 * "Default" is a sentinel: when chosen, no Google Fonts call is
 	 * made and `--rmaps-theme-font-family` falls back to the system
@@ -314,7 +327,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 		'description' => __( 'Override heading and site-name colors. Leave empty to follow the light/dark theme default.', 'rmaps-theme' ),
 	) );
 
-	// Heading color (h1–h6)
+	// Heading color (h1-h6)
 	$wp_customize->add_setting( 'rmaps_theme_heading_color', array(
 		'default'           => '',
 		'sanitize_callback' => 'sanitize_hex_color',
@@ -350,20 +363,20 @@ add_action( 'customize_register', function ( $wp_customize ) {
 // Enqueue the chosen Google Font + inject Customizer-driven CSS vars
 // (body font + heading / brand colors).
 // Hooked at priority 11 so it runs AFTER the main `wp_enqueue_scripts`
-// handler above registered `rmaps-theme` — we attach the inline style
+// handler above registered `rmaps-theme` - we attach the inline style
 // to that handle so the vars live in the same cascade slot as the
 // theme stylesheet (and so cache invalidation follows naturally).
 add_action( 'wp_enqueue_scripts', function () {
 	$global_vars = array(); // applied on :root, both light + dark
 	$light_vars  = array(); // applied ONLY in light mode
 
-	// --- Body font (Google Font) — global, theme-independent ---
+	// --- Body font (Google Font) - global, theme-independent ---
 	$font = rmaps_theme_get_body_font();
 	if ( $font !== 'Default' ) {
 		// Standard weight set covering body (400), emphasised (500),
 		// strong (600) and headings (700). Italic 400 for em /
 		// blockquote. `display=swap` so text renders in the system
-		// fallback while the font fetches — no FOIT on slow networks.
+		// fallback while the font fetches - no FOIT on slow networks.
 		$url = add_query_arg( array(
 			'family'  => str_replace( ' ', '+', $font ) . ':ital,wght@0,400;0,500;0,600;0,700;1,400',
 			'display' => 'swap',
@@ -376,7 +389,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		);
 	}
 
-	// --- Colors (heading + brand) — LIGHT MODE ONLY ---
+	// --- Colors (heading + brand) - LIGHT MODE ONLY ---
 	// A heading / brand colour picked in the Customizer is chosen
 	// against the light background, so applying it in dark mode would
 	// render dark text on the dark canvas (invisible). Scope these to
@@ -405,13 +418,13 @@ add_action( 'wp_enqueue_scripts', function () {
 }, 11 );
 
 /**
- * Footer menu — flattened.
+ * Footer menu - flattened.
  *
  * The header menu renders parents + dropdowns via `wp_nav_menu()`,
  * but in the footer the same menu should appear as one flat row
  * (parents + children side by side) so visitors can jump straight
  * to any demo page without hovering. Walking the items list
- * directly is simpler than registering a custom Walker — we get
+ * directly is simpler than registering a custom Walker - we get
  * the items in tree-order (parent, its children, next parent) and
  * just print each as a sibling `<li>`, skipping the
  * `menu-item-has-children` class so the dropdown arrow CSS doesn't
@@ -460,14 +473,14 @@ if ( ! function_exists( 'rmaps_theme_render_flat_menu' ) ) {
  * header menu: its direct children (in menu order) are the demo
  * sequence. Returns the items immediately before and after the page
  * currently being viewed, wrapping around at both ends so the switcher
- * can cycle endlessly. Other top-level items (Home, Docs, …) are ignored.
+ * can cycle endlessly. Other top-level items (Home, Docs, ...) are ignored.
  *
  * `#`/empty placeholder children are skipped so they don't become a dead
  * stop.
  *
  * Returns null when there is no `primary` menu, fewer than two navigable
  * items, or the current page isn't one of them (front page, non-demo
- * template, …) — the caller then renders no prev/next strip.
+ * template, ...) - the caller then renders no prev/next strip.
  *
  * @return array{prev:array{url:string,title:string},next:array{url:string,title:string},index:int,total:int}|null
  */
@@ -490,7 +503,7 @@ if ( ! function_exists( 'rmaps_theme_demo_nav' ) ) {
 
 		// The demo tour is the submenu under the top-level "Demo" item:
 		// find that parent, then collect its direct children in menu
-		// order. Other top-level items (Home, Docs, …) are ignored.
+		// order. Other top-level items (Home, Docs, ...) are ignored.
 		$demo_parent_id = 0;
 		foreach ( $items as $item ) {
 			if ( 0 === (int) $item->menu_item_parent
@@ -570,12 +583,12 @@ if ( ! function_exists( 'rmaps_theme_demo_nav' ) ) {
  *
  * Kept inline (rather than spritesheet) so the button stays a single
  * DOM node and CSS can recolour it via `currentColor`. Icons are
- * geometric/wordmark-free — they're meant to evoke the engine, not
+ * geometric/wordmark-free - they're meant to evoke the engine, not
  * reproduce protected logos.
  */
 if ( ! function_exists( 'rmaps_theme_engine_icon_svg' ) ) {
 	function rmaps_theme_engine_icon_svg( $engine ) {
-		// Common outline-icon style (Lucide / Feather family) — 2 px
+		// Common outline-icon style (Lucide / Feather family) - 2 px
 		// stroke, rounded joins, `currentColor` so the button text
 		// colour propagates. All three icons share the same visual
 		// weight so the row reads as one switcher control. Brand-
@@ -586,21 +599,21 @@ if ( ! function_exists( 'rmaps_theme_engine_icon_svg' ) ) {
 
 		switch ( $engine ) {
 			case 'google':
-				// Map pin — universal location-marker glyph.
+				// Map pin - universal location-marker glyph.
 				return $open
 					. '<path d="M20 10c0 6.5-8 12-8 12s-8-5.5-8-12a8 8 0 1 1 16 0z"/>'
 					. '<circle cx="12" cy="10" r="3"/>'
 					. $close;
 
 			case 'mapbox':
-				// Compass with needle — navigation / wayfinding feel.
+				// Compass with needle - navigation / wayfinding feel.
 				return $open
 					. '<circle cx="12" cy="12" r="10"/>'
 					. '<polygon points="16.2 7.8 14.1 14.1 7.8 16.2 9.9 9.9" fill="currentColor" stroke="none"/>'
 					. $close;
 
 			case 'maplibre':
-				// Folded paper map — three panels, two creases.
+				// Folded paper map - three panels, two creases.
 				return $open
 					. '<path d="M1 6 8 3l8 3 7-3v15l-7 3-8-3-7 3z"/>'
 					. '<path d="M8 3v18"/>'
@@ -612,13 +625,13 @@ if ( ! function_exists( 'rmaps_theme_engine_icon_svg' ) ) {
 }
 
 /* ---------------------------------------------------------------
- * Page templates — declared via the `Template Name:` header in
+ * Page templates - declared via the `Template Name:` header in
  * template-fullwidth.php and template-standard.php. Nothing else
  * to wire up; WP picks them up from the theme root automatically.
  * ---------------------------------------------------------------*/
 
 /* ---------------------------------------------------------------
- * SEO — let the plugin handle its own. Theme just sets a sane
+ * SEO - let the plugin handle its own. Theme just sets a sane
  * meta description fallback (excerpt or first 160 chars of content)
  * + OpenGraph image so social shares look right.
  * ---------------------------------------------------------------*/

@@ -53,7 +53,7 @@ $icons = array(
 				?>
 				<article class="rmaps-theme-feature-card">
 					<div class="rmaps-theme-feature-icon" aria-hidden="true">
-						<?php echo $icons[ $icon_key ] ?? $icons['pin']; // phpcs:ignore — static SVG ?>
+						<?php echo $icons[ $icon_key ] ?? $icons['pin']; // phpcs:ignore - static SVG ?>
 					</div>
 					<h3 class="rmaps-theme-feature-title"><?php echo esc_html( $feat['title'] ); ?></h3>
 					<p class="rmaps-theme-feature-body"><?php echo esc_html( $feat['body'] ); ?></p>

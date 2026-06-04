@@ -3,7 +3,7 @@
  * Template Name: Full width (100%)
  * Template Post Type: page
  *
- * Full-bleed page layout — no `rmaps-theme-container` constraint on the
+ * Full-bleed page layout - no `rmaps-theme-container` constraint on the
  * content area, so the map / engine switcher / hero blocks can run
  * edge to edge. Title + description still respect a `rmaps-theme-prose`
  * wrapper so long-form text stays readable.

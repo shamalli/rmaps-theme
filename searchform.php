@@ -1,6 +1,6 @@
 <?php
 /**
- * Search form — used by `get_search_form()` and the WP search block.
+ * Search form - used by `get_search_form()` and the WP search block.
  *
  * @package rmaps-theme
  */

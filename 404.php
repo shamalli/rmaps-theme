@@ -1,6 +1,6 @@
 <?php
 /**
- * 404 — Not found.
+ * 404 - Not found.
  *
  * @package rmaps-theme
  */
