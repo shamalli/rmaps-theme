@@ -713,12 +713,60 @@ if ( ! function_exists( 'rmaps_theme_ga_measurement_id' ) ) {
 	}
 }
 
+if ( ! function_exists( 'rmaps_theme_ga_is_excluded_ip' ) ) {
+	/**
+	 * Whether the current visitor should be kept OUT of Google Analytics.
+	 *
+	 * Lets the site owner exclude their own IP(s) so personal visits don't
+	 * inflate the stats. When this returns true the gtag snippet is not
+	 * emitted at all, so no hit is ever sent -- nothing to filter later.
+	 *
+	 * The IP list is combined from:
+	 *   1. the `RMAPS_THEME_GA_EXCLUDE_IPS` constant -- a comma/space
+	 *      separated string. Best set in wp-config.php so personal IPs stay
+	 *      OUT of the theme repo, e.g.:
+	 *          define( 'RMAPS_THEME_GA_EXCLUDE_IPS', '203.0.113.7, 2001:db8::1' );
+	 *   2. the `rmaps_theme_ga_exclude_ips` filter (array of IP strings).
+	 * Empty list => nobody is excluded.
+	 *
+	 * Matching is exact but address-normalised via inet_pton(), so IPv6
+	 * short/long forms compare equal and malformed entries are ignored. Uses
+	 * REMOTE_ADDR (the connecting IP); if the demo ever sits behind a reverse
+	 * proxy / CDN, the real client IP would instead be in X-Forwarded-For.
+	 */
+	function rmaps_theme_ga_is_excluded_ip() {
+		$list = array();
+		if ( defined( 'RMAPS_THEME_GA_EXCLUDE_IPS' ) && is_string( RMAPS_THEME_GA_EXCLUDE_IPS ) ) {
+			$list = preg_split( '/[\s,]+/', RMAPS_THEME_GA_EXCLUDE_IPS, -1, PREG_SPLIT_NO_EMPTY );
+		}
+		$list = (array) apply_filters( 'rmaps_theme_ga_exclude_ips', $list );
+
+		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? wp_unslash( $_SERVER['REMOTE_ADDR'] ) : '';
+		if ( empty( $list ) || ! filter_var( $remote, FILTER_VALIDATE_IP ) ) {
+			return false;
+		}
+		$client = inet_pton( $remote );
+
+		foreach ( $list as $ip ) {
+			$ip = trim( $ip );
+			if ( filter_var( $ip, FILTER_VALIDATE_IP ) && inet_pton( $ip ) === $client ) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 add_action( 'wp_head', function () {
 	if ( is_admin() ) {
 		return;
 	}
 	$ga_id = rmaps_theme_ga_measurement_id();
 	if ( '' === $ga_id ) {
+		return;
+	}
+	if ( rmaps_theme_ga_is_excluded_ip() ) {
+		echo "<!-- Rocket Maps: GA skipped (excluded IP) -->\n";
 		return;
 	}
 	?>
