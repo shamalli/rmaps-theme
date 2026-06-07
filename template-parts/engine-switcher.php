@@ -1,6 +1,6 @@
 <?php
 /**
- * Engine switcher — 100%-width strip of three engine buttons.
+ * Engine switcher - 100%-width strip of three engine buttons.
  *
  * Includable two ways:
  *   1. `get_template_part( 'template-parts/engine-switcher' )` in a
@@ -10,7 +10,7 @@
  *      `[rmaps_engine_switcher]` is also accepted as an alias).
  *
  * Reads optional attributes from `rmaps_theme_switcher_atts` (set by the
- * shortcode wrapper) — see the `add_shortcode` call in functions.php.
+ * shortcode wrapper) - see the `add_shortcode` call in functions.php.
  *
  * Wiring:
  * - Active engine is highlighted based on
@@ -35,10 +35,10 @@ $label   = isset( $atts['label'] ) ? (string) $atts['label'] : '';
 // Inner HTML rendered ABOVE the buttons inside the switcher's flex
 // column. Two sources:
 //   1. Enclosing-form shortcode:
-//      [rmaps-engine-switcher]<h3>Pick an engine</h3>…[/rmaps-engine-switcher]
-//      — RAW user input, run through `wp_kses_post` (headings, lists,
-//        paragraphs, links, images — same surface as post body).
-//   2. The `rmaps/engine-switcher` Gutenberg block — already
+//      [rmaps-engine-switcher]<h3>Pick an engine</h3>...[/rmaps-engine-switcher]
+//      - RAW user input, run through `wp_kses_post` (headings, lists,
+//        paragraphs, links, images - same surface as post body).
+//   2. The `rmaps/engine-switcher` Gutenberg block - already
 //      server-rendered InnerBlocks output, trusted. The block path
 //      sets `rmaps_theme_switcher_content_safe = true` so we SKIP the
 //      kses pass (it would strip block wrapper classes / inline layout
@@ -70,7 +70,7 @@ if ( $content_width !== '' && preg_match( '/^[0-9.]+(px|%|rem|em|vw)$/', $conten
 	$section_style = ' style="--rmaps-esb-content-width: ' . esc_attr( $content_width ) . ';"';
 }
 
-// Build base URL — drop the param we're about to set so we don't
+// Build base URL - drop the param we're about to set so we don't
 // stack duplicates. `wp_get_referer()` is unreliable inside the
 // loop; use the current request URL via server vars + home_url
 // as base.
@@ -79,7 +79,7 @@ $base_url       = home_url( $current_path );
 $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 
 ?>
-<section class="rmaps-theme-engine-switcher<?php echo $compact ? ' is-compact' : ''; ?>"<?php echo $section_style; // phpcs:ignore — validated length token ?>
+<section class="rmaps-theme-engine-switcher<?php echo $compact ? ' is-compact' : ''; ?>"<?php echo $section_style; // phpcs:ignore - validated length token ?>
 		role="region"
 		aria-label="<?php esc_attr_e( 'Map engine switcher', 'rmaps-theme' ); ?>">
 	<div class="rmaps-theme-engine-switcher-inner">
@@ -89,20 +89,21 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 
 		<?php if ( $safe_inner_html !== '' ) : ?>
 			<div class="rmaps-theme-engine-switcher-content">
-				<?php echo $safe_inner_html; // phpcs:ignore — already through wp_kses_post ?>
+				<?php echo $safe_inner_html; // phpcs:ignore - already through wp_kses_post ?>
 			</div>
 		<?php endif; ?>
 
 		<?php
 		// Divider between the above-buttons content and the engine
 		// buttons. Only when there IS content above (label or inner
-		// HTML) — a standalone switcher (no content) shouldn't open
+		// HTML) - a standalone switcher (no content) shouldn't open
 		// with a stray top rule.
 		if ( $label !== '' || $safe_inner_html !== '' ) :
 		?>
 			<hr class="rmaps-theme-engine-switcher-divider" />
 		<?php endif; ?>
 
+		<div class="rmaps-theme-engine-row">
 		<div class="rmaps-theme-engine-switcher-buttons" role="group"
 				aria-label="<?php esc_attr_e( 'Choose map engine', 'rmaps-theme' ); ?>">
 			<?php foreach ( $engines as $slug => $meta ) :
@@ -115,7 +116,7 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 					aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>"
 					rel="nofollow">
 					<span class="rmaps-theme-engine-button-icon" aria-hidden="true">
-						<?php echo rmaps_theme_engine_icon_svg( $slug ); // phpcs:ignore — static SVG strings ?>
+						<?php echo rmaps_theme_engine_icon_svg( $slug ); // phpcs:ignore - static SVG strings ?>
 					</span>
 					<?php if ( ! $compact ) : ?>
 						<span class="rmaps-theme-engine-button-label"><?php echo esc_html( $meta['label'] ); ?></span>
@@ -128,7 +129,7 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 		</div>
 
 		<?php
-		// Prev / next demo navigation — sits directly under the engine
+		// Prev / next demo navigation - sits directly under the engine
 		// buttons. Page sequence comes from the `primary` (Header) menu via
 		// `rmaps_theme_demo_nav()`; renders only when the current page is in
 		// that menu and has neighbours. The active engine rides along on
@@ -158,6 +159,7 @@ $base_no_engine = remove_query_arg( 'rmaps_engine', $base_url );
 				</a>
 			</nav>
 		<?php endif; ?>
+		</div>
 
 		<?php if ( ! $override_ok ) : ?>
 			<p class="rmaps-theme-engine-switcher-notice">

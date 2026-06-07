@@ -1,16 +1,6 @@
 /*
- * Rocket Maps theme — single bundled stylesheet.
- *
- * Sections:
- *   1. Tokens (CSS custom props — light + dark)
- *   2. Reset / base
- *   3. Layout primitives (container, prose)
- *   4. Header + navigation (incl. dropdown + mobile drawer)
- *   5. Footer
- *   6. Engine switcher
- *   7. Page content + features + hero
- *   8. Buttons / forms / utilities
- *   9. Responsive overrides
+ * Rocket Maps theme - single bundled stylesheet (tokens, base, layout,
+ * header/nav, footer, engine switcher, page content, forms, responsive).
  */
 
 /* ====================================================
@@ -19,8 +9,8 @@
 :root {
 	--rmaps-theme-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
 	--rmaps-theme-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
-	/* Body text font — defaults to the system stack. The Customizer
-	 * (Appearance → Customize → Typography) overrides this var with
+	/* Body text font - defaults to the system stack. The Customizer
+	 * (Appearance -> Customize -> Typography) overrides this var with
 	 * the admin-selected Google Font via a wp_add_inline_style on
 	 * `:root`. The site menu has its own variable
 	 * (`--rmaps-theme-menu-font-family`) so a decorative body font
@@ -38,9 +28,15 @@
 	--rmaps-theme-border:       #e5e7eb;
 	--rmaps-theme-border-soft:  #eef0f3;
 
-	/* Heading + brand-name colours — default to the base foreground so
+	/* Demo "inverted plate" blocks (.rmaps-demo-plate): one fixed
+	 * two-colour pair from the light palette that simply SWAPS on the
+	 * dark-mode toggle, instead of tracking the theme per-mode fg/bg. */
+	--rmaps-demo-plate-bg:  #191e25;
+	--rmaps-demo-plate-ink: #ffffff;
+
+	/* Heading + brand-name colours - default to the base foreground so
 	 * they follow the light/dark theme until an admin overrides them in
-	 * the Customizer (Appearance → Customize → Colors). When set there,
+	 * the Customizer (Appearance -> Customize -> Colors). When set there,
 	 * a fixed hex is injected on `:root` and applies in BOTH themes. */
 	--rmaps-theme-heading-color: var(--rmaps-theme-fg);
 	--rmaps-theme-brand-color:   var(--rmaps-theme-fg);
@@ -84,6 +80,10 @@ html[data-theme="dark"] {
 	--rmaps-theme-border:       #232831;
 	--rmaps-theme-border-soft:  #1a1e26;
 
+	/* Demo plate pair, swapped for dark mode. */
+	--rmaps-demo-plate-bg:  #ffffff;
+	--rmaps-demo-plate-ink: #191e25;
+
 	--rmaps-theme-accent:        #5c9bff;
 	--rmaps-theme-accent-hover:  #7eb0ff;
 	--rmaps-theme-accent-contrast: #0b0d10;
@@ -100,6 +100,12 @@ html[data-theme="dark"] {
 	color-scheme: dark;
 }
 
+/* Demo "inverted plate" surface + text. `html ` prefix outranks the
+ * demo page inline <style> so the fixed pair wins; the pair itself
+ * flips via the vars above on the dark-mode toggle. */
+html .rmaps-demo-plate { background: var(--rmaps-demo-plate-bg); }
+html .rmaps-demo-plate :is(h2, p, li, a, strong) { color: var(--rmaps-demo-plate-ink); }
+
 /* ====================================================
  * 2. Reset / base
  * ====================================================*/
@@ -110,7 +116,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
 	margin: 0;
 	/* Read from `--rmaps-theme-font-family` so the Customizer-driven
-	 * Google Font override (Appearance → Customize → Typography)
+	 * Google Font override (Appearance -> Customize -> Typography)
 	 * applies site-wide. Defaults to the system sans stack via the
 	 * fallback chain set on `:root`. */
 	font-family: var(--rmaps-theme-font-family);
@@ -144,7 +150,7 @@ h3 { font-size: 1.25rem; }
 
 p { margin: 0 0 1em; }
 
-/* Horizontal rule — full-width divider, 50px vertical breathing room,
+/* Horizontal rule - full-width divider, 50px vertical breathing room,
  * solid slate (#334155). `border: 0` clears the browser's default
  * bevelled 3D border so only our single top border paints; height 0
  * keeps the element flush to that 1px line. */
@@ -217,11 +223,11 @@ code {
 	border-bottom: 1px solid var(--rmaps-theme-border-soft);
 }
 
-/* WP admin bar offset — `body.admin-bar` is added by core when the
+/* WP admin bar offset - `body.admin-bar` is added by core when the
  * toolbar is visible. Desktop bar is `position: fixed; top: 0; height: 32px`,
  * so the sticky header must clear those 32px or it slides UNDER it.
  * On screens ≤782px WP flips the bar to `position: absolute` so it
- * scrolls off naturally — the sticky header returns to `top: 0`. */
+ * scrolls off naturally - the sticky header returns to `top: 0`. */
 body.admin-bar .rmaps-theme-site-header {
 	top: 32px;
 }
@@ -256,7 +262,7 @@ body.admin-bar .rmaps-theme-site-header {
 	color: var(--rmaps-theme-accent);
 }
 .rmaps-theme-brand-mark svg { width: 100%; height: 100%; }
-/* Brand (site) name — own colour var so the Customizer can tint just
+/* Brand (site) name - own colour var so the Customizer can tint just
  * the wordmark without touching the icon mark or the rest of the
  * header. Defaults to the base foreground. */
 .rmaps-theme-brand-name { color: var(--rmaps-theme-brand-color); }
@@ -278,8 +284,8 @@ body.admin-bar .rmaps-theme-site-header {
 	align-items: center;
 	gap: 4px;
 	/* Menu uses its OWN font variable so the body-text Google Font
-	 * override (Customizer → Typography) can't replace the
-	 * navigation typeface — decorative display fonts hurt menu
+	 * override (Customizer -> Typography) can't replace the
+	 * navigation typeface - decorative display fonts hurt menu
 	 * readability at the small sizes nav uses. Inherits down to the
 	 * <a> children so footer nav (same `.rmaps-theme-menu` class) is
 	 * also protected. */
@@ -485,7 +491,7 @@ body.admin-bar .rmaps-theme-site-header {
 }
 .rmaps-theme-engine-switch-menu .rmaps-theme-engine-button-label { flex: 1 1 auto; }
 
-/* Lock + disabled notice — same UX as the shortcode's notice. */
+/* Lock + disabled notice - same UX as the shortcode's notice. */
 .rmaps-theme-engine-switch.is-locked .rmaps-theme-engine-switch-menu .rmaps-theme-engine-button {
 	pointer-events: none;
 	opacity: .55;
@@ -543,15 +549,16 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	transition: background-color .15s ease, transform .1s ease;
 }
 .rmaps-theme-cta-buy {
-	background: var(--rmaps-theme-accent);
-	color: var(--rmaps-theme-accent-contrast);
+	/* Matched to the rocket logo colour (not the theme accent) for brand fit. */
+	background: #158ac9;
+	color: #fff;
 }
 .rmaps-theme-cta-buy:hover, .rmaps-theme-cta-buy:focus-visible {
-	background: var(--rmaps-theme-accent-hover);
-	color: var(--rmaps-theme-accent-contrast);
+	background: #0f6fa0;
+	color: #fff;
 	transform: translateY(-1px);
 }
-/* Submit-marker CTA — same pill shape as Buy plugin but red so the
+/* Submit-marker CTA - same pill shape as Buy plugin but red so the
  * two header actions don't compete for the same visual slot. The
  * red tint also subconsciously signals "contribute / submit", which
  * matches the action it triggers (open the [webmap-submit] form). */
@@ -687,6 +694,9 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	align-items: center;
 	justify-content: center;
 	gap: 12px 24px;
+	/* Container context so the engine row below can stack based on its OWN
+	 * width (narrow demo panels), not just the viewport. */
+	container-type: inline-size;
 }
 .rmaps-theme-engine-switcher-content {
 	width: 100%;
@@ -738,7 +748,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	background: var(--rmaps-theme-bg-soft);
 	color: var(--rmaps-theme-fg);
 }
-/* Active state — uniform across all three engines. An earlier
+/* Active state - uniform across all three engines. An earlier
  * version painted each active button in its engine brand colour
  * (Google blue / Mapbox teal / MapLibre green), but the inconsistent
  * accents distracted from the actual signal ("which engine is
@@ -780,22 +790,30 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	padding: 0;
 }
 
-/* --- Prev / next demo navigation -------------------------------
- * Sits directly under the engine buttons inside the switcher. The
- * page sequence comes from the Header (`primary`) menu — see
- * `rmaps_theme_demo_nav()`. Two mirrored pill buttons that reuse the
- * same tokens as the engine buttons, so they adapt to light/dark. */
-.rmaps-theme-demo-nav {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	gap: 8px;
+/* --- Engine row: prev (left) | engine buttons (centre) | next (right) ---
+ * One line on wide screens; the grid keeps the buttons perfectly centred
+ * regardless of the prev/next pill widths (equal side columns). Pinned to
+ * the edges, with the section's own padding as the margin from the edge.
+ * Stacks to two rows (buttons on top, prev + next below) when it can't fit
+ * - see the @container / @media blocks. The page sequence + pill styling
+ * come from `rmaps_theme_demo_nav()` and the demo-nav rules below. */
+.rmaps-theme-engine-row {
 	width: 100%;
-	max-width: 520px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	grid-template-areas: "prev buttons next";
+	align-items: center;
+	gap: 10px 16px;
 }
+.rmaps-theme-engine-row .rmaps-theme-engine-switcher-buttons {
+	grid-area: buttons;
+	justify-self: center;
+}
+/* The <nav> is a passthrough so its prev/next links become grid items. */
+.rmaps-theme-demo-nav { display: contents; }
 .rmaps-theme-demo-nav-btn {
 	flex: 1 1 0;
-	min-width: 0;
+	min-width: 200px;
 	display: inline-flex;
 	align-items: center;
 	gap: 10px;
@@ -815,8 +833,8 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	border-color: var(--rmaps-theme-fg-soft);
 	transform: translateY(-1px);
 }
-.rmaps-theme-demo-nav-prev { justify-content: flex-start; }
-.rmaps-theme-demo-nav-next { justify-content: flex-end; }
+.rmaps-theme-demo-nav-prev { grid-area: prev; justify-self: start; justify-content: flex-start; }
+.rmaps-theme-demo-nav-next { grid-area: next; justify-self: end;   justify-content: flex-end; }
 .rmaps-theme-demo-nav-arrow {
 	flex: none;
 	font-size: 1.1rem;
@@ -846,6 +864,34 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	text-overflow: ellipsis;
 }
 
+/* When the row can't fit on one line, drop the engine buttons to their own
+ * line (centred) and put prev + next on the line below, each taking half.
+ * @container handles narrow demo panels on wide screens; the @media block
+ * is a fallback for browsers without container-query support + small
+ * viewports. Both produce the layout in the second screenshot. */
+@container (max-width: 880px) {
+	.rmaps-theme-engine-row {
+		grid-template-columns: 1fr 1fr;
+		grid-template-areas:
+			"buttons buttons"
+			"prev    next";
+		row-gap: 14px;
+	}
+	.rmaps-theme-demo-nav-prev,
+	.rmaps-theme-demo-nav-next { justify-self: stretch; min-width: 0; }
+}
+@media (max-width: 940px) {
+	.rmaps-theme-engine-row {
+		grid-template-columns: 1fr 1fr;
+		grid-template-areas:
+			"buttons buttons"
+			"prev    next";
+		row-gap: 14px;
+	}
+	.rmaps-theme-demo-nav-prev,
+	.rmaps-theme-demo-nav-next { justify-self: stretch; min-width: 0; }
+}
+
 /* ====================================================
  * 7. Page content, features, hero
  * ====================================================*/
@@ -857,11 +903,11 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	margin: 0 0 50px;
 	text-align: center;
 }
-/* No global content-width constraint — children flow at whatever
+/* No global content-width constraint - children flow at whatever
  * width their parent gives them: `.rmaps-theme-container` (1180px) on the
  * standard page template, full viewport on the full-width template.
  * Opt into a narrower reading column anywhere by wrapping a chunk
- * in `<div class="rmaps-theme-prose">…</div>` (760px + centered). */
+ * in `<div class="rmaps-theme-prose">...</div>` (760px + centered). */
 .rmaps-theme-prose {
 	max-width: 760px;
 	margin-inline: auto;
@@ -886,7 +932,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 
 /* Front page has no page-header/title in the content case, so its
  * content would butt up against the site header. Add a small top
- * offset — only the content variant; the hero variant (shown when
+ * offset - only the content variant; the hero variant (shown when
  * there's no editor content) already carries its own generous padding. */
 .rmaps-theme-front-page > .rmaps-theme-page-content {
 	padding-top: clamp(20px, 3vw, 32px);
@@ -1030,15 +1076,15 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 .rmaps-theme-comments { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rmaps-theme-border-soft); }
 
 /* ====================================================
- * 8. Map shortcode wrappers — let `[webmap]` breathe
+ * 8. Map shortcode wrappers - let `[webmap]` breathe
  * inside both standard and full-width layouts.
  * ====================================================*/
 /* Map wrap previously got `margin: 24px auto`, border-radius,
- * shadow and border — removed. Map renders raw, host page decides
+ * shadow and border - removed. Map renders raw, host page decides
  * its own framing. */
 
 /* `[webmap-listings]` standalone renders the same `MapSidebar`
- * component the in-map listings use — `.rmaps-react-sidebar` with
+ * component the in-map listings use - `.rmaps-react-sidebar` with
  * `position: absolute` + `top:0; left:0; bottom:0`. In-map that
  * works because the map wrapper has a known height; standalone
  * the bare mount div has no height of its own and the absolute
@@ -1062,14 +1108,14 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 /* Plugin's `rmaps-react.css` (around line 1483) re-styles
  * `.rmaps-react-listings-standalone .rmaps-react-sidebar` to
  * `position: static; height: auto; max-height: none` with
- * `!important` — that's the standalone flow mode, intended for
+ * `!important` - that's the standalone flow mode, intended for
  * "drop `[webmap-listings]` on a page with no Columns wrapper".
  * In OUR Columns layout (listings as a fixed-height column next
  * to a map column) the static-flow mode means the sidebar grows
  * with the card count and escapes the mount.
  *
  * Re-enable the absolute-positioned scroll mode but only inside a
- * `.wp-block-column` — pages that use `[webmap-listings]` standalone
+ * `.wp-block-column` - pages that use `[webmap-listings]` standalone
  * still get the plugin's default flow behaviour. `!important` is
  * needed to beat the plugin's own `!important`; later in the
  * cascade (theme.css loads after rmaps-react.css) at same
@@ -1087,12 +1133,12 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 }
 /* Plugin's `.rmaps-react-sidebar__scroll` brings two defaults
  * that fight the column layout:
- *   - `padding: 10px` — pushes the first card down off the map
+ *   - `padding: 10px` - pushes the first card down off the map
  *     column's top edge. Drop the vertical part; horizontal 10 px
  *     stays so cards keep a breathing gap from the column edges.
  *   - `max-height: 80vh` (the standalone-mode cap, sensible for a
  *     loose listings block on a long page, breaking for our
- *     fixed-height-from-map approach) — when the map is e.g.
+ *     fixed-height-from-map approach) - when the map is e.g.
  *     800 px on a 700 px viewport, the scroll stops growing past
  *     ~560 px and visually "ends early". Lift the cap so the
  *     scroll matches whatever height we set on the mount. */
@@ -1103,7 +1149,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 /* Gutenberg's column editor leaves stray empty `<p></p>` blocks
  * around any shortcode that produces non-text output. They take
  * ~30 px each and visually shift the listings column down relative
- * to the map column starting edge — so the cards line up below the
+ * to the map column starting edge - so the cards line up below the
  * map's top, not flush with it. Collapsing them brings both column
  * contents to the same Y. */
 .wp-block-column > p:empty {
@@ -1136,7 +1182,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 		 * this, the sub-menu links (which re-enable themselves with
 		 * `visibility: visible` further below so they expand inline when
 		 * the parent IS open) stay hit-testable on top of page content
-		 * even with the drawer invisible — the user moves the cursor
+		 * even with the drawer invisible - the user moves the cursor
 		 * across what looks like the in-map search form and the status
 		 * bar shows random menu link URLs. Toggling `pointer-events` on
 		 * the .is-open state is the cleanest gate. */
@@ -1177,7 +1223,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 		border-top: 1px solid var(--rmaps-theme-border-soft);
 	}
 
-	/* Engine-switch on mobile — the desktop popover (position:absolute;
+	/* Engine-switch on mobile - the desktop popover (position:absolute;
 	 * right:0; min-width:200px) overflows or covers the drawer body when
 	 * it drops from the small pill trigger. Flatten it: keep the pill as
 	 * the tap target, but render the open menu as a full-width inline
@@ -1198,7 +1244,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 		 * reserve layout space inside the drawer between taps. The
 		 * desktop popover used `visibility: hidden + opacity: 0` to
 		 * keep the box reflow-stable for transitions, but on mobile
-		 * the menu is `position: static` (in flow) — visibility:hidden
+		 * the menu is `position: static` (in flow) - visibility:hidden
 		 * would leave an empty gap between the pill and the CTAs
 		 * below until the user taps to open. */
 		display: none;
@@ -1220,7 +1266,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 
 @media (max-width: 540px) {
 	/* Scope label-hide to the STANDALONE `[rmaps-engine-switcher]`
-	 * shortcode container — the header pill's dropdown menu lives in
+	 * shortcode container - the header pill's dropdown menu lives in
 	 * its own drawer with plenty of horizontal space, so labels stay
 	 * visible there. Without this scoping the dropdown showed three
 	 * icons and no engine names on narrow phones. */
@@ -1238,7 +1284,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 }
 
 /* ====================================================
- * Gutenberg Columns — responsive stacking
+ * Gutenberg Columns - responsive stacking
  *
  * WordPress on this install lazy-loads block CSS per-block, and on
  * pages where the Columns block isn't auto-detected the structural
@@ -1248,7 +1294,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
  * the front-end regardless of what core decides to ship.
  *
  * Two markup variants are handled:
- *   - Modern Gutenberg (>= WP 5.7): stacking is the DEFAULT — the
+ *   - Modern Gutenberg (>= WP 5.7): stacking is the DEFAULT - the
  *     opt-out is `.is-not-stacked-on-mobile`.
  *   - Legacy Gutenberg: stacking is opt-IN via `.is-stacked-on-mobile`.
  *     The metabox toggle in the editor (the one labelled "Stack on
@@ -1293,7 +1339,7 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	/* MapSidebar applies `width: 300px` inline (set by React from the
 	 * metabox `sidebar_size` setting). On a < 300 px column the
 	 * sidebar would overflow into the next column / off-screen.
-	 * Override to the full column width on mobile — the absolute
+	 * Override to the full column width on mobile - the absolute
 	 * positioning + `top:0; bottom:0` already handle height. */
 	.wp-block-column .rmaps-react-listings-mount .rmaps-react-sidebar {
 		width: 100% !important;
@@ -1304,3 +1350,14 @@ html[data-theme="dark"] .rmaps-theme-mode-toggle .rmaps-theme-icon-moon { displa
 	.wp-block-columns { flex-wrap: nowrap; }
 	.wp-block-columns > .wp-block-column[style*="flex-basis"] { flex-grow: 0; }
 }
+
+/* ── Rocket Maps brand logo image ──────────────────────────
+   Replaces the single-colour inline-SVG glyph in the header + footer
+   with the generated rocket logo (resources match the admin menu icon).
+   The base .rmaps-theme-brand-mark is a fixed 32x32 (footer 28x28) square
+   sized for that glyph; the logo is portrait, so the modifier frees the
+   box to hug the image and sizes purely by height. */
+.rmaps-theme-brand-mark--logo { width: auto; height: auto; }
+.rmaps-theme-brand-mark--logo img { display: block; width: auto; height: 36px; }
+.rmaps-theme-footer-brand .rmaps-theme-brand-mark--logo { width: auto; height: auto; }
+.rmaps-theme-footer-brand .rmaps-theme-brand-mark--logo img { height: 30px; }
