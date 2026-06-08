@@ -757,6 +757,27 @@ if ( ! function_exists( 'rmaps_theme_ga_is_excluded_ip' ) ) {
 	}
 }
 
+if ( ! function_exists( 'rmaps_theme_ga_print_snippet' ) ) {
+	/**
+	 * Echo the gtag.js snippet for a GA4 Measurement ID. Shared by the
+	 * front-end (wp_head) and the demo-only admin emitter below so the tag is
+	 * byte-for-byte identical in both contexts.
+	 */
+	function rmaps_theme_ga_print_snippet( $ga_id ) {
+		?>
+<!-- Google tag (gtag.js) -->
+<script async src="<?php echo esc_url( 'https://www.googletagmanager.com/gtag/js?id=' . $ga_id ); ?>"></script>
+<script>
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', <?php echo wp_json_encode( $ga_id ); ?>, { cookie_flags: 'SameSite=None;Secure' });
+</script>
+		<?php
+	}
+}
+
+// Front-end <head>.
 add_action( 'wp_head', function () {
 	if ( is_admin() ) {
 		return;
@@ -769,14 +790,27 @@ add_action( 'wp_head', function () {
 		echo "<!-- Rocket Maps: GA skipped (excluded IP) -->\n";
 		return;
 	}
-	?>
-<!-- Google tag (gtag.js) -->
-<script async src="<?php echo esc_url( 'https://www.googletagmanager.com/gtag/js?id=' . $ga_id ); ?>"></script>
-<script>
-	window.dataLayer = window.dataLayer || [];
-	function gtag(){dataLayer.push(arguments);}
-	gtag('js', new Date());
-	gtag('config', <?php echo wp_json_encode( $ga_id ); ?>, { cookie_flags: 'SameSite=None;Secure' });
-</script>
-	<?php
+	rmaps_theme_ga_print_snippet( $ga_id );
 }, 1 );
+
+/*
+ * Demo-only: also load GA on the wp-admin screens. On the Rocket Maps demo
+ * server (RMAPS_DEMO) logged-out visitors are auto-signed into a sandboxed,
+ * read-only wp-admin to explore the plugin's editors (maps, listings, form
+ * builder, settings, CSV) - this measures that admin-side browsing too.
+ * Hard-gated on RMAPS_DEMO so a real install never tracks its own wp-admin
+ * usage; same IP-exclusion as the front-end.
+ */
+add_action( 'admin_print_footer_scripts', function () {
+	if ( ! ( defined( 'RMAPS_DEMO' ) && RMAPS_DEMO ) ) {
+		return;
+	}
+	$ga_id = rmaps_theme_ga_measurement_id();
+	if ( '' === $ga_id ) {
+		return;
+	}
+	if ( rmaps_theme_ga_is_excluded_ip() ) {
+		return;
+	}
+	rmaps_theme_ga_print_snippet( $ga_id );
+} );
