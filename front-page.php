@@ -23,7 +23,7 @@ get_header(); ?>
 					<p class="rmaps-theme-hero-tagline"><?php bloginfo( 'description' ); ?></p>
 					<p class="rmaps-theme-hero-cta">
 						<a class="rmaps-theme-button rmaps-theme-button-primary" href="<?php
-							$buy = get_theme_mod( 'rmaps_theme_buy_url', 'https://www.salephpscripts.com/wordpress_maps/' );
+							$buy = get_theme_mod( 'rmaps_theme_buy_url', 'https://codecanyon.net/item/rocket-maps-plugin-for-wordpress/63717983' );
 							echo esc_url( $buy );
 						?>" target="_blank" rel="noopener noreferrer">
 							<?php esc_html_e( 'Buy plugin', 'rmaps-theme' ); ?>
