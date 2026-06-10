@@ -631,41 +631,220 @@ if ( ! function_exists( 'rmaps_theme_engine_icon_svg' ) ) {
  * ---------------------------------------------------------------*/
 
 /* ---------------------------------------------------------------
- * SEO - let the plugin handle its own. Theme just sets a sane
- * meta description fallback (excerpt or first 160 chars of content)
- * + OpenGraph image so social shares look right.
+ * SEO - meta description, Open Graph + Twitter Card, and JSON-LD
+ * structured data (WebSite + Organization site-wide, plus a
+ * SoftwareApplication "product" schema on the front page for the
+ * Rocket Maps plugin). Everything is skipped automatically when a
+ * dedicated SEO plugin (Yoast / Rank Math / AIOSEO / SEOPress) is
+ * active so head tags never double up. WP core already prints the
+ * <title> (title-tag support) and rel=canonical for singular views.
  * ---------------------------------------------------------------*/
-add_action( 'wp_head', function () {
+
+/** True when a full SEO plugin owns the head meta - the theme then stays quiet. */
+function rmaps_theme_seo_plugin_active() {
+	return defined( 'WPSEO_VERSION' )
+		|| defined( 'RANK_MATH_VERSION' )
+		|| defined( 'SEOPRESS_VERSION' )
+		|| function_exists( 'aioseo' )
+		|| class_exists( 'All_in_One_SEO_Pack' );
+}
+
+/** Site-wide default description (front page + schema). Uses the tagline when
+ *  set, otherwise a curated plugin pitch. Filterable. */
+function rmaps_theme_seo_default_description() {
+	$tagline = trim( wp_strip_all_tags( (string) get_bloginfo( 'description' ) ) );
+	$default = '' !== $tagline
+		? $tagline
+		: __( 'A powerful WordPress maps & directory plugin - Google Maps, Mapbox and MapLibre engines, marker clustering, advanced search, listings, popups and a drag-and-drop form builder.', 'rmaps-theme' );
+	return (string) apply_filters( 'rmaps_theme_seo_description', $default );
+}
+
+/** Best brand image URL (custom logo -> site icon -> bundled mark). */
+function rmaps_theme_seo_logo_url() {
+	$logo_id = (int) get_theme_mod( 'custom_logo' );
+	if ( $logo_id ) {
+		$u = wp_get_attachment_image_url( $logo_id, 'full' );
+		if ( $u ) {
+			return $u;
+		}
+	}
+	if ( function_exists( 'get_site_icon_url' ) ) {
+		$icon = get_site_icon_url( 512 );
+		if ( $icon ) {
+			return $icon;
+		}
+	}
+	return get_theme_file_uri( 'assets/images/logo-mark.png' );
+}
+
+/** OG/Twitter image: the post's featured image, else the brand logo. */
+function rmaps_theme_seo_image() {
+	if ( is_singular() && has_post_thumbnail() ) {
+		$img = wp_get_attachment_image_url( get_post_thumbnail_id(), 'large' );
+		if ( $img ) {
+			return $img;
+		}
+	}
+	return rmaps_theme_seo_logo_url();
+}
+
+/** Resolve a <=160-char description for the current view. */
+function rmaps_theme_seo_description() {
+	if ( is_front_page() ) {
+		return rmaps_theme_seo_default_description();
+	}
 	if ( is_singular() ) {
-		global $post;
-		if ( ! $post ) return;
-
-		$desc = '';
-		if ( has_excerpt( $post ) ) {
-			$desc = wp_strip_all_tags( get_the_excerpt( $post ) );
-		} else {
-			$desc = wp_strip_all_tags( strip_shortcodes( $post->post_content ) );
-		}
-		$desc = trim( preg_replace( '/\s+/u', ' ', $desc ) );
-		if ( $desc !== '' ) {
-			$desc = mb_substr( $desc, 0, 160 );
-			echo '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
-			echo '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
-		}
-
-		echo '<meta property="og:title" content="' . esc_attr( get_the_title( $post ) ) . '">' . "\n";
-		echo '<meta property="og:type" content="website">' . "\n";
-		echo '<meta property="og:url" content="' . esc_url( get_permalink( $post ) ) . '">' . "\n";
-
-		if ( has_post_thumbnail( $post ) ) {
-			$img = wp_get_attachment_image_url( get_post_thumbnail_id( $post ), 'large' );
-			if ( $img ) {
-				echo '<meta property="og:image" content="' . esc_url( $img ) . '">' . "\n";
-				echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+		$post = get_queried_object();
+		if ( $post instanceof WP_Post ) {
+			$raw  = has_excerpt( $post ) ? get_the_excerpt( $post ) : strip_shortcodes( $post->post_content );
+			$desc = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $raw ) ) );
+			if ( '' !== $desc ) {
+				return mb_substr( $desc, 0, 160 );
 			}
 		}
 	}
-} );
+	if ( is_archive() ) {
+		$d = trim( wp_strip_all_tags( get_the_archive_description() ) );
+		if ( '' !== $d ) {
+			return mb_substr( $d, 0, 160 );
+		}
+	}
+	return rmaps_theme_seo_default_description();
+}
+
+/** Canonical-ish URL for OG. */
+function rmaps_theme_seo_url() {
+	if ( is_singular() && ! is_front_page() ) {
+		$id = get_queried_object_id();
+		if ( $id ) {
+			return get_permalink( $id );
+		}
+	}
+	return home_url( '/' );
+}
+
+/* ---- Meta description + Open Graph + Twitter Card ---- */
+add_action( 'wp_head', function () {
+	if ( rmaps_theme_seo_plugin_active() ) {
+		return;
+	}
+	$desc  = rmaps_theme_seo_description();
+	$image = rmaps_theme_seo_image();
+	$url   = rmaps_theme_seo_url();
+	$title = is_front_page() ? get_bloginfo( 'name' ) : ( is_singular() ? get_the_title() : wp_get_document_title() );
+	$type  = is_singular( 'post' ) ? 'article' : 'website';
+
+	$out = '';
+	if ( '' !== $desc ) {
+		$out .= '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
+	}
+	$out .= '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">' . "\n";
+	$out .= '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
+	$out .= '<meta property="og:type" content="' . esc_attr( $type ) . '">' . "\n";
+	$out .= '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+	if ( '' !== $desc ) {
+		$out .= '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	}
+	$out .= '<meta property="og:url" content="' . esc_url( $url ) . '">' . "\n";
+	if ( $image ) {
+		$out .= '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+	}
+	$out .= '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	$out .= '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
+	if ( '' !== $desc ) {
+		$out .= '<meta name="twitter:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	}
+	if ( $image ) {
+		$out .= '<meta name="twitter:image" content="' . esc_url( $image ) . '">' . "\n";
+	}
+	echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- each value escaped above.
+}, 5 );
+
+/**
+ * SoftwareApplication schema for the Rocket Maps plugin (front-page product
+ * micro-markup). Filterable - set the REAL price / currency, and add an
+ * `aggregateRating` only if you have genuine reviews, via:
+ *
+ *   add_filter( 'rmaps_theme_software_schema', function ( $s ) {
+ *       $s['offers']['price'] = '49';                 // your CodeCanyon price
+ *       $s['aggregateRating'] = array(                // real numbers only
+ *           '@type' => 'AggregateRating',
+ *           'ratingValue' => '4.8', 'reviewCount' => '37',
+ *       );
+ *       return $s;
+ *   } );
+ */
+function rmaps_theme_software_schema() {
+	$home = home_url( '/' );
+	$buy  = get_theme_mod( 'rmaps_theme_buy_url', 'https://codecanyon.net/item/rocket-maps-plugin-for-wordpress/63717983' );
+	$name = get_bloginfo( 'name' );
+
+	$schema = array(
+		'@type'                => 'SoftwareApplication',
+		'name'                 => '' !== $name ? $name : 'Rocket Maps',
+		'description'          => rmaps_theme_seo_default_description(),
+		'applicationCategory'  => 'BusinessApplication',
+		'operatingSystem'      => 'WordPress',
+		'url'                  => $home,
+		'image'                => rmaps_theme_seo_logo_url(),
+		'softwareRequirements' => 'WordPress 6.0 or higher, PHP 7.4+',
+		// CodeCanyon regular-license price - keep in sync with the actual item
+		// price (a mismatch with the sale page hurts rich results).
+		'offers'               => array(
+			'@type'         => 'Offer',
+			'price'         => '29',
+			'priceCurrency' => 'USD',
+			'url'           => $buy,
+			'availability'  => 'https://schema.org/InStock',
+		),
+	);
+	return apply_filters( 'rmaps_theme_software_schema', $schema );
+}
+
+/* ---- JSON-LD structured data ---- */
+add_action( 'wp_head', function () {
+	if ( rmaps_theme_seo_plugin_active() ) {
+		return;
+	}
+	$home  = home_url( '/' );
+	$graph = array();
+
+	$org = array(
+		'@type' => 'Organization',
+		'@id'   => $home . '#organization',
+		'name'  => get_bloginfo( 'name' ),
+		'url'   => $home,
+	);
+	$logo = rmaps_theme_seo_logo_url();
+	if ( $logo ) {
+		$org['logo'] = array( '@type' => 'ImageObject', 'url' => $logo );
+	}
+	$graph[] = $org;
+
+	$graph[] = array(
+		'@type'       => 'WebSite',
+		'@id'         => $home . '#website',
+		'name'        => get_bloginfo( 'name' ),
+		'url'         => $home,
+		'description' => rmaps_theme_seo_default_description(),
+		'inLanguage'  => get_bloginfo( 'language' ),
+		'publisher'   => array( '@id' => $home . '#organization' ),
+	);
+
+	if ( is_front_page() ) {
+		$app              = rmaps_theme_software_schema();
+		$app['publisher'] = array( '@id' => $home . '#organization' );
+		$graph[]          = $app;
+	}
+
+	$data = array(
+		'@context' => 'https://schema.org',
+		'@graph'   => $graph,
+	);
+	// wp_json_encode escapes slashes by default, so a stray "</script>" inside
+	// any value can't break out of the tag.
+	echo '<script type="application/ld+json">' . wp_json_encode( $data ) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}, 20 );
 
 /* ---------------------------------------------------------------
  * Body class hook so CSS can target the active engine for accent
