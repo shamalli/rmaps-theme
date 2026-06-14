@@ -993,3 +993,17 @@ add_action( 'admin_print_footer_scripts', function () {
 	}
 	rmaps_theme_ga_print_snippet( $ga_id );
 } );
+
+/* ---------------------------------------------------------------
+ * Admin media tools (Tools menu), admin-only so they load only in wp-admin:
+ *
+ *  - Media Cleanup  — finds orphaned image files under wp-content/uploads/
+ *    (on disk but not in the Media Library) and moves them to a reversible
+ *    quarantine folder.
+ *  - WebP Convert   — converts JPEG/PNG Media Library images to WebP in
+ *    place, quarantining the originals (reversible until finalized).
+ * ---------------------------------------------------------------*/
+if ( is_admin() ) {
+	require_once get_template_directory() . '/inc/uploads-cleanup.php';
+	require_once get_template_directory() . '/inc/webp-convert.php';
+}
