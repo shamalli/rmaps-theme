@@ -792,7 +792,7 @@ function rmaps_theme_software_schema() {
 		// price (a mismatch with the sale page hurts rich results).
 		'offers'               => array(
 			'@type'         => 'Offer',
-			'price'         => '29',
+			'price'         => '19',
 			'priceCurrency' => 'USD',
 			'url'           => $buy,
 			'availability'  => 'https://schema.org/InStock',
