@@ -46,6 +46,12 @@ const RMAPS_THEME_WEBP_FAILED_KEY = '_rmaps_webp_failed';
 const RMAPS_THEME_WEBP_BATCH = 50;
 /** Soft wall-clock budget per request, seconds. */
 const RMAPS_THEME_WEBP_TIME_BUDGET = 15;
+/** Per-attachment PHP time limit (seconds), reset before EACH encode. The wall
+ *  budget above is only checked between attachments, so without a fresh limit a
+ *  single heavy image starting late in the window can hit max_execution_time
+ *  mid-encode and strand a half-converted attachment (its .webp written, but the
+ *  DB rewrite + quarantine never run -> stays image/jpeg with the .jpg live). */
+const RMAPS_THEME_WEBP_ITEM_TIMELIMIT = 120;
 /** Cap the estimate preview table. */
 const RMAPS_THEME_WEBP_MAX_ROWS = 300;
 
@@ -476,6 +482,16 @@ function rmaps_theme_webp_convert_batch( $quality ) {
 	$ids   = rmaps_theme_webp_pending_ids( RMAPS_THEME_WEBP_BATCH );
 	$start = microtime( true );
 
+	// Let the current attachment finish even if the browser drops the
+	// auto-submit request, and give encoding memory headroom. Per-attachment
+	// time-limit resets happen inside the loop (see RMAPS_THEME_WEBP_ITEM_TIMELIMIT).
+	if ( function_exists( 'ignore_user_abort' ) ) {
+		ignore_user_abort( true );
+	}
+	if ( function_exists( 'wp_raise_memory_limit' ) ) {
+		wp_raise_memory_limit( 'image' );
+	}
+
 	$processed = 0;
 	$ok        = 0;
 	$failed    = 0;
@@ -485,6 +501,11 @@ function rmaps_theme_webp_convert_batch( $quality ) {
 	$map       = array();
 
 	foreach ( $ids as $id ) {
+		// Fresh PHP time budget per attachment so one heavy image can't trip
+		// max_execution_time partway through and strand a half-converted file.
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( RMAPS_THEME_WEBP_ITEM_TIMELIMIT );
+		}
 		$r = rmaps_theme_webp_convert_attachment( $id, $quality );
 		$processed++;
 		if ( ! empty( $r['ok'] ) ) {
@@ -672,6 +693,231 @@ add_action( 'admin_menu', function () {
 	);
 } );
 
+/* ===============================================================
+ *  DB reconcile — repoint stale .jpg/.jpeg/.png references to the
+ *  .webp twin wherever that twin already exists on disk.
+ *
+ *  The in-place converter rewrites the attachment record + a NARROW
+ *  post_content pass (exact current-site URL forms only). Anything else
+ *  that hard-stored an image URL keeps pointing at the moved original
+ *  and 404s: postmeta (incl. the rmaps plugin's `_rmaps_location_markers`
+ *  marker cache that `/markers/batch` serves), options (uploaded default-
+ *  marker / per-category marker URLs), and content URLs written with a
+ *  different host/scheme. This sweep walks posts + postmeta + options and,
+ *  for every reference whose `.webp` sibling is really on disk, swaps just
+ *  the extension. A `.jpg` that was never converted has no twin and is
+ *  left untouched, so the pass is safe to run repeatedly.
+ *
+ *  Serialization-safe: each value is unserialized, walked, and reserialized
+ *  so the +1 length change (.jpg -> .webp) never corrupts an `s:N:"…"`.
+ * ===============================================================*/
+
+/** Rows per reconcile chunk (postmeta / posts). */
+const RMAPS_THEME_WEBP_RECONCILE_ROWS = 300;
+
+/** Postmeta keys the reconcile must NOT touch: the canonical attachment
+ *  records (the converter owns those) and the converter's own restore backup
+ *  (rewriting it to webp would break Restore). */
+function rmaps_theme_webp_reconcile_skip_meta_keys() {
+	return array( '_wp_attachment_metadata', '_wp_attached_file', '_wp_attachment_backup_sizes', RMAPS_THEME_WEBP_BACKUP_KEY );
+}
+
+/** Memoized "<upload-relative>.webp exists on disk?" test. */
+function rmaps_theme_webp_twin_on_disk( $webp_rel, $basedir ) {
+	static $memo = array();
+	if ( ! isset( $memo[ $webp_rel ] ) ) {
+		$memo[ $webp_rel ] = is_file( $basedir . $webp_rel );
+	}
+	return $memo[ $webp_rel ];
+}
+
+/**
+ * Map a matched reference (absolute URL / root-relative / bare YYYY/MM path,
+ * possibly with JSON-escaped slashes and a ?query/#frag) to its upload-
+ * relative path. '' when it isn't recognisably an uploads path.
+ */
+function rmaps_theme_webp_ref_to_rel( $ref ) {
+	$s = str_replace( '\\/', '/', (string) $ref ); // unescape JSON slashes
+	$s = preg_replace( '/[?#].*$/', '', $s );        // drop query / fragment
+	$pos = stripos( $s, '/uploads/' );
+	if ( false !== $pos ) {
+		return ltrim( substr( $s, $pos + 9 ), '/' );
+	}
+	if ( preg_match( '#^/?\d{4}/\d{2}/#', $s ) ) {    // bare upload-relative path
+		return ltrim( $s, '/' );
+	}
+	return '';
+}
+
+/**
+ * Recursively swap eligible image extensions inside a scalar / array / object.
+ * $count is incremented once per reference actually repointed.
+ */
+function rmaps_theme_webp_reconcile_walk( $value, $basedir, &$count ) {
+	if ( is_array( $value ) ) {
+		foreach ( $value as $k => $v ) {
+			$value[ $k ] = rmaps_theme_webp_reconcile_walk( $v, $basedir, $count );
+		}
+		return $value;
+	}
+	if ( is_object( $value ) ) {
+		foreach ( get_object_vars( $value ) as $k => $v ) {
+			$value->$k = rmaps_theme_webp_reconcile_walk( $v, $basedir, $count );
+		}
+		return $value;
+	}
+	if ( ! is_string( $value ) || '' === $value ) {
+		return $value;
+	}
+	// Cheap reject before the regex.
+	if ( false === stripos( $value, '.jp' ) && false === stripos( $value, '.png' ) ) {
+		return $value;
+	}
+	return preg_replace_callback(
+		'#[^\s"\'<>()\[\],]+?\.(?:jpe?g|png)(?=[\s"\'<>()\[\],?\\\\]|$)#i',
+		function ( $m ) use ( $basedir, &$count ) {
+			$ref = $m[0];
+			$rel = rmaps_theme_webp_ref_to_rel( $ref );
+			if ( '' === $rel ) {
+				return $ref;
+			}
+			$webp_rel = preg_replace( '/\.(?:jpe?g|png)$/i', '.webp', $rel );
+			if ( null === $webp_rel || ! rmaps_theme_webp_twin_on_disk( $webp_rel, $basedir ) ) {
+				return $ref;
+			}
+			$count++;
+			return preg_replace( '/\.(?:jpe?g|png)$/i', '.webp', $ref );
+		},
+		$value
+	);
+}
+
+/** Reconcile one raw DB value. Returns array{0:string|null new-raw, 1:int count}. */
+function rmaps_theme_webp_reconcile_blob( $raw, $basedir ) {
+	$count = 0;
+	$data  = maybe_unserialize( $raw );
+	$new   = rmaps_theme_webp_reconcile_walk( $data, $basedir, $count );
+	if ( 0 === $count ) {
+		return array( null, 0 );
+	}
+	return array( maybe_serialize( $new ), $count );
+}
+
+/**
+ * One reconcile chunk. Phases run in order: options (one pass) -> postmeta
+ * (cursor by meta_id) -> post content (cursor by ID) -> done. Returns the
+ * next cursor + per-batch counts; the admin page carries the cursor across
+ * its auto-continuing submits.
+ */
+function rmaps_theme_webp_reconcile_batch( $phase, $after ) {
+	global $wpdb;
+	$up      = wp_get_upload_dir();
+	$basedir = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) );
+	$rows    = RMAPS_THEME_WEBP_RECONCILE_ROWS;
+
+	$rewritten = 0;
+	$scanned   = 0;
+
+	if ( '' === $phase || 'options' === $phase ) {
+		$opts = $wpdb->get_results(
+			"SELECT option_id, option_name, option_value FROM {$wpdb->options}
+			 WHERE option_value LIKE '%/uploads/%'
+			   AND ( option_value LIKE '%.jpg%' OR option_value LIKE '%.jpeg%' OR option_value LIKE '%.png%' )"
+		);
+		foreach ( (array) $opts as $o ) {
+			$scanned++;
+			list( $new, $c ) = rmaps_theme_webp_reconcile_blob( $o->option_value, $basedir );
+			if ( null !== $new ) {
+				$wpdb->update( $wpdb->options, array( 'option_value' => $new ), array( 'option_id' => (int) $o->option_id ) );
+				wp_cache_delete( $o->option_name, 'options' );
+				$rewritten += $c;
+			}
+		}
+		wp_cache_delete( 'alloptions', 'options' );
+		return array( 'phase' => 'postmeta', 'after' => 0, 'rewritten' => $rewritten, 'scanned' => $scanned, 'done' => false, 'label' => 'options' );
+	}
+
+	if ( 'postmeta' === $phase ) {
+		$skip = rmaps_theme_webp_reconcile_skip_meta_keys();
+		$skip_ph = implode( ',', array_fill( 0, count( $skip ), '%s' ) );
+		$args = array_merge(
+			array( (int) $after ),
+			$skip,
+			array( '%/uploads/%', '%.jpg%', '%.jpeg%', '%.png%', $rows )
+		);
+		$meta = $wpdb->get_results( $wpdb->prepare(
+			"SELECT meta_id, post_id, meta_value FROM {$wpdb->postmeta}
+			 WHERE meta_id > %d
+			   AND meta_key NOT IN ( $skip_ph )
+			   AND meta_value LIKE %s
+			   AND ( meta_value LIKE %s OR meta_value LIKE %s OR meta_value LIKE %s )
+			 ORDER BY meta_id ASC LIMIT %d",
+			$args
+		) );
+		$last    = (int) $after;
+		$touched = array();
+		foreach ( (array) $meta as $m ) {
+			$scanned++;
+			$last = (int) $m->meta_id;
+			list( $new, $c ) = rmaps_theme_webp_reconcile_blob( $m->meta_value, $basedir );
+			if ( null !== $new ) {
+				$wpdb->update( $wpdb->postmeta, array( 'meta_value' => $new ), array( 'meta_id' => (int) $m->meta_id ) );
+				$touched[ (int) $m->post_id ] = true;
+				$rewritten += $c;
+			}
+		}
+		foreach ( array_keys( $touched ) as $pid ) {
+			clean_post_cache( $pid );
+		}
+		$more = ( count( (array) $meta ) === $rows );
+		return array(
+			'phase'     => $more ? 'postmeta' : 'content',
+			'after'     => $more ? $last : 0,
+			'rewritten' => $rewritten,
+			'scanned'   => $scanned,
+			'done'      => false,
+			'label'     => 'postmeta',
+		);
+	}
+
+	if ( 'content' === $phase ) {
+		$posts = $wpdb->get_results( $wpdb->prepare(
+			"SELECT ID, post_content FROM {$wpdb->posts}
+			 WHERE ID > %d AND post_content LIKE %s
+			   AND ( post_content LIKE %s OR post_content LIKE %s OR post_content LIKE %s )
+			 ORDER BY ID ASC LIMIT %d",
+			(int) $after, '%/uploads/%', '%.jpg%', '%.jpeg%', '%.png%', $rows
+		) );
+		$last = (int) $after;
+		foreach ( (array) $posts as $p ) {
+			$scanned++;
+			$last = (int) $p->ID;
+			list( $new, $c ) = rmaps_theme_webp_reconcile_blob( $p->post_content, $basedir );
+			if ( null !== $new ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => (int) $p->ID ) );
+				clean_post_cache( (int) $p->ID );
+				$rewritten += $c;
+			}
+		}
+		$more = ( count( (array) $posts ) === $rows );
+		if ( ! $more ) {
+			// Let companion code (e.g. the rmaps plugin) repoint its own
+			// custom tables — the theme stays out of plugin schema.
+			do_action( 'rmaps_theme_webp_reconcile_done', $basedir );
+		}
+		return array(
+			'phase'     => $more ? 'content' : 'done',
+			'after'     => $more ? $last : 0,
+			'rewritten' => $rewritten,
+			'scanned'   => $scanned,
+			'done'      => ! $more,
+			'label'     => 'post content',
+		);
+	}
+
+	return array( 'phase' => 'done', 'after' => 0, 'rewritten' => 0, 'scanned' => 0, 'done' => true, 'label' => 'done' );
+}
+
 function rmaps_theme_webp_render_page() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You do not have permission to access this page.', 'rmaps-theme' ) );
@@ -681,8 +927,11 @@ function rmaps_theme_webp_render_page() {
 	$ntype     = 'success';
 	$estimate  = null;
 	$auto_more = false; // emit the auto-continue script after a batch
-	$auto_kind = '';    // 'convert' | 'restore'
+	$auto_kind = '';    // 'convert' | 'restore' | 'reconcile'
 	$quality   = rmaps_theme_webp_default_quality();
+	$recon_phase = ''; // reconcile cursor carried across auto-submits
+	$recon_after = 0;
+	$recon_total = 0;
 
 	if ( isset( $_POST['rmaps_webp_action'] ) ) {
 		check_admin_referer( 'rmaps_webp' );
@@ -746,6 +995,37 @@ function rmaps_theme_webp_render_page() {
 				__( 'Cleared %d skip marker(s) — those attachments re-enter the queue on the next conversion.', 'rmaps-theme' ),
 				$n
 			);
+		} elseif ( 'reconcile' === $action ) {
+			if ( function_exists( 'set_time_limit' ) ) {
+				@set_time_limit( RMAPS_THEME_WEBP_ITEM_TIMELIMIT );
+			}
+			if ( function_exists( 'ignore_user_abort' ) ) {
+				ignore_user_abort( true );
+			}
+			$phase = isset( $_POST['rmaps_webp_recon_phase'] ) ? sanitize_key( wp_unslash( $_POST['rmaps_webp_recon_phase'] ) ) : '';
+			$after = isset( $_POST['rmaps_webp_recon_after'] ) ? max( 0, (int) $_POST['rmaps_webp_recon_after'] ) : 0;
+			$total = isset( $_POST['rmaps_webp_recon_total'] ) ? max( 0, (int) $_POST['rmaps_webp_recon_total'] ) : 0;
+
+			$r = rmaps_theme_webp_reconcile_batch( $phase, $after );
+			$total += (int) $r['rewritten'];
+
+			$recon_phase = (string) $r['phase'];
+			$recon_after = (int) $r['after'];
+			$recon_total = $total;
+
+			$notice = sprintf(
+				/* translators: 1: phase label, 2: rows scanned this batch, 3: refs repointed this batch, 4: running total */
+				__( 'Reconcile (%1$s): scanned %2$s row(s) this batch, repointed %3$s reference(s) to WebP — %4$s total.', 'rmaps-theme' ),
+				esc_html( $r['label'] ),
+				number_format_i18n( (int) $r['scanned'] ),
+				number_format_i18n( (int) $r['rewritten'] ),
+				number_format_i18n( $total )
+			);
+			if ( ! empty( $r['done'] ) ) {
+				$notice .= ' ' . __( 'Done.', 'rmaps-theme' );
+			}
+			$auto_more = empty( $r['done'] );
+			$auto_kind = 'reconcile';
 		}
 	}
 
@@ -932,6 +1212,33 @@ function rmaps_theme_webp_render_page() {
 				var f = document.getElementById('rmaps-webp-restore');
 				if ( f ) { f.dataset.auto = '1'; f.submit(); }
 			}, 600);
+			</script>
+		<?php endif; ?>
+		<hr>
+		<h2><?php esc_html_e( '4. Repoint stale references (.jpg → .webp)', 'rmaps-theme' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Scans posts, postmeta and options for image URLs the in-place conversion did not rewrite — e.g. the map plugin\'s cached marker URLs served by /markers/batch, uploaded default-marker URLs, or content URLs written with a different host/scheme. For every .jpg/.jpeg/.png whose .webp twin already exists on disk, it repoints the reference to the .webp. Safe to run repeatedly: a reference whose file was never converted has no .webp twin and is left untouched.', 'rmaps-theme' ); ?></p>
+		<form method="post" id="rmaps-webp-reconcile" onsubmit="return (this.dataset.auto==='1')||confirm('<?php echo esc_js( __( 'Scan the database and repoint stale .jpg/.png references to their existing .webp twins?', 'rmaps-theme' ) ); ?>');">
+			<?php wp_nonce_field( 'rmaps_webp' ); ?>
+			<input type="hidden" name="rmaps_webp_action" value="reconcile">
+			<input type="hidden" name="rmaps_webp_recon_phase" value="<?php echo esc_attr( $recon_phase ); ?>">
+			<input type="hidden" name="rmaps_webp_recon_after" value="<?php echo esc_attr( (string) $recon_after ); ?>">
+			<input type="hidden" name="rmaps_webp_recon_total" value="<?php echo esc_attr( (string) $recon_total ); ?>">
+			<button type="submit" class="button"><?php esc_html_e( 'Scan & repoint references', 'rmaps-theme' ); ?></button>
+			<span class="description"><?php esc_html_e( 'Runs in batches and auto-continues until done.', 'rmaps-theme' ); ?></span>
+		</form>
+
+		<?php if ( $auto_more && 'reconcile' === $auto_kind ) : ?>
+			<p id="rmaps-webp-progress3" class="description"><?php esc_html_e( 'Auto-continuing reconcile…', 'rmaps-theme' ); ?>
+				<button type="button" class="button button-small" onclick="window.__rmapsWebpStop=1;document.getElementById('rmaps-webp-progress3').lastChild.replaceWith(' — stopped.');"><?php esc_html_e( 'Stop', 'rmaps-theme' ); ?></button>
+				<span></span>
+			</p>
+			<script>
+			window.__rmapsWebpStop = 0;
+			setTimeout(function () {
+				if ( window.__rmapsWebpStop ) { return; }
+				var f = document.getElementById('rmaps-webp-reconcile');
+				if ( f ) { f.dataset.auto = '1'; f.submit(); }
+			}, 400);
 			</script>
 		<?php endif; ?>
 	</div>
