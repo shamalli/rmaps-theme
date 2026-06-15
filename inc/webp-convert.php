@@ -178,6 +178,37 @@ function rmaps_theme_webp_failed_count() {
 	) );
 }
 
+/**
+ * Sample of skipped (failed-flagged) attachments with their on-disk status, so
+ * the operator can see whether the skips are genuinely file-less or actually
+ * have a `.webp` the attachments-reconcile phase should have repointed.
+ *
+ * @return array<int,array{id:int,file:string,jpg:bool,webp:bool}>
+ */
+function rmaps_theme_webp_failed_sample( $limit ) {
+	global $wpdb;
+	$up      = wp_get_upload_dir();
+	$basedir = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) );
+	$ids     = $wpdb->get_col( $wpdb->prepare(
+		"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY post_id ASC LIMIT %d",
+		RMAPS_THEME_WEBP_FAILED_KEY,
+		(int) $limit
+	) );
+	$out = array();
+	foreach ( (array) $ids as $id ) {
+		$id   = (int) $id;
+		$file = ltrim( str_replace( '\\', '/', (string) get_post_meta( $id, '_wp_attached_file', true ) ), '/' );
+		$webp = rmaps_theme_webp_swap_ext( $file );
+		$out[] = array(
+			'id'   => $id,
+			'file' => $file,
+			'jpg'  => ( '' !== $file && is_file( $basedir . $file ) ),
+			'webp' => ( $file !== $webp && is_file( $basedir . $webp ) ),
+		);
+	}
+	return $out;
+}
+
 /** How many attachments carry a restore backup (i.e. are revertible). */
 function rmaps_theme_webp_backup_count() {
 	global $wpdb;
@@ -804,8 +835,129 @@ function rmaps_theme_webp_reconcile_blob( $raw, $basedir ) {
 }
 
 /**
- * One reconcile chunk. Phases run in order: options (one pass) -> postmeta
- * (cursor by meta_id) -> post content (cursor by ID) -> done. Returns the
+ * Reconcile ONE attachment record (the keys the URL sweep deliberately skips:
+ * `_wp_attached_file` + `_wp_attachment_metadata` + `post_mime_type`/guid).
+ *
+ * Handles the "stranded" case: the .webp files exist on disk but the DB record
+ * was never repointed (converter timed out after encoding, or an old buggy run
+ * wrote the webp without updating the record). For every of the attachment's
+ * jpg/png files whose `.webp` twin is really on disk, the matching metadata
+ * entry is swapped (+ its mime-type), and — only when the PRIMARY file's twin
+ * exists — `_wp_attached_file` / `post_mime_type` / guid flip to webp too. A
+ * restore backup is stored (unless one already exists), the leftover jpg
+ * originals are moved to quarantine, and the failed flag is cleared. No twin =>
+ * untouched, so it's safe and idempotent.
+ *
+ * @return int references repointed (0 = nothing to do for this attachment)
+ */
+function rmaps_theme_webp_reconcile_attachment( $att_id, $basedir ) {
+	$att_id       = (int) $att_id;
+	$file_rel_old = ltrim( str_replace( '\\', '/', (string) get_post_meta( $att_id, '_wp_attached_file', true ) ), '/' );
+	if ( '' === $file_rel_old ) {
+		return 0;
+	}
+	$meta_old = wp_get_attachment_metadata( $att_id );
+	$rels     = rmaps_theme_webp_attachment_files( $file_rel_old, $meta_old );
+	if ( empty( $rels ) ) {
+		return 0;
+	}
+
+	// Which of this attachment's jpg/png files already have a .webp twin on disk?
+	$twin = array();
+	foreach ( $rels as $rel ) {
+		if ( is_file( $basedir . rmaps_theme_webp_swap_ext( $rel ) ) ) {
+			$twin[ $rel ] = true;
+		}
+	}
+	if ( empty( $twin ) ) {
+		return 0; // nothing was actually converted on disk — leave the record alone
+	}
+
+	$count    = 0;
+	$meta_new = is_array( $meta_old ) ? $meta_old : array();
+	$dir      = ( false !== strpos( $file_rel_old, '/' ) ) ? trailingslashit( dirname( $file_rel_old ) ) : '';
+
+	if ( ! empty( $meta_new['file'] ) ) {
+		$mf  = ltrim( str_replace( '\\', '/', (string) $meta_new['file'] ), '/' );
+		$dir = ( false !== strpos( $mf, '/' ) ) ? trailingslashit( dirname( $mf ) ) : $dir;
+		if ( isset( $twin[ $mf ] ) ) {
+			$meta_new['file'] = rmaps_theme_webp_swap_ext( $mf );
+			$count++;
+		}
+	}
+	if ( ! empty( $meta_new['original_image'] ) ) {
+		$oi = $dir . basename( (string) $meta_new['original_image'] );
+		if ( isset( $twin[ $oi ] ) ) {
+			$meta_new['original_image'] = rmaps_theme_webp_swap_ext( basename( (string) $meta_new['original_image'] ) );
+			$count++;
+		}
+	}
+	if ( ! empty( $meta_new['sizes'] ) && is_array( $meta_new['sizes'] ) ) {
+		foreach ( $meta_new['sizes'] as $k => $size ) {
+			if ( empty( $size['file'] ) ) {
+				continue;
+			}
+			$s = $dir . basename( (string) $size['file'] );
+			if ( isset( $twin[ $s ] ) ) {
+				$meta_new['sizes'][ $k ]['file']      = rmaps_theme_webp_swap_ext( basename( (string) $size['file'] ) );
+				$meta_new['sizes'][ $k ]['mime-type'] = 'image/webp';
+				$count++;
+			}
+		}
+	}
+
+	$main_twin = isset( $twin[ $file_rel_old ] );
+	if ( $main_twin ) {
+		$count++; // the _wp_attached_file pointer itself
+	}
+	if ( 0 === $count ) {
+		return 0;
+	}
+
+	// Backup for Restore — only if absent (never clobber a converter backup or
+	// an earlier reconcile backup; that would break revert).
+	if ( ! metadata_exists( 'post', $att_id, RMAPS_THEME_WEBP_BACKUP_KEY ) ) {
+		update_post_meta( $att_id, RMAPS_THEME_WEBP_BACKUP_KEY, array(
+			'file' => $file_rel_old,
+			'meta' => $meta_old,
+			'mime' => (string) get_post_field( 'post_mime_type', $att_id ),
+			'guid' => (string) get_post_field( 'guid', $att_id ),
+			'q'    => 0,
+		) );
+	}
+
+	wp_update_attachment_metadata( $att_id, $meta_new );
+
+	if ( $main_twin ) {
+		update_post_meta( $att_id, '_wp_attached_file', rmaps_theme_webp_swap_ext( $file_rel_old ) );
+		global $wpdb;
+		$guid_old = (string) get_post_field( 'guid', $att_id );
+		$guid_new = preg_match( '/\.(jpe?g|png)$/i', $guid_old ) ? rmaps_theme_webp_swap_ext( $guid_old ) : $guid_old;
+		$wpdb->update( $wpdb->posts, array( 'post_mime_type' => 'image/webp', 'guid' => $guid_new ), array( 'ID' => $att_id ) );
+	}
+
+	// Move any leftover jpg/png originals (those with a webp twin) to quarantine.
+	$up    = wp_get_upload_dir();
+	$qbase = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) ) . RMAPS_THEME_WEBP_QUARANTINE . '/';
+	foreach ( array_keys( $twin ) as $rel ) {
+		$src = $basedir . $rel;
+		if ( is_file( $src ) ) {
+			$dst = $qbase . $rel;
+			wp_mkdir_p( dirname( $dst ) );
+			@rename( $src, $dst );
+		}
+	}
+
+	delete_post_meta( $att_id, RMAPS_THEME_WEBP_FAILED_KEY );
+	clean_post_cache( $att_id );
+
+	return $count;
+}
+
+/**
+ * One reconcile chunk. Phases run in order: attachments (cursor by ID) ->
+ * options (one pass) -> postmeta (cursor by meta_id) -> post content (cursor
+ * by ID) -> done. Returns the
  * next cursor + per-batch counts; the admin page carries the cursor across
  * its auto-continuing submits.
  */
@@ -818,10 +970,41 @@ function rmaps_theme_webp_reconcile_batch( $phase, $after ) {
 	$rewritten = 0;
 	$scanned   = 0;
 
-	if ( '' === $phase || 'options' === $phase ) {
+	if ( '' === $phase || 'attachments' === $phase ) {
+		$mimes = rmaps_theme_webp_target_mimes();
+		$mph   = implode( ',', array_fill( 0, count( $mimes ), '%s' ) );
+		$args  = array_merge( array( (int) $after ), $mimes, array( $rows ) );
+		$atts  = $wpdb->get_col( $wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts}
+			 WHERE post_type = 'attachment' AND ID > %d AND post_mime_type IN ($mph)
+			 ORDER BY ID ASC LIMIT %d",
+			$args
+		) );
+		$last = (int) $after;
+		foreach ( (array) $atts as $aid ) {
+			$scanned++;
+			$last       = (int) $aid;
+			$rewritten += rmaps_theme_webp_reconcile_attachment( (int) $aid, $basedir );
+		}
+		$more = ( count( (array) $atts ) === $rows );
+		return array(
+			'phase'     => $more ? 'attachments' : 'options',
+			'after'     => $more ? $last : 0,
+			'rewritten' => $rewritten,
+			'scanned'   => $scanned,
+			'done'      => false,
+			'label'     => 'attachments',
+		);
+	}
+
+	if ( 'options' === $phase ) {
+		// NOTE: filter on 'uploads' (not '/uploads/'): JSON-encoded postmeta/
+		// options (Elementor `_elementor_data`, marker caches, …) store URLs with
+		// escaped slashes — `\/uploads\/` — so '%/uploads/%' would never match them
+		// and the whole row would be skipped. The walk/ref_to_rel below unescape.
 		$opts = $wpdb->get_results(
 			"SELECT option_id, option_name, option_value FROM {$wpdb->options}
-			 WHERE option_value LIKE '%/uploads/%'
+			 WHERE option_value LIKE '%uploads%'
 			   AND ( option_value LIKE '%.jpg%' OR option_value LIKE '%.jpeg%' OR option_value LIKE '%.png%' )"
 		);
 		foreach ( (array) $opts as $o ) {
@@ -843,7 +1026,7 @@ function rmaps_theme_webp_reconcile_batch( $phase, $after ) {
 		$args = array_merge(
 			array( (int) $after ),
 			$skip,
-			array( '%/uploads/%', '%.jpg%', '%.jpeg%', '%.png%', $rows )
+			array( '%uploads%', '%.jpg%', '%.jpeg%', '%.png%', $rows )
 		);
 		$meta = $wpdb->get_results( $wpdb->prepare(
 			"SELECT meta_id, post_id, meta_value FROM {$wpdb->postmeta}
@@ -886,7 +1069,7 @@ function rmaps_theme_webp_reconcile_batch( $phase, $after ) {
 			 WHERE ID > %d AND post_content LIKE %s
 			   AND ( post_content LIKE %s OR post_content LIKE %s OR post_content LIKE %s )
 			 ORDER BY ID ASC LIMIT %d",
-			(int) $after, '%/uploads/%', '%.jpg%', '%.jpeg%', '%.png%', $rows
+			(int) $after, '%uploads%', '%.jpg%', '%.jpeg%', '%.png%', $rows
 		) );
 		$last = (int) $after;
 		foreach ( (array) $posts as $p ) {
@@ -1066,6 +1249,47 @@ function rmaps_theme_webp_render_page() {
 				</form>
 			<?php endif; ?>
 		</p>
+
+		<?php
+		if ( $failed > 0 ) :
+			$fsample = rmaps_theme_webp_failed_sample( 12 );
+			$fs_webp = 0;
+			foreach ( $fsample as $fsr ) {
+				if ( $fsr['webp'] ) {
+					$fs_webp++;
+				}
+			}
+			?>
+			<details style="margin:.5em 0 1em">
+				<summary style="cursor:pointer"><?php
+					printf(
+						/* translators: 1: count with webp, 2: sample size */
+						esc_html__( 'Skipped diagnostics — %1$d of the first %2$d skipped records have a .webp on disk (those should reconcile).', 'rmaps-theme' ),
+						(int) $fs_webp,
+						count( $fsample )
+					);
+				?></summary>
+				<table class="widefat striped" style="max-width:900px;margin-top:.5em">
+					<thead><tr>
+						<th style="width:70px"><?php esc_html_e( 'ID', 'rmaps-theme' ); ?></th>
+						<th><?php esc_html_e( '_wp_attached_file', 'rmaps-theme' ); ?></th>
+						<th style="width:90px"><?php esc_html_e( '.jpg', 'rmaps-theme' ); ?></th>
+						<th style="width:90px"><?php esc_html_e( '.webp', 'rmaps-theme' ); ?></th>
+					</tr></thead>
+					<tbody>
+					<?php foreach ( $fsample as $fsr ) : ?>
+						<tr>
+							<td>#<?php echo (int) $fsr['id']; ?></td>
+							<td><code><?php echo esc_html( $fsr['file'] ); ?></code></td>
+							<td><?php echo $fsr['jpg'] ? '&#10003;' : '&mdash;'; ?></td>
+							<td><?php echo $fsr['webp'] ? '&#10003;' : '&mdash;'; ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<p class="description"><?php esc_html_e( 'If any row shows .webp ✓ yet is still skipped, the attachments reconcile phase should repoint it — re-run Reconcile and confirm prod has the latest file. If every row shows .webp —, those records are genuinely file-less and cannot be converted (delete them as broken Media Library entries, or leave them).', 'rmaps-theme' ); ?></p>
+			</details>
+		<?php endif; ?>
 
 		<hr>
 		<h2><?php esc_html_e( '1. Estimate', 'rmaps-theme' ); ?></h2>
