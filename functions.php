@@ -1002,8 +1002,12 @@ add_action( 'admin_print_footer_scripts', function () {
  *    quarantine folder.
  *  - WebP Convert   — converts JPEG/PNG Media Library images to WebP in
  *    place, quarantining the originals (reversible until finalized).
+ *  - Duplicate Media — finds the same image uploaded more than once
+ *    (IMPACT / IMPACT1 / IMPACT2 …) and (next step) re-points references to
+ *    one canonical copy before trashing the rest.
  * ---------------------------------------------------------------*/
 if ( is_admin() ) {
 	require_once get_template_directory() . '/inc/uploads-cleanup.php';
 	require_once get_template_directory() . '/inc/webp-convert.php';
+	require_once get_template_directory() . '/inc/duplicate-media.php';
 }
