@@ -41,8 +41,62 @@ function rmaps_theme_cleanup_extensions() {
  *  folder is always skipped; this filter lets a site keep e.g. a plugin's
  *  own uploads subfolder out of the scan. */
 function rmaps_theme_cleanup_exclude_prefixes() {
-	$default = array( RMAPS_THEME_CLEANUP_TRASH . '/' );
+	// Always skip this tool's own quarantine AND the sibling tools' trash /
+	// quarantine folders — even if those files' own exclude filters did not
+	// register (load order, an old deploy, etc.). Use their constants when
+	// defined, fall back to the known literal folder names.
+	$default = array(
+		RMAPS_THEME_CLEANUP_TRASH . '/',
+		( defined( 'RMAPS_THEME_DUPE_TRASH' ) ? RMAPS_THEME_DUPE_TRASH : '_dedupe_trash' ) . '/',
+		( defined( 'RMAPS_THEME_WEBP_QUARANTINE' ) ? RMAPS_THEME_WEBP_QUARANTINE : '_webp_orig' ) . '/',
+	);
 	return (array) apply_filters( 'rmaps_theme_cleanup_exclude_prefixes', $default );
+}
+
+/**
+ * Upload-relative image paths referenced by URL anywhere in the DB. The rmaps
+ * plugin resolves a location's marker from `_rmaps_location_markers`
+ * ({kind,value,color}); a kind='image' entry holds an image URL — a custom
+ * marker image OR a listing logo whose attachment was since removed — that has
+ * NO attachment row. Marker URLs also live in options; popups/content may embed
+ * URLs too. None of these have an attachment row, so without this they look like
+ * orphans and get trashed (which breaks those markers/logos). Protects the
+ * referenced path, its full-size base (size suffix stripped), and the jpg<->webp
+ * twin of each — a conversion may have rewritten either the reference or the file.
+ *
+ * @return array<string,true>
+ */
+function rmaps_theme_cleanup_url_referenced_files() {
+	global $wpdb;
+	$known = array();
+	$add   = static function ( $rel ) use ( &$known ) {
+		$rel = ltrim( (string) $rel, '/' );
+		if ( '' === $rel ) { return; }
+		$variants = array( $rel );
+		$basefull = preg_replace( '/-\d+x\d+(\.(?:jpe?g|png|webp))$/i', '$1', $rel ); // drop a -WxH size suffix
+		if ( $basefull && $basefull !== $rel ) { $variants[] = $basefull; }
+		foreach ( $variants as $v ) {
+			$known[ $v ] = true;
+			if ( preg_match( '/\.(jpe?g|png)$/i', $v ) ) {
+				$known[ preg_replace( '/\.(jpe?g|png)$/i', '.webp', $v ) ] = true;
+			} elseif ( preg_match( '/\.webp$/i', $v ) ) {
+				$known[ preg_replace( '/\.webp$/i', '.jpg', $v ) ] = true;
+			}
+		}
+	};
+
+	$sources = array();
+	$sources = array_merge( $sources, (array) $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_value LIKE '%/uploads/%'" ) );
+	$sources = array_merge( $sources, (array) $wpdb->get_col( "SELECT option_value FROM {$wpdb->options} WHERE option_value LIKE '%/uploads/%'" ) );
+	$sources = array_merge( $sources, (array) $wpdb->get_col( "SELECT post_content FROM {$wpdb->posts} WHERE post_content LIKE '%/uploads/%'" ) );
+
+	foreach ( $sources as $blob ) {
+		$blob = str_replace( '\\/', '/', (string) $blob ); // unescape JSON slashes
+		if ( preg_match_all( '~/uploads/([^\s"\'<>()\[\],?#]+?\.(?:jpe?g|png|webp))~i', $blob, $m ) ) {
+			foreach ( $m[1] as $rel ) { $add( $rel ); }
+		}
+	}
+	return $known;
 }
 
 /**
@@ -91,6 +145,10 @@ function rmaps_theme_cleanup_known_files() {
 			}
 		}
 	}
+
+	// Also protect images referenced only by URL (marker snapshots, options,
+	// embedded content) — they have no attachment row but are NOT orphans.
+	$known += rmaps_theme_cleanup_url_referenced_files();
 
 	return $known;
 }
@@ -144,6 +202,12 @@ function rmaps_theme_cleanup_scan() {
 		}
 		if ( isset( $known[ $rel ] ) ) {
 			continue; // a real attachment / size — keep
+		}
+		// Keep any size of a referenced image: if the full-size base (this path
+		// with a -WxH suffix stripped) is known, every thumbnail of it is too.
+		$base = preg_replace( '/-\d+x\d+(\.(?:jpe?g|png|webp))$/i', '$1', $rel );
+		if ( $base !== $rel && isset( $known[ $base ] ) ) {
+			continue;
 		}
 
 		$orphans[] = array( 'rel' => $rel, 'size' => (int) $fileinfo->getSize() );
@@ -246,6 +310,42 @@ function rmaps_theme_cleanup_empty_trash() {
 	return array( 'deleted' => $deleted, 'bytes' => $bytes );
 }
 
+/**
+ * Move every file from the quarantine (uploads/_trash/) back to its original
+ * uploads path. Use this to undo a trash run — e.g. when files referenced only
+ * by URL were wrongly flagged before the known-files set learned about them.
+ *
+ * @return array{moved:int}
+ */
+function rmaps_theme_cleanup_restore_trash() {
+	$up        = wp_get_upload_dir();
+	$base      = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) );
+	$trashBase = $base . RMAPS_THEME_CLEANUP_TRASH . '/';
+	if ( ! is_dir( $trashBase ) ) {
+		return array( 'moved' => 0 );
+	}
+	$files = array();
+	$it    = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $trashBase, FilesystemIterator::SKIP_DOTS ),
+		RecursiveIteratorIterator::LEAVES_ONLY
+	);
+	foreach ( $it as $fi ) {
+		if ( $fi->isFile() ) { $files[] = str_replace( '\\', '/', $fi->getPathname() ); }
+	}
+	$moved = 0;
+	foreach ( $files as $full ) {
+		$rel = ltrim( substr( $full, strlen( $trashBase ) ), '/' );
+		$dst = $base . $rel;
+		if ( file_exists( $dst ) ) {
+			@unlink( $full ); // original already back -> drop the quarantine copy
+			continue;
+		}
+		wp_mkdir_p( dirname( $dst ) );
+		if ( @rename( $full, $dst ) ) { $moved++; }
+	}
+	return array( 'moved' => $moved );
+}
+
 /* ---------------------------------------------------------------
  * Admin page (Tools → Media Cleanup)
  * ---------------------------------------------------------------*/
@@ -288,6 +388,13 @@ function rmaps_theme_cleanup_render_page() {
 				__( 'Permanently deleted %1$d quarantined file(s) (%2$s).', 'rmaps-theme' ),
 				$r['deleted'],
 				size_format( $r['bytes'] )
+			);
+		} elseif ( 'restore' === $action ) {
+			$r = rmaps_theme_cleanup_restore_trash();
+			$notice = sprintf(
+				/* translators: %d: file count moved back */
+				__( 'Restored %d file(s) from the quarantine back to uploads.', 'rmaps-theme' ),
+				$r['moved']
 			);
 		}
 	}
@@ -350,16 +457,21 @@ function rmaps_theme_cleanup_render_page() {
 		<p><?php
 			printf(
 				/* translators: 1: count, 2: size */
-				esc_html__( '%1$s file(s), %2$s. Restore anything by moving it back from uploads/_trash/ (same path), or empty the quarantine to delete permanently.', 'rmaps-theme' ),
+				esc_html__( '%1$s file(s), %2$s. Restore moves them all back to their original paths; empty the quarantine to delete permanently.', 'rmaps-theme' ),
 				'<strong>' . esc_html( number_format_i18n( $trash['count'] ) ) . '</strong>',
 				'<strong>' . esc_html( size_format( $trash['bytes'] ) ) . '</strong>'
 			);
 		?></p>
 		<?php if ( $trash['count'] > 0 ) : ?>
-			<form method="post" onsubmit="return confirm('<?php echo esc_js( __( 'Permanently delete everything in the quarantine folder? This cannot be undone.', 'rmaps-theme' ) ); ?>');">
+			<form method="post" style="display:inline-block;margin-right:1em" onsubmit="return confirm('<?php echo esc_js( __( 'Move all quarantined files back to uploads?', 'rmaps-theme' ) ); ?>');">
+				<?php wp_nonce_field( 'rmaps_cleanup' ); ?>
+				<input type="hidden" name="rmaps_cleanup_action" value="restore">
+				<button type="submit" class="button button-primary"><?php esc_html_e( 'Restore all from quarantine', 'rmaps-theme' ); ?></button>
+			</form>
+			<form method="post" style="display:inline-block" onsubmit="return confirm('<?php echo esc_js( __( 'Permanently delete everything in the quarantine folder? This cannot be undone.', 'rmaps-theme' ) ); ?>');">
 				<?php wp_nonce_field( 'rmaps_cleanup' ); ?>
 				<input type="hidden" name="rmaps_cleanup_action" value="empty">
-				<p><button type="submit" class="button button-secondary"><?php esc_html_e( 'Empty quarantine (permanent)', 'rmaps-theme' ); ?></button></p>
+				<button type="submit" class="button button-secondary"><?php esc_html_e( 'Empty quarantine (permanent)', 'rmaps-theme' ); ?></button>
 			</form>
 		<?php endif; ?>
 	</div>

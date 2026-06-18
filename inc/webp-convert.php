@@ -44,6 +44,11 @@ const RMAPS_THEME_WEBP_FAILED_KEY = '_rmaps_webp_failed';
  *  Kept high so file-less/phantom records — which return instantly without
  *  encoding — are skipped quickly; real encodes are capped by the time budget. */
 const RMAPS_THEME_WEBP_BATCH = 50;
+/** Repair scans far more per request than convert: most attachments already have
+ *  their .webp and return after a couple of stat()s, so the count cap (not the
+ *  time budget) is what limits throughput. Real encodes are still capped by the
+ *  time budget below, so a big number here is safe. */
+const RMAPS_THEME_WEBP_REPAIR_BATCH = 500;
 /** Soft wall-clock budget per request, seconds. */
 const RMAPS_THEME_WEBP_TIME_BUDGET = 15;
 /** Per-attachment PHP time limit (seconds), reset before EACH encode. The wall
@@ -176,6 +181,60 @@ function rmaps_theme_webp_failed_count() {
 		"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = %s",
 		RMAPS_THEME_WEBP_FAILED_KEY
 	) );
+}
+
+/**
+ * Delete the attachments the converter flagged as unreadable
+ * (`_rmaps_webp_failed`) — but ONLY the ones that really do not decode now. A
+ * flagged file that opens fine (a transient encode failure) is kept and just has
+ * its flag cleared. Self-draining (deleted/cleared rows leave the flagged set),
+ * batched + time-bounded. Run "Repair broken images" first so no listing still
+ * references these.
+ * @return array{more:bool, deleted:int, kept:int, scanned:int}
+ */
+function rmaps_theme_webp_delete_failed_batch() {
+	global $wpdb;
+	if ( function_exists( 'set_time_limit' ) ) { @set_time_limit( 120 ); }
+	if ( function_exists( 'ignore_user_abort' ) ) { ignore_user_abort( true ); }
+	$up   = wp_get_upload_dir();
+	$base = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) );
+
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY post_id ASC LIMIT 100",
+		RMAPS_THEME_WEBP_FAILED_KEY
+	) );
+	if ( empty( $ids ) ) { return array( 'more' => false, 'deleted' => 0, 'kept' => 0, 'scanned' => 0 ); }
+
+	$start   = microtime( true );
+	$deleted = 0;
+	$kept    = 0;
+	$scanned = 0;
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+		$scanned++;
+		$f      = ltrim( str_replace( '\\', '/', (string) get_post_meta( $id, '_wp_attached_file', true ) ), '/' );
+		$abs    = $base . $f;
+		$usable = false;
+		if ( '' !== $f && is_file( $abs ) ) {
+			if ( preg_match( '/\.webp$/i', $abs ) ) {
+				$usable = true; // trust webp (getimagesize webp support varies)
+			} else {
+				$info   = @getimagesize( $abs );
+				$usable = ( is_array( $info ) && ! empty( $info[0] ) && ! empty( $info[1] ) );
+			}
+		}
+		if ( $usable ) {
+			delete_post_meta( $id, RMAPS_THEME_WEBP_FAILED_KEY ); // false positive — keep the good image
+			$kept++;
+		} else {
+			wp_delete_attachment( $id, true ); // corrupt / missing — drop record + file + the flag
+			$deleted++;
+		}
+		if ( ( microtime( true ) - $start ) >= RMAPS_THEME_WEBP_TIME_BUDGET ) {
+			return array( 'more' => true, 'deleted' => $deleted, 'kept' => $kept, 'scanned' => $scanned );
+		}
+	}
+	return array( 'more' => ( count( $ids ) >= 100 ), 'deleted' => $deleted, 'kept' => $kept, 'scanned' => $scanned );
 }
 
 /**
@@ -570,6 +629,121 @@ function rmaps_theme_webp_convert_batch( $quality ) {
 		'errors'         => $errors,
 		'content_edited' => $content_edited,
 		'remaining'      => rmaps_theme_webp_pending_count(),
+	);
+}
+
+/* ---------------------------------------------------------------
+ * Repair — re-encode .webp files the DB points at but that are missing on disk
+ * (e.g. an uploads restore from a pre-WebP backup overwrote the .webp away while
+ * the DB still says .webp). DB-driven: walk every image/webp attachment, and for
+ * each expected .webp file that is NOT on disk, find a surviving jpg/png source
+ * (live path first, then the _webp_orig quarantine) and encode it. Only CREATES
+ * .webp files — never deletes anything, never edits the DB. Idempotent.
+ * ---------------------------------------------------------------*/
+
+/** The .webp files one converted attachment should have on disk (main + original + sizes). */
+function rmaps_theme_webp_expected_webp_files( $file_rel, $meta ) {
+	$file_rel = ltrim( str_replace( '\\', '/', (string) $file_rel ), '/' );
+	$files    = array();
+	if ( '' !== $file_rel ) { $files[ $file_rel ] = true; }
+	$dir = ( false !== strpos( $file_rel, '/' ) ) ? trailingslashit( dirname( $file_rel ) ) : '';
+	if ( is_array( $meta ) ) {
+		if ( ! empty( $meta['file'] ) ) {
+			$mf           = ltrim( str_replace( '\\', '/', (string) $meta['file'] ), '/' );
+			$files[ $mf ] = true;
+			$dir          = ( false !== strpos( $mf, '/' ) ) ? trailingslashit( dirname( $mf ) ) : $dir;
+		}
+		if ( ! empty( $meta['original_image'] ) ) { $files[ $dir . basename( (string) $meta['original_image'] ) ] = true; }
+		if ( ! empty( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+			foreach ( $meta['sizes'] as $size ) {
+				if ( ! empty( $size['file'] ) ) { $files[ $dir . basename( (string) $size['file'] ) ] = true; }
+			}
+		}
+	}
+	$out = array();
+	foreach ( array_keys( $files ) as $rel ) {
+		if ( preg_match( '/\.webp$/i', $rel ) ) { $out[] = $rel; }
+	}
+	return $out;
+}
+
+/** Absolute path of a surviving jpg/png source for a missing .webp, or '' if none. */
+function rmaps_theme_webp_find_source( $webp_rel, $basedir, $qbase ) {
+	foreach ( array( '.jpg', '.jpeg', '.png' ) as $ext ) {
+		$cand = preg_replace( '/\.webp$/i', $ext, $webp_rel );
+		if ( null === $cand || $cand === $webp_rel ) { continue; }
+		if ( is_file( $basedir . $cand ) ) { return $basedir . $cand; } // live (e.g. restored into YYYY/MM)
+		if ( is_file( $qbase . $cand ) ) { return $qbase . $cand; }     // quarantine (_webp_orig)
+	}
+	return '';
+}
+
+/**
+ * One repair batch (cursor by attachment ID, wall-clock bounded).
+ * @return array{more:bool, after:int, scanned:int, repaired:int, fixed:int, unrecoverable:int}
+ */
+function rmaps_theme_webp_repair_batch( $after, $quality ) {
+	global $wpdb;
+	if ( function_exists( 'ignore_user_abort' ) ) { ignore_user_abort( true ); }
+	if ( function_exists( 'wp_raise_memory_limit' ) ) { wp_raise_memory_limit( 'image' ); }
+
+	$up      = wp_get_upload_dir();
+	$basedir = trailingslashit( str_replace( '\\', '/', (string) $up['basedir'] ) );
+	$qbase   = $basedir . RMAPS_THEME_WEBP_QUARANTINE . '/';
+
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts}
+		 WHERE post_type = 'attachment' AND post_mime_type = 'image/webp' AND ID > %d
+		 ORDER BY ID ASC LIMIT %d",
+		(int) $after,
+		RMAPS_THEME_WEBP_REPAIR_BATCH
+	) );
+	if ( empty( $ids ) ) {
+		return array( 'more' => false, 'after' => 0, 'scanned' => 0, 'repaired' => 0, 'fixed' => 0, 'unrecoverable' => 0 );
+	}
+
+	$start         = microtime( true );
+	$scanned       = 0;
+	$repaired      = 0;
+	$fixed         = 0;
+	$unrecoverable = 0;
+	$last          = (int) $after;
+
+	foreach ( $ids as $id ) {
+		$id   = (int) $id;
+		$last = $id;
+		$scanned++;
+		if ( function_exists( 'set_time_limit' ) ) { @set_time_limit( RMAPS_THEME_WEBP_ITEM_TIMELIMIT ); }
+
+		$file_rel = (string) get_post_meta( $id, '_wp_attached_file', true );
+		$meta     = wp_get_attachment_metadata( $id );
+		$did      = false;
+		foreach ( rmaps_theme_webp_expected_webp_files( $file_rel, $meta ) as $webp_rel ) {
+			if ( is_file( $basedir . $webp_rel ) ) { continue; } // already present
+			$src = rmaps_theme_webp_find_source( $webp_rel, $basedir, $qbase );
+			if ( '' === $src ) { $unrecoverable++; continue; }   // no jpg/png to encode from
+			wp_mkdir_p( dirname( $basedir . $webp_rel ) );
+			$res = rmaps_theme_webp_convert_file( $src, $basedir . $webp_rel, $quality );
+			if ( ! is_wp_error( $res ) && is_file( $basedir . $webp_rel ) ) {
+				$repaired++;
+				$did = true;
+			} else {
+				$unrecoverable++; // source unreadable / encode failed
+			}
+		}
+		if ( $did ) { $fixed++; }
+		if ( ( microtime( true ) - $start ) > RMAPS_THEME_WEBP_TIME_BUDGET ) {
+			return array( 'more' => true, 'after' => $last, 'scanned' => $scanned, 'repaired' => $repaired, 'fixed' => $fixed, 'unrecoverable' => $unrecoverable );
+		}
+	}
+
+	return array(
+		'more'          => ( count( $ids ) >= RMAPS_THEME_WEBP_REPAIR_BATCH ),
+		'after'         => $last,
+		'scanned'       => $scanned,
+		'repaired'      => $repaired,
+		'fixed'         => $fixed,
+		'unrecoverable' => $unrecoverable,
 	);
 }
 
@@ -1115,6 +1289,9 @@ function rmaps_theme_webp_render_page() {
 	$recon_phase = ''; // reconcile cursor carried across auto-submits
 	$recon_after = 0;
 	$recon_total = 0;
+	$repair_after = 0; // repair cursor carried across auto-submits
+	$repair_total = 0;
+	$repair_unrec = 0;
 
 	if ( isset( $_POST['rmaps_webp_action'] ) ) {
 		check_admin_referer( 'rmaps_webp' );
@@ -1178,6 +1355,17 @@ function rmaps_theme_webp_render_page() {
 				__( 'Cleared %d skip marker(s) — those attachments re-enter the queue on the next conversion.', 'rmaps-theme' ),
 				$n
 			);
+		} elseif ( 'delete_failed' === $action ) {
+			$r    = rmaps_theme_webp_delete_failed_batch();
+			$left = rmaps_theme_webp_failed_count();
+			$notice = sprintf(
+				/* translators: 1: deleted count, 2: kept (false-positive) count, 3: remaining flagged */
+				__( 'Removed %1$s unreadable attachment(s); kept %2$s that still decode (flag cleared). %3$s flagged remaining.', 'rmaps-theme' ),
+				number_format_i18n( (int) $r['deleted'] ),
+				number_format_i18n( (int) $r['kept'] ),
+				number_format_i18n( $left )
+			);
+			if ( ! empty( $r['more'] ) ) { $notice .= ' ' . __( 'Press the button again to continue.', 'rmaps-theme' ); }
 		} elseif ( 'reconcile' === $action ) {
 			if ( function_exists( 'set_time_limit' ) ) {
 				@set_time_limit( RMAPS_THEME_WEBP_ITEM_TIMELIMIT );
@@ -1209,6 +1397,34 @@ function rmaps_theme_webp_render_page() {
 			}
 			$auto_more = empty( $r['done'] );
 			$auto_kind = 'reconcile';
+		} elseif ( 'repair' === $action ) {
+			if ( function_exists( 'set_time_limit' ) ) { @set_time_limit( RMAPS_THEME_WEBP_ITEM_TIMELIMIT ); }
+			if ( function_exists( 'ignore_user_abort' ) ) { ignore_user_abort( true ); }
+			$after = isset( $_POST['rmaps_webp_repair_after'] ) ? max( 0, (int) $_POST['rmaps_webp_repair_after'] ) : 0;
+			$total = isset( $_POST['rmaps_webp_repair_total'] ) ? max( 0, (int) $_POST['rmaps_webp_repair_total'] ) : 0;
+			$unrec = isset( $_POST['rmaps_webp_repair_unrec'] ) ? max( 0, (int) $_POST['rmaps_webp_repair_unrec'] ) : 0;
+
+			$r      = rmaps_theme_webp_repair_batch( $after, $quality );
+			$total += (int) $r['repaired'];
+			$unrec += (int) $r['unrecoverable'];
+
+			$repair_after = (int) $r['after'];
+			$repair_total = $total;
+			$repair_unrec = $unrec;
+
+			$notice = sprintf(
+				/* translators: 1: attachments scanned this batch, 2: webp re-encoded this batch, 3: running total re-encoded, 4: running total with no source */
+				__( 'Repair: scanned %1$s attachment(s) this batch, re-encoded %2$s missing .webp file(s) — %3$s total. %4$s missing file(s) had no jpg/png source.', 'rmaps-theme' ),
+				number_format_i18n( (int) $r['scanned'] ),
+				number_format_i18n( (int) $r['repaired'] ),
+				number_format_i18n( $total ),
+				number_format_i18n( $unrec )
+			);
+			if ( empty( $r['more'] ) ) {
+				$notice .= ' ' . __( 'Done.', 'rmaps-theme' );
+			}
+			$auto_more = ! empty( $r['more'] );
+			$auto_kind = 'repair';
 		}
 	}
 
@@ -1246,6 +1462,11 @@ function rmaps_theme_webp_render_page() {
 					<?php wp_nonce_field( 'rmaps_webp' ); ?>
 					<input type="hidden" name="rmaps_webp_action" value="retry_failed">
 					<button type="submit" class="button button-small"><?php esc_html_e( 'Retry skipped', 'rmaps-theme' ); ?></button>
+				</form>
+				<form method="post" style="display:inline;margin-left:.4em" onsubmit="return confirm('<?php echo esc_js( __( 'Permanently delete the attachments whose image is unreadable (corrupt)? Any that actually decode are kept (only their skip-flag is cleared). Run "Repair broken images" in Duplicate Media first so no listing still points at them.', 'rmaps-theme' ) ); ?>');">
+					<?php wp_nonce_field( 'rmaps_webp' ); ?>
+					<input type="hidden" name="rmaps_webp_action" value="delete_failed">
+					<button type="submit" class="button button-small button-link-delete"><?php esc_html_e( 'Delete unreadable', 'rmaps-theme' ); ?></button>
 				</form>
 			<?php endif; ?>
 		</p>
@@ -1461,6 +1682,34 @@ function rmaps_theme_webp_render_page() {
 			setTimeout(function () {
 				if ( window.__rmapsWebpStop ) { return; }
 				var f = document.getElementById('rmaps-webp-reconcile');
+				if ( f ) { f.dataset.auto = '1'; f.submit(); }
+			}, 400);
+			</script>
+		<?php endif; ?>
+
+		<hr>
+		<h2><?php esc_html_e( '5. Repair missing .webp files', 'rmaps-theme' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Driven from the database: walks every attachment WordPress thinks is WebP and, for each .webp file that is NOT on disk (e.g. an uploads restore from a pre-WebP backup overwrote it away), re-encodes it from a surviving jpg/png source — looking in the live folder first, then the _webp_orig quarantine. Only creates .webp files; never deletes anything and never edits the database. Safe to run repeatedly.', 'rmaps-theme' ); ?></p>
+		<form method="post" id="rmaps-webp-repair" onsubmit="return (this.dataset.auto==='1')||confirm('<?php echo esc_js( __( 'Re-encode every .webp the database points at but that is missing on disk, from its jpg/png source?', 'rmaps-theme' ) ); ?>');">
+			<?php wp_nonce_field( 'rmaps_webp' ); ?>
+			<input type="hidden" name="rmaps_webp_action" value="repair">
+			<input type="hidden" name="rmaps_webp_repair_after" value="<?php echo esc_attr( (string) $repair_after ); ?>">
+			<input type="hidden" name="rmaps_webp_repair_total" value="<?php echo esc_attr( (string) $repair_total ); ?>">
+			<input type="hidden" name="rmaps_webp_repair_unrec" value="<?php echo esc_attr( (string) $repair_unrec ); ?>">
+			<button type="submit" class="button"><?php esc_html_e( 'Repair missing .webp', 'rmaps-theme' ); ?></button>
+			<span class="description"><?php esc_html_e( 'Runs in batches and auto-continues until done.', 'rmaps-theme' ); ?></span>
+		</form>
+
+		<?php if ( $auto_more && 'repair' === $auto_kind ) : ?>
+			<p id="rmaps-webp-progress4" class="description"><?php esc_html_e( 'Auto-continuing repair…', 'rmaps-theme' ); ?>
+				<button type="button" class="button button-small" onclick="window.__rmapsWebpStop=1;document.getElementById('rmaps-webp-progress4').lastChild.replaceWith(' — stopped.');"><?php esc_html_e( 'Stop', 'rmaps-theme' ); ?></button>
+				<span></span>
+			</p>
+			<script>
+			window.__rmapsWebpStop = 0;
+			setTimeout(function () {
+				if ( window.__rmapsWebpStop ) { return; }
+				var f = document.getElementById('rmaps-webp-repair');
 				if ( f ) { f.dataset.auto = '1'; f.submit(); }
 			}, 400);
 			</script>
