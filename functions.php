@@ -776,7 +776,7 @@ add_action( 'wp_head', function () {
  */
 function rmaps_theme_software_schema() {
 	$home = home_url( '/' );
-	$buy  = get_theme_mod( 'rmaps_theme_buy_url', 'https://codecanyon.net/item/rocket-maps-plugin-for-wordpress/63717983' );
+	$buy  = get_theme_mod( 'rmaps_theme_buy_url', 'https://codecanyon.net/item/web-20-google-maps-plugin-for-wordpress/14615094' );
 	$name = get_bloginfo( 'name' );
 
 	$schema = array(
