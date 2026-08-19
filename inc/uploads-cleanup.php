@@ -205,8 +205,11 @@ function rmaps_theme_cleanup_scan() {
 		}
 		// Keep any size of a referenced image: if the full-size base (this path
 		// with a -WxH suffix stripped) is known, every thumbnail of it is too.
-		$base = preg_replace( '/-\d+x\d+(\.(?:jpe?g|png|webp))$/i', '$1', $rel );
-		if ( $base !== $rel && isset( $known[ $base ] ) ) {
+		// SEPARATE var — must NOT clobber $base (the uploads base path), which the
+		// next loop iteration reuses to derive $rel. Reusing $base here made every
+		// $rel after the first file come out garbage, so no orphan was ever moved.
+		$stem = preg_replace( '/-\d+x\d+(\.(?:jpe?g|png|webp))$/i', '$1', $rel );
+		if ( $stem !== $rel && isset( $known[ $stem ] ) ) {
 			continue;
 		}
 
