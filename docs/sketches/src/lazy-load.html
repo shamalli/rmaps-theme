@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Maps and Map Engines, Lazy load mode.
+     Top: Maps -> edit a map -> Map settings box, the "Lazy load mode" select
+     (core/classes/settings/metaboxes/settings.php: Initial load, the default;
+     Load on scroll; Load on click) drawn open, with its description, and the
+     Map height row above it (default 400).
+     Bottom: the placeholder a deferred map prints in place of the map
+     (core/src/Shortcodes/Map_Controller.php lazy_placeholder_html, look from
+     .rmaps-map-lazy in core/resources/css/react/rmaps-react.css: a drawn grid
+     backdrop, the pin in the primary colour #2271b1). Load on scroll: the pin,
+     then "Loading the map..." once it comes into view; Load on click: the
+     "Show the map" button and "Interactive map of the places on this page.".
+     Liberties: the other Map settings rows are left out; the placeholders are
+     drawn 200px tall (they take the map's own height). -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .sheet { padding-bottom: 64px; }
+  .box > .bb { padding: 8px 12px 10px; font-size: 13px; }
+  .rx { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f1; }
+  .rx:last-child { border-bottom: 0; }
+  .rx > span:first-child { width: 190px; flex: none; font-weight: 600; padding-top: 5px; }
+  .rx .inp { width: 90px; height: 28px; font-size: 13px; }
+  .rx .desc { margin-top: 6px; font-size: 12px; color: #646970; line-height: 1.45; max-width: 560px; }
+  .dd { width: 220px; border: 1px solid #8c8f94; border-radius: 4px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: 13px; }
+  .dd div { padding: 6px 10px; color: #1d2327; }
+  .dd div.hd { border-bottom: 1px solid #dcdcde; color: #50575e; }
+  .dd div.on { background: #2271b1; color: #fff; }
+
+  .two { display: flex; gap: 16px; margin-top: 46px; }
+  .ph { flex: 1; }
+  .ph .cap { margin-bottom: 6px; }
+  .lz { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden;
+    border: 1px solid #dfe3e8; text-align: center;
+    background-color: #e8ece9;
+    background-image: linear-gradient(rgba(31,27,23,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(31,27,23,.06) 1px, transparent 1px),
+      radial-gradient(circle at 30% 40%, #dfe7dc 0, #dfe7dc 18%, transparent 19%), radial-gradient(circle at 72% 64%, #d9e4ec 0, #d9e4ec 14%, transparent 15%);
+    background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%; }
+  .lz .in { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 320px; }
+  .lz .pin { line-height: 0; color: #2271b1; }
+  .lz .btn2 { padding: 14px 28px; min-width: 220px; box-sizing: border-box; border-radius: 999px; background: #2271b1; color: #fff; font-size: 16px; font-weight: 700;
+    box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+  .lz p { margin: 0; font-size: 14px; line-height: 1.4; color: #4b5563; }
+
+  .n-sel  { left: 500px; top: 262px; }
+  .n-wait { left: 40px; top: 312px; }
+  .n-scr  { left: 110px; top: 752px; }
+  .n-clk  { left: 560px; top: 752px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2 4 13.5h6.5L9 22l10-12h-6.6z"/></svg>
+      Lazy load
+    </span>
+    <h1>Load the map only when it is wanted</h1>
+  </div>
+  <div class="sub">Maps &rarr; edit a map &rarr; Map settings &rarr; Lazy load mode</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div style="background:#f0f0f1;padding:12px">
+      <div class="box"><div class="bh">Map settings<i>&#9650;&#9660;</i></div>
+        <div class="bb">
+          <div class="rx"><span>Map height</span><span class="inp">400</span></div>
+          <div class="rx"><span>Lazy load mode</span>
+            <div>
+              <div class="dd" id="sel">
+                <div class="hd">Load on click &#9662;</div>
+                <div>Initial load</div>
+                <div>Load on scroll</div>
+                <div class="on">Load on click</div>
+              </div>
+              <div class="desc" id="desc">Initial load: the map loads with the page. Load on scroll: nothing of the map loads until it scrolls into view. Load on click: the page shows a placeholder with a button, and the map loads when the visitor clicks it. While a map waits, none of its scripts or requests load, and a search made meanwhile is shown once it does.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="ph">
+      <div class="cap">On the site: Load on scroll</div>
+      <div class="lz" id="scr"><div class="in">
+        <span class="pin"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.4 7 11.2 7.3 11.5.4.3 1 .3 1.4 0C13 21.2 20 15.4 20 10c0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/></svg></span>
+        <p>Loading the map&hellip;</p>
+      </div></div>
+    </div>
+    <div class="ph">
+      <div class="cap">On the site: Load on click</div>
+      <div class="lz" id="clkbox"><div class="in">
+        <span class="pin"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.4 7 11.2 7.3 11.5.4.3 1 .3 1.4 0C13 21.2 20 15.4 20 10c0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/></svg></span>
+        <span class="btn2" id="clk">Show the map</span>
+        <p>Interactive map of the places on this page.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="note n-sel" data-to="#sel" data-at="r.75" data-from="l" data-bend=".1">Initial load is the default</div>
+  <div class="note n-scr" data-to="#scr" data-block data-at="b.5" data-from="t.5" data-bend=".1">loads as it scrolls into view</div>
+  <div class="note n-clk" data-to="#clkbox" data-block data-at="b.5" data-from="t.4" data-bend="-.1">loads on the click</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Maps and Map Engines. The Edit map screen
+     (Maps -> Create new map, or a map from the Maps list).
+     Drawn from (salephp-platform):
+       - toolbar: core/src/Admin/Admin.php render_map_edit_toolbar() - "Edit map",
+         "Create new map", Map name + url-slug, Undo, Redo, Save,
+         "+ Create page with this map";
+       - two columns, metaboxes left and the sticky live preview right
+         (40-60 %, a drag handle between): core/resources/css/admin-map-edit.css,
+         mountMapResizeHandle() in core/react/src/admin-map-edit/index.tsx;
+       - the boxes, titles and order: core/src/Maps/Manager.php (Map settings,
+         Map starting point and radius, Map controls, Markers, Clusters, Popups,
+         Listings sidebar, Search options, Filter markers to display);
+         their fields: core/classes/settings/metaboxes/*.php;
+       - Markers: MarkerSourcesList.tsx - the info line, the drag-ordered
+         Sources (Use categories FA/PNG markers, Use listings FA/PNG markers,
+         Images: one marker size each, 30-70 px, 40 by default; Rating label
+         12 px; Opening hours label colours, #dcfce7 / #fee2e2 for
+         Open / Closed; Just dots 5 px #7d7d7d, off by default) and the
+         Advanced toggle (MarkerAdvancedSettings.tsx);
+       - Clusters: clusters.php + ClustersAdvancedSettings.tsx (Group map
+         markers in clusters, Grid size (px) 60, the default levels 10/20/50/
+         100/500 in #4CAF50 #FFC107 #FF9800 #F44336 #9C27B0);
+       - Popups: popups.php + PopupSourcesList.tsx + LimitInputs.tsx (Enable
+         popup, Fields: Images "fill", Title 14 px and 10 words, Address,
+         Categories 5 items, Directions button; "icon" checkboxes);
+       - Listings sidebar: sidebar_listings.php + SidebarFieldsList.tsx;
+       - Search options: search.php (Show search form on the map, Form
+         position Top left).
+     The preview is map-light.webp (a real render of a demo map) with
+     clusters, the open listing popup and the on-map search form drawn over it.
+     Map settings shows only the Mapbox style (engine = Mapbox) and Globe
+     projection rows.
+     Liberties: the Export button, the WPML/Polylang language bar, the Advanced
+     panels, the search-form builder canvas, the preview's zoom buttons and
+     most rows of each box (Popup max width, Listings sidebar Fields, Form
+     width, ...) are left out; the preview is drawn about 45 % wide and much
+     shorter than the real sticky column. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  /* toolbar */
+  .tb { display: flex; align-items: center; gap: 8px; margin: 12px 12px 0; padding: 9px 12px; background: #fff;
+    border: 1px solid #c3c4c7; border-radius: 4px; }
+  .tb b { font-size: 18px; font-weight: 600; }
+  .tb .nb { font-size: 12.5px; padding: 3px 9px; border: 1px solid #2271b1; color: #2271b1; border-radius: 4px; white-space: nowrap; }
+  .tb .inp { height: 30px; font-size: 14px; }
+  .tb .wpbtn { height: 28px; font-size: 12.5px; padding: 0 9px; }
+
+  .work { display: flex; gap: 10px; align-items: flex-start; padding: 12px; background: #f0f0f1; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+  .handle { flex: none; width: 6px; align-self: stretch; background: #c3c4c7; border-radius: 3px; }
+  .prev { flex: none; width: 362px; }
+
+  .box > .bh { height: 30px; }
+  .box.shut > .bh { border-bottom: 0; font-weight: 600; }
+  .box.shut > .bh i::after { content: ""; }
+  .box > .bb { padding: 7px 10px 8px; font-size: 12.5px; }
+  .info { border-left: 4px solid #2271b1; background: #f6f7f7; padding: 5px 8px; font-size: 11.5px; color: #3c434a; margin-bottom: 18px; }
+
+  /* Redux th/td rows */
+  .rx { display: flex; align-items: center; gap: 10px; padding: 0 0 4px; margin-bottom: 4px; border-bottom: 1px solid #f0f0f1; }
+  .rx > span:first-child { width: 186px; flex: none; font-weight: 600; }
+  .rx .inp, .rx .sel { height: 24px; font-size: 12.5px; }
+  .rx .sel::after { top: 7px; }
+  .oo { display: inline-flex; border: 1px solid #c3c4c7; border-radius: 3px; overflow: hidden; }
+  .oo b { padding: 2px 10px; font-size: 12px; font-weight: 600; color: #50575e; background: #f6f7f7; }
+  .oo b.on { background: #2271b1; color: #fff; }
+  .lbl { font-weight: 600; margin: 0 0 5px; }
+
+  /* the sortable source / field rows (.rmaps-marker-source-item) */
+  .src { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  .src li { display: flex; align-items: center; gap: 7px; min-height: 24px; padding: 1px 8px; border: 1px solid #d1d5db; border-radius: 4px;
+    background: #fff; font-size: 12.5px; color: #333; white-space: nowrap; }
+  .src li.off { color: #9ca3af; }
+  .src .h { color: #b6bcc4; font-size: 11px; letter-spacing: -2px; }
+  .src svg.i { width: 13px; height: 13px; color: #6b7280; flex: none; }
+  .src li > * { flex-shrink: 0; }
+  .src .t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .src .px { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; color: #8c8f94; }
+  .src .px .inp { height: 20px; width: 30px; padding: 0 4px; font-size: 11.5px; justify-content: center; }
+  .src .two { display: inline-flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 2px 0; }
+  .src .c { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #c3c4c7; flex: none; }
+  .src .mini { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: #8c8f94; }
+  .src .mini .cb { width: 12px; height: 12px; }
+  .src .tg { width: 28px; height: 16px; }
+  .src .tg::after { width: 12px; height: 12px; }
+  .src .tg.on::after { left: 14px; }
+  .adv { margin-top: 7px; font-size: 12.5px; color: #2271b1; font-weight: 600; }
+
+  /* cluster levels */
+  .lv { display: flex; gap: 5px; }
+  .lv span { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px 2px 3px; border: 1px solid #dcdcde; border-radius: 4px; font-size: 11.5px; background: #fff; }
+  .lv i { width: 13px; height: 13px; border-radius: 50%; }
+
+  /* ---- the live preview -------------------------------------------------- */
+  .map { position: relative; height: 254px; border: 1px solid #c3c4c7; overflow: hidden;
+    background: url(map-light.webp) -420px -150px / 1115px auto no-repeat, #eceff1; }
+  .ctl { position: absolute; right: 8px; bottom: 8px; width: 27px; border-radius: 4px; background: #fff;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.1); font-size: 16px; color: #333; text-align: center; line-height: 27px; }
+  .ctl i { display: block; font-style: normal; }
+  .ctl i + i { border-top: 1px solid #ddd; }
+  .cl { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; color: #fff; font: 700 11.5px/1 Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px rgba(255,255,255,.55); }
+
+  /* on-map search form (top left; grip + fold buttons) */
+  .sf { position: absolute; left: 10px; top: 12px; width: 146px; background: #fff; border-radius: 8px; padding: 9px 9px 9px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2); font-size: 12px; }
+  .sf .r { display: flex; gap: 6px; margin-bottom: 6px; }
+  .sf .fi { flex: 1; height: 28px; border: 1px solid #d0d5dc; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; color: #8c8f94; font-size: 12px; }
+  .sf .go { height: 28px; border-radius: 6px; background: #2271b1; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; }
+  .sf .ic { position: absolute; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    font-size: 10px; line-height: 18px; text-align: center; color: #50575e; }
+
+  /* popup - the listing-content popup surface */
+  .pop { position: absolute; left: 178px; top: 10px; width: 174px; background: #fff; border-radius: 8px; padding: 4px;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px rgba(0,0,0,.14), 0 1px 10px rgba(0,0,0,.12); }
+  .pop::after { content: ""; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent;
+    border-top-color: #fff; border-bottom: 0; }
+  .pimg { position: relative; height: 74px; margin: -4px -4px 0; border-radius: 8px 8px 0 0; background: url(photo-relax-inn.webp) center / cover; }
+  .sb { position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: rgba(0,0,0,.55);
+    color: #fff; font-size: 12px; line-height: 22px; text-align: center; }
+  .sb.l { left: 6px; } .sb.r { right: 6px; }
+  .pt { margin: 7px 4px 2px; font-size: 13.5px; font-weight: 600; color: #2271b1; }
+  .pr { margin: 0 4px 3px; font-size: 11.5px; color: #6b7a89; }
+  .pr s { text-decoration: none; color: #f5a623; letter-spacing: -1px; }
+  .pa { display: flex; align-items: center; gap: 5px; margin: 0 4px 4px; font-size: 11.5px; color: #1f2937; }
+  .pa svg { width: 11px; height: 11px; color: #9aa3ad; flex: none; }
+  .pd { display: flex; align-items: center; justify-content: center; gap: 6px; height: 27px; margin: 6px 4px 4px; border-radius: 6px;
+    background: #2271b1; color: #fff; font-size: 12px; font-weight: 600; }
+  .pd svg { width: 11px; height: 11px; }
+  .mk-on { position: absolute; left: 265px; top: 240px; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+    background: #2e9d4f; border: 2px solid #fff; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .mk-on::after { content: ""; position: absolute; left: 8px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+
+  /* notes */
+  .n-live  { left: 636px; top: 470px; }
+  .n-size  { left: 486px; top: 448px; }
+  .n-order { left: 486px; top: 586px; }
+  .n-clu   { left: 486px; top: 782px; }
+  .n-limit { left: 486px; top: 936px; }
+  .n-side  { left: 486px; top: 1155px; }
+  .n-search{ left: 486px; top: 1267px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>
+      Maps
+    </span>
+    <h1>Build a map, watch it change</h1>
+  </div>
+  <div class="sub">Maps &rarr; Create new map, or open one from the Maps list</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span></div>
+    <div style="background:#f0f0f1">
+      <div class="tb">
+        <b>Edit map</b>
+        <span class="nb">Create new map</span>
+        <span class="inp" style="flex:1">Hotels map</span>
+        <span class="inp" style="width:92px;color:#646970;font-size:13px">hotels-map</span>
+        <span class="wpbtn gray dim">&#8630; Undo</span>
+        <span class="wpbtn gray dim">&#8631; Redo</span>
+        <span class="wpbtn p">Save</span>
+        <span class="wpbtn">+ Create page with this map</span>
+      </div>
+    </div>
+
+    <div class="work">
+      <div class="col">
+        <div class="box" id="mset"><div class="bh">Map settings<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="rx"><span>Mapbox style</span><span class="sel" id="style" style="width:130px">Light</span></div>
+            <div class="rx" style="border:0;margin:0;padding:0"><span>Globe projection</span><span class="oo"><b>On</b><b class="on">Off</b></span></div>
+          </div>
+        </div>
+        <div class="box shut"><div class="bh">Map starting point and radius<i>&#9650;&#9660;</i></div></div>
+        <div class="box shut"><div class="bh">Map controls<i>&#9650;&#9660;</i></div></div>
+
+        <div class="box" id="markers"><div class="bh">Markers<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="info">Drag and drop elements to display priority information</div>
+            <ul class="src">
+              <li><span class="h" id="drag">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg><span class="t">Use categories FA/PNG markers</span><span class="px"><span class="inp" id="size">40</span>px</span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg><span class="t">Use listings FA/PNG markers</span><span class="px"><span class="inp">40</span>px</span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v14H3V5zm2 2v8.6l4-4.4 3 3.2 2.6-2.6L19 16V7H5zm10.5 1.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z"/></svg><span class="t">Images</span><span class="px"><span class="inp" id="size3">40</span>px</span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.3 6.9.9-5 4.8 1.2 6.9L12 17.6 5.9 20.9 7.1 14l-5-4.8 6.9-.9z"/></svg><span class="t">Rating (score + reviews)</span><span class="px"><span class="inp">12</span>px</span><span class="c" style="background:#fff"></span><span class="c" style="background:#333"></span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><span class="t">Opening hours</span><span class="c" style="background:#dcfce7"></span><span class="c" style="background:#fee2e2"></span><span class="c" style="background:#333"></span><span class="tg on"></span></li>
+              <li class="off"><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg><span class="t">Just dots</span><span class="px"><span class="inp">5</span>px</span><span class="c" style="background:#7d7d7d"></span><span class="tg"></span></li>
+            </ul>
+            <div class="adv">&#9656; Advanced</div>
+          </div>
+        </div>
+
+        <div class="box"><div class="bh">Clusters<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="rx"><span>Group map markers in clusters</span><span class="oo"><b class="on">On</b><b>Off</b></span></div>
+            <div class="rx"><span>Grid size (px)</span><span class="inp" style="width:60px">60</span></div>
+            <div class="rx" style="border:0;margin:0;padding:0"><span style="width:auto">Levels</span>
+              <span class="lv" id="levels"><span><i style="background:#4CAF50"></i>10</span><span><i style="background:#FFC107"></i>20</span><span><i style="background:#FF9800"></i>50</span><span><i style="background:#F44336"></i>100</span><span><i style="background:#9C27B0"></i>500</span></span></div>
+          </div>
+        </div>
+
+        <div class="box"><div class="bh">Popups<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="rx"><span>Enable popup</span><span class="oo"><b class="on">On</b><b>Off</b></span></div>
+            <ul class="src">
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v14H3V5zm2 2v8.6l4-4.4 3 3.2 2.6-2.6L19 16V7H5zm10.5 1.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z"/></svg><span class="t">Images</span><span class="mini">fill<span class="tg"></span></span><span class="tg on"></span></li>
+              <li id="titlerow"><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h2.6v6.4h8.8V4H19v16h-2.6v-6.6H7.6V20H5z"/></svg><span class="t">Title</span><span class="two"><span class="px"><span class="inp">14</span>px</span><span class="px"><span class="inp" id="words">10</span>words</span></span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg><span class="t">Address</span><span class="mini"><span class="cb on"></span>icon</span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg><span class="t">Categories</span><span class="mini"><span class="cb on"></span>icon</span><span class="px"><span class="inp" id="items">5</span>items</span><span class="tg on"></span></li>
+              <li><span class="h">&#8942;&#8942;</span><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L13.5 21z"/></svg><span class="t">Directions button</span><span class="mini"><span class="cb on"></span>icon</span><span class="tg on"></span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box" id="sidebar"><div class="bh">Listings sidebar<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="rx"><span>Enable sidebar</span><span class="oo"><b class="on">On</b><b>Off</b></span></div>
+            <div class="rx" style="border:0;margin:0;padding:0"><span>Sidebar position</span><span class="sel" id="sidepos" style="width:110px">Left</span></div>
+          </div>
+        </div>
+
+        <div class="box" id="search"><div class="bh">Search options<i>&#9650;&#9660;</i></div>
+          <div class="bb">
+            <div class="rx"><span>Show search form on the map</span><span class="oo"><b class="on">On</b><b>Off</b></span></div>
+            <div class="rx" style="border:0;margin:0;padding:0"><span>Form position</span><span class="sel" id="formpos" style="width:110px">Top left</span></div>
+          </div>
+        </div>
+
+        <div class="box shut"><div class="bh">Filter markers to display<i>&#9650;&#9660;</i></div></div>
+      </div>
+
+      <div class="handle"></div>
+
+      <div class="prev">
+        <div class="map" id="map">
+                    <span class="cl" style="left:30px;top:150px;width:26px;height:26px;background:#4CAF50">8</span>
+          <span class="cl" style="left:128px;top:168px;width:31px;height:31px;background:#FFC107">14</span>
+          <span class="cl" style="left:70px;top:212px;width:35px;height:35px;background:#FF9800" id="clu">37</span>
+
+          <div class="sf" id="sform">
+            <span class="ic" style="left:8px">&#8942;&#8942;</span><span class="ic" style="right:8px">&#9652;</span>
+            <div class="r"><span class="fi">Keyword</span></div>
+            <div class="r"><span class="fi">Address or zip</span></div>
+            <div class="go">Search</div>
+          </div>
+
+          <span class="mk-on"></span>
+          <div class="pop" id="pop">
+            <div class="pimg"><span class="sb l">&#8249;</span><span class="sb r">&#8250;</span></div>
+            <div class="pt">Relax Inn Burbank</div>
+            <div class="pr"><s>&#9733;&#9733;&#9733;&#9733;</s> 4.1 (56)</div>
+            <div class="pa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>2201 W Olive Ave, Burbank</div>
+            <div class="pa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>Hotels, Motels</div>
+            <div class="pd"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L13.5 21z"/></svg>Get directions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-live" data-to="#map" data-block data-at="b.7" data-from="t.5" data-bend=".1">the live preview redraws<br>as you change a box</div>
+  <div class="note n-size" data-to="#size" data-at="t.7" data-from="l.15" data-bend=".1">a size for each<br>marker kind,<br>30 to 70 px</div>
+  <div class="note n-order" data-to="#markers .src" data-block data-at="r.8" data-from="l.5" data-bend=".1">drag the order: the first<br>source with a value wins</div>
+  <div class="note n-clu" data-to="#levels" data-at="r.5" data-from="l.5" data-bend=".1">nearby markers merge;<br>your counts and colours</div>
+  <div class="note n-limit" data-to="#titlerow" data-at="r.5" data-from="l.5" data-bend=".1">word and item limits<br>keep popups short</div>
+  <div class="note n-side" data-to="#sidepos" data-at="r.5" data-from="l.5" data-bend=".1">listings list beside,<br>above or below the map</div>
+  <div class="note n-search" data-to="#formpos" data-at="r.5" data-from="l.5" data-bend=".1">your own search form<br>in a corner of the map</div>
+</div>
+</body>
+</html>

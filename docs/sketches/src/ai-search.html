@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> AI That Writes Listings and Reads Searches.
+     Ported from the CodeCanyon description image (salephp-platform
+     codecanyon/w2dc/banners/src/ai-search.html, 680 wide) to the documentation
+     column: laid out at 880 and scaled to 808 by render.py, with the shared
+     _sketch.css and arrows drawn by _sketch.js from each note's data-to. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .sheet { padding-bottom: 60px; }
+  /* ---- the sentence -------------------------------------------------- */
+  .query { display: flex; align-items: center; gap: 11px; padding: 13px 16px; background: #fff;
+    border: 2px solid #158ac9; border-radius: 12px; box-shadow: 0 6px 18px rgba(21,138,201,.13); }
+  .query > svg { width: 21px; height: 21px; flex: none; }
+  .q { font-size: 22px; font-weight: 600; line-height: 1.25; white-space: nowrap; }
+  .q em { font-style: normal; padding-bottom: 2px; border-bottom: 3px solid; }
+  .c1 { color: #1a9e5a; }
+  .c2 { color: #158ac9; }
+  .c3 { color: #e08a00; }
+  .c4 { color: #7c4dff; }
+  .c5 { color: #0e8f8f; }
+
+  /* ---- two panes ----------------------------------------------------- */
+  .cols { display: flex; align-items: stretch; gap: 8px; margin-top: 14px; }
+  .col { background: #fff; border: 1px solid #dfe7ef; border-radius: 12px; padding: 14px; }
+  .col.form { width: 232px; flex: none; display: flex; flex-direction: column; padding-top: 42px; }
+  .col.res { flex: 1; padding: 12px 14px 0; min-width: 0; }
+  .arrow { align-self: center; flex: none; width: 28px; text-align: center; }
+  .arrow svg { width: 28px; height: 22px; }
+
+  /* filled controls */
+  .ctrl { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 11px;
+    border: 1px solid #d7e0e9; border-radius: 8px; margin-bottom: 15px; font-size: 14px; white-space: nowrap; }
+  .ctrl .val { font-weight: 600; }
+  /* The plugin's own "AI filled this" mark: the same four-point spark it puts
+     beside a field it read out of the sentence. Carries the phrase's colour
+     here too, so the mark doubles as the link back to the words above. */
+  .dot { width: 15px; height: 15px; border-radius: 50%; flex: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 .8c.55 4.1 2.6 6.65 6.7 7.2-4.1.55-6.15 3.1-6.7 7.2-.55-4.1-2.6-6.65-6.7-7.2C5.4 7.45 7.45 4.9 8 .8Z' fill='%23fff'/%3E%3C/svg%3E"); background-repeat: no-repeat;
+    background-position: center; background-size: 10px; }
+  .d1 { background-color: #1a9e5a; } .d2 { background-color: #158ac9; } .d3 { background-color: #e08a00; }
+  .d4 { background-color: #7c4dff; } .d5 { background-color: #0e8f8f; }
+
+  .rng { margin: 0 0 17px; }
+  .rng .cap { font-size: 13.5px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .bar { position: relative; height: 5px; border-radius: 3px; background: #dde5ed; }
+  .bar i { position: absolute; top: 0; height: 5px; border-radius: 3px; background: #1e6fa8; }
+  .bar b { position: absolute; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #1e6fa8; }
+
+  .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 13px; }
+  .x-box { width: 16px; height: 16px; border-radius: 3px; background: #1e6fa8; flex: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.4' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size: 14px; background-position: center; background-repeat: no-repeat; }
+  .x-btn { height: 40px; border-radius: 8px; background: #1e6fa8; color: #fff; font-size: 15px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; margin-top: auto; }
+
+  /* results */
+  .found { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; white-space: nowrap; }
+  .found b { font-size: 17px; }
+  .found span { font-size: 12.5px; color: #8a97a4; }
+  .card { display: flex; gap: 11px; padding: 10px 0; border-top: 1px solid #edf1f5; }
+  .card.first { border-top: 0; }
+  .shot { position: relative; width: 92px; height: 72px; border-radius: 7px; flex: none;
+    background: linear-gradient(135deg, #dbe6ef, #c6d5e2); overflow: hidden; }
+  .shot > svg { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+  .feat { position: absolute; left: 0; top: 0; padding: 2px 6px; border-radius: 0 0 5px 0; background: #f05a28;
+    color: #fff; font-size: 8.5px; font-weight: 800; letter-spacing: .5px; }
+  .meta { padding-top: 1px; min-width: 0; }
+  .stars { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7a89; }
+  .stars svg { width: 70px; height: 13px; }
+  .title { font-size: 15.5px; font-weight: 700; color: #1e6fa8; margin: 3px 0 3px; white-space: nowrap; }
+  .addr { font-size: 12.5px; color: #6b7a89; white-space: nowrap; }
+  .tags { display: flex; gap: 5px; margin-top: 6px; }
+  .tag { padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .t1 { background: #e8f7ef; color: #1a7a48; }
+  .t2 { background: #eaf5fb; color: #15699b; }
+  .t4 { background: #f2eeff; color: #5b34d6; }
+  .t5 { background: #e6f5f5; color: #0b6f6f; }
+
+  /* notes */
+  .n-types { left: 520px; top: 26px; }
+  .n-fills { left: 72px; top: 552px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2.5l2.1 5.6 5.6 2.1-5.6 2.1L12 17.9l-2.1-5.6-5.6-2.1 5.6-2.1z"/><path fill="#ffd27a" d="M19 14.5l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z"/></svg>
+      AI-assisted search
+    </span>
+    <h1>Visitors type one sentence</h1>
+  </div>
+  <div class="sub">the map&rsquo;s search form fills itself in</div>
+
+  <div class="query" id="query">
+    <svg viewBox="0 0 24 24"><path fill="#7c4dff" d="M12 2.5l2.1 5.6 5.6 2.1-5.6 2.1L12 17.9l-2.1-5.6-5.6-2.1 5.6-2.1z"/><path fill="#158ac9" d="M19 14.5l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z"/></svg>
+    <div class="q" id="sentence"><em class="c1">open</em> <em class="c2">hotels</em> <em class="c3">near Burbank LA</em> <em class="c4">up to 100 dollars</em> <em class="c5">by cash</em></div>
+  </div>
+
+  <div class="cols">
+
+    <div class="col form" id="form">
+      <div class="ctrl"><span class="val">Burbank, Los Angeles, CA</span><span class="dot d3"></span></div>
+
+      <div class="rng">
+        <div class="cap">Radius: 20 miles<span class="dot d3"></span></div>
+        <div class="bar"><i style="left:0;width:40%"></i><b style="left:36%"></b></div>
+      </div>
+
+      <div class="ctrl"><span class="val">Hotels</span><span class="dot d2"></span></div>
+
+      <div class="rng">
+        <div class="cap">Price: $0 - $100<span class="dot d4"></span></div>
+        <div class="bar"><i style="left:2%;width:11%"></i><b style="left:0"></b><b style="left:11%"></b></div>
+      </div>
+
+      <div class="chk"><span class="x-box"></span>Open now <span class="dot d1"></span></div>
+      <div class="chk"><span class="x-box"></span>Cash <span class="dot d5"></span></div>
+
+      <div class="x-btn" id="searchbtn">Search</div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 28 22"><path d="M2 11h20" fill="none" stroke="#b2c0cd" stroke-width="3" stroke-linecap="round"/><path d="M18 5l8 6-8 6" fill="none" stroke="#b2c0cd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="col res">
+      <div class="found"><b>12 found</b><span>Sort: Distance (nearest first)</span></div>
+
+      <div class="card first">
+        <div class="shot"><span class="feat">FEATURED</span>
+          <svg viewBox="0 0 24 24"><path fill="#fff" fill-opacity=".85" d="M3 18l5-6 3.5 4L15 11l6 7z"/><circle cx="8" cy="7.5" r="2.2" fill="#fff" fill-opacity=".85"/></svg>
+        </div>
+        <div class="meta">
+          <div class="stars">
+            <svg viewBox="0 0 100 18"><g fill="#f5a623"><path d="M9 1l2.4 5 5.6.8-4 3.9.9 5.5L9 13.6 4.1 16.2l.9-5.5-4-3.9 5.6-.8z"/><path d="M29 1l2.4 5 5.6.8-4 3.9.9 5.5L29 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M49 1l2.4 5 5.6.8-4 3.9.9 5.5L49 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M69 1l2.4 5 5.6.8-4 3.9.9 5.5L69 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M89 1l2.4 5 5.6.8-4 3.9.9 5.5L89 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/></g></svg>
+            5.0 (98)
+          </div>
+          <div class="title">Shopping District Hotel</div>
+          <div class="addr">135 E Palm Ave, Burbank &middot; 0.8 mi</div>
+          <div class="tags"><span class="tag t1">Open now</span><span class="tag t2">Hotels</span><span class="tag t4">$89</span><span class="tag t5">Cash</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="shot"><span class="feat">FEATURED</span>
+          <svg viewBox="0 0 24 24"><path fill="#fff" fill-opacity=".85" d="M3 18l5-6 3.5 4L15 11l6 7z"/><circle cx="8" cy="7.5" r="2.2" fill="#fff" fill-opacity=".85"/></svg>
+        </div>
+        <div class="meta">
+          <div class="stars">
+            <svg viewBox="0 0 100 18"><g fill="#f5a623"><path d="M9 1l2.4 5 5.6.8-4 3.9.9 5.5L9 13.6 4.1 16.2l.9-5.5-4-3.9 5.6-.8z"/><path d="M29 1l2.4 5 5.6.8-4 3.9.9 5.5L29 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M49 1l2.4 5 5.6.8-4 3.9.9 5.5L49 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M69 1l2.4 5 5.6.8-4 3.9.9 5.5L69 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/></g><path fill="#dde5ed" d="M89 1l2.4 5 5.6.8-4 3.9.9 5.5L89 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/></svg>
+            4.1 (56)
+          </div>
+          <div class="title">Relax Inn Burbank</div>
+          <div class="addr">2201 W Olive Ave, Burbank &middot; 1.6 mi</div>
+          <div class="tags"><span class="tag t1">Open now</span><span class="tag t2">Hotels</span><span class="tag t4">$74</span><span class="tag t5">Cash</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="shot">
+          <svg viewBox="0 0 24 24"><path fill="#fff" fill-opacity=".85" d="M3 18l5-6 3.5 4L15 11l6 7z"/><circle cx="8" cy="7.5" r="2.2" fill="#fff" fill-opacity=".85"/></svg>
+        </div>
+        <div class="meta">
+          <div class="stars">
+            <svg viewBox="0 0 100 18"><g fill="#f5a623"><path d="M9 1l2.4 5 5.6.8-4 3.9.9 5.5L9 13.6 4.1 16.2l.9-5.5-4-3.9 5.6-.8z"/><path d="M29 1l2.4 5 5.6.8-4 3.9.9 5.5L29 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M49 1l2.4 5 5.6.8-4 3.9.9 5.5L49 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/><path d="M69 1l2.4 5 5.6.8-4 3.9.9 5.5L69 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/></g><path fill="#dde5ed" d="M89 1l2.4 5 5.6.8-4 3.9.9 5.5L89 13.6l-4.9 2.6.9-5.5-4-3.9 5.6-.8z"/></svg>
+            3.9 (42)
+          </div>
+          <div class="title">Auto Show Motor Lodge</div>
+          <div class="addr">820 N Hollywood Way &middot; 2.4 mi</div>
+          <div class="tags"><span class="tag t1">Open now</span><span class="tag t2">Hotels</span><span class="tag t4">$96</span><span class="tag t5">Cash</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="note n-types" data-to="#sentence" data-at="t.86" data-from="b.25" data-bend=".18">the visitor types this</div>
+  <div class="note n-fills" data-to="#searchbtn" data-at="b.45" data-from="t.3" data-bend="-.2">AI fills all of these</div>
+
+</div>
+</body>
+</html>

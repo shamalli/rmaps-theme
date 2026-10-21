@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Speed & Tools.
+     The w2dc docs sketch with the Rocket Maps screens: the wizard steps
+     (install_wizard/wizard.php), Tools -> Rocket Maps Migration
+     (migrate_full_w2gm_to_rmaps.php, Step / Remaining / Status) and
+     Settings -> Diagnostics (classes/selftest/selftest.php check names and
+     messages). Laid out laid out at 880 and scaled to 808 by render.py, with the shared
+     _sketch.css and arrows drawn by _sketch.js from each note's data-to. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .sheet { padding-bottom: 60px; }
+  .wpf { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+  /* ---- setup wizard banner ----------------------------------------------- */
+  .iw { background: linear-gradient(180deg, #f6f9fc 0%, #ffffff 70%); border: 1px solid #dcdcde; border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06); padding: 16px 16px 14px; }
+  .iw-h { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+  .eb { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #2271b1;
+    background: rgba(34,113,177,.1); padding: 4px 10px; border-radius: 999px; }
+  .iw-t { margin: 0; font-size: 20px; font-weight: 600; color: #1d2327; line-height: 1.25; }
+  .x-steps { list-style: none; margin: 0 0 13px; padding: 0; display: flex; align-items: center; }
+  .stp { flex: 1 1 auto; display: flex; align-items: center; gap: 6px; min-width: 0; color: #6b7280; font-size: 11.5px; font-weight: 500; }
+  .stp:last-child { flex: 0 0 auto; }
+  .stp:not(:last-child)::after { content: ""; flex: 1 1 auto; height: 3px; background: #e5e7eb; border-radius: 2px; margin: 0 6px; min-width: 10px; }
+  .stp.done:not(:last-child)::after { background: #00a32a; }
+  .stp.act:not(:last-child)::after { background: linear-gradient(90deg, #00a32a 0%, #e5e7eb 100%); }
+  .x-mk { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid #d1d5db; background: #fff; color: #6b7280; font-weight: 600; font-size: 12.5px; box-sizing: border-box; }
+  .stp.act .x-mk { background: #2271b1; border-color: #2271b1; color: #fff; box-shadow: 0 0 0 4px rgba(34,113,177,.15); }
+  .stp.act .lb { color: #1d2327; font-weight: 600; }
+  .stp.done .x-mk { background: #00a32a; border-color: #00a32a; color: #fff; }
+  .stp.done .lb { color: #1d2327; }
+  .lb { white-space: nowrap; }
+  .iw-d { margin: 0 0 12px; color: #50575e; font-size: 13px; line-height: 1.5; }
+  .x-acts { display: flex; align-items: center; gap: 8px; }
+  .wb { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 13px; box-sizing: border-box; border: 1px solid #2271b1; border-radius: 3px;
+    background: #f6f7f7; color: #50575e; font-size: 12.5px; white-space: nowrap; }
+  .wb.g { border-color: #8c8f94; }
+  .wb.p { background: #2271b1; color: #fff; font-size: 13px; }
+  .wb.o { color: #2271b1; background: #fff; }
+  .wb.r { margin-left: auto; border-color: #2271b1; color: #2271b1; }
+
+  /* ---- bottom: migration + diagnostics ------------------------------------ */
+  .cols { display: grid; grid-template-columns: 1.42fr 1fr; gap: 12px; margin-top: 12px; align-items: start; }
+  .x-box { background: #fff; border: 1px solid #dcdcde; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.05); color: #3c434a; }
+  .x-box h2 { margin: 0; padding: 9px 12px; font-size: 14px; font-weight: 600; color: #1d2327; border-bottom: 1px solid #e5e7eb; }
+  .x-box h2 small { font-weight: 400; color: #8c8f94; font-size: 12px; }
+  .bi { padding: 10px 12px 12px; }
+  .warn { margin: 0 0 10px; padding: 7px 10px; background: #fff; border: 1px solid #c3c4c7; border-left: 4px solid #dba617; font-size: 11.5px; line-height: 1.45; }
+  .warn b { color: #b32d2e; }
+  /* widefat striped */
+  .wf { width: 100%; border-collapse: collapse; border: 1px solid #c3c4c7; font-size: 11.5px; }
+  .wf th { text-align: left; font-weight: 400; color: #2c3338; padding: 6px 8px; border-bottom: 1px solid #c3c4c7; font-size: 12px; }
+  .wf td { padding: 5px 8px; vertical-align: top; line-height: 1.4; color: #3c434a; }
+  .wf tr:nth-child(odd) td { background: #f6f7f7; }
+  .wf .ok { color: #46b450; white-space: nowrap; }
+  .wf .pd { color: #999; white-space: nowrap; }
+  .wf .gy { color: #666; }
+  .run { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .run .wb { height: 34px; font-size: 13px; background: #2271b1; color: #fff; opacity: .6; }
+  .run span.s { font-size: 11.5px; font-weight: 600; color: #3c434a; line-height: 1.35; }
+
+  .db { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; box-sizing: border-box; border: 1px solid #2271b1; border-radius: 3px;
+    background: #fff; color: #2271b1; font-size: 12.5px; }
+  .st { margin-top: 7px; padding: 7px 9px; border-radius: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 11.5px; line-height: 1.4; }
+  .st b { display: block; font-weight: 700; }
+  .st:first-of-type { margin-top: 10px; }
+
+  /* notes */
+  .n-steps { left: 528px; top: 48px; }
+  .n-batch { left: 66px; top: 706px; }
+  .n-diag { left: 566px; top: 712px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2 4 13.5h6.5L9 22l10-12h-6.6z"/></svg>
+      Speed &amp; tools
+    </span>
+    <h1>Set up, migrate and check in a few clicks</h1>
+  </div>
+  <div class="sub">fast on big maps, with a wizard, migration and self-tests</div>
+
+  <!-- ===== the setup wizard ===== -->
+  <div class="iw wpf">
+    <div class="iw-h"><span class="eb">Step 3 of 4</span><h2 class="iw-t">Demo content</h2></div>
+    <ol class="x-steps" id="wsteps">
+      <li class="stp done"><span class="x-mk"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M13.485 4.43L6.5 11.414 2.515 7.43 3.93 6.015l2.57 2.57 5.57-5.57z"/></svg></span><span class="lb">Settings</span></li>
+      <li class="stp done"><span class="x-mk"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M13.485 4.43L6.5 11.414 2.515 7.43 3.93 6.015l2.57 2.57 5.57-5.57z"/></svg></span><span class="lb">Form Builder</span></li>
+      <li class="stp act"><span class="x-mk">3</span><span class="lb">Demo content</span></li>
+      <li class="stp"><span class="x-mk">4</span><span class="lb">Create a map</span></li>
+    </ol>
+    <p class="iw-d">Import demo listings for the countries you want to showcase, or skip ahead and create your first listing manually.</p>
+    <div class="x-acts">
+      <span class="wb g">&larr; Back</span>
+      <span class="wb p">Next &rarr;</span>
+      <span class="wb o">Skip demo import and create a listing &rarr;</span>
+      <span class="wb r">Finish installation &#10003;</span>
+    </div>
+  </div>
+
+  <div class="cols wpf">
+    <!-- ===== Tools > Rocket Maps Migration ===== -->
+    <div class="x-box">
+      <h2>Google Maps Locator &rarr; Rocket Maps Migration</h2>
+      <div class="bi">
+        <div class="warn"><b>&#9888; Back up your database before clicking Run.</b></div>
+        <table class="wf">
+          <tr><th>Step</th><th>Remaining</th><th>Status</th></tr>
+          <tr><td>Modernise: legacy content fields &rarr; form template</td><td>0</td><td class="ok">&#9989; Done</td></tr>
+          <tr><td>Postmeta: _w2gm_* &rarr; _rmaps_* (batched)</td><td>0</td><td class="ok">&#9989; Done</td></tr>
+          <tr><td>Posts: w2gm_listing &rarr; rmaps_listing</td><td>0</td><td class="ok">&#9989; Done</td></tr>
+          <tr><td>Taxonomies: w2gm-* &rarr; rmaps-*</td><td class="gy">4</td><td class="pd">&#9203; Pending</td></tr>
+          <tr><td>Marker table: wp_w2gm_locations_relationships &rarr; wp_rmaps_markers</td><td class="gy">1,388</td><td class="pd">&#9203; Pending</td></tr>
+          <tr><td>Options: w2gm_* &rarr; rmaps_*</td><td class="gy">212</td><td class="pd">&#9203; Pending</td></tr>
+        </table>
+        <div class="run"><span class="wb" id="running">Running&hellip;</span><span class="s">Started.</span></div>
+      </div>
+    </div>
+
+    <!-- ===== Settings > Diagnostics ===== -->
+    <div class="x-box">
+      <h2>Diagnostics</h2>
+      <div class="bi">
+        <span class="db" id="diag">Run front-end diagnostics</span>
+        <div class="st"><b>&#10003; Front-end runtime</b>Front-end runtime is alive (Rocket Maps 1.5.6).</div>
+        <div class="st"><b>&#10003; REST API</b>The REST API is reachable anonymously &mdash; search, map and listing data can load.</div>
+        <div class="st"><b>&#10003; Map provider key</b>A map-provider key/token is configured.</div>
+        <div class="st"><b>&#10003; Outgoing connections</b>This server can make outgoing requests (cURL, OpenSSL/3.0.13).</div>
+        <div class="st" id="lastdiag"><b>&#10003; Interfering plugins</b>No known front-end plugin managers, asset optimisers, cache or REST-blocking plugins are active.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-steps" data-to="#wsteps" data-at="t.72" data-from="b.3" data-bend=".14" data-block>4 steps to a map on a page</div>
+  <div class="note n-batch" data-to="#running" data-at="b.4" data-from="t.2" data-bend="-.14">runs in batches, resumes if stopped</div>
+  <div class="note n-diag" data-to="#lastdiag" data-at="b.5" data-from="t.3" data-bend="-.12" data-block>one click checks it all</div>
+
+</div>
+</body>
+</html>

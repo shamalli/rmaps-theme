@@ -1,0 +1,127 @@
+/* Shared look of the documentation sketches (docs/sketches/src/*.html).
+ *
+ * The language of the CodeCanyon description sketches (salephp-platform
+ * codecanyon/w2dc/banners/src): the real admin screen, redrawn clean and
+ * tightened, with marker-pen notes that say what each part does. Laid out
+ * 880 CSS px wide and scaled to 808 (the documentation column) by render.py.
+ * Arrows come from _sketch.js (data-to on a note). */
+
+html, body { margin: 0; padding: 0; }
+body { width: 880px; background: #eef3f8; font-family: "Segoe UI", Roboto, Arial, sans-serif; color: #24303c; }
+.sheet { position: relative; padding: 18px 22px 22px; }
+
+/* ---- head: pill + headline + one line under it ------------------------- */
+.head { display: flex; align-items: center; gap: 11px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  background: #1e6fa8; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; white-space: nowrap; }
+.pill svg { width: 13px; height: 13px; }
+h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.2px; }
+.sub { margin: 4px 0 14px; font-size: 16px; font-weight: 600; color: #6b7a89; }
+
+/* ---- marker-pen notes: absolutely placed per sketch; _sketch.js draws the
+ *      arrow to the element named in data-to -------------------------------- */
+.note { position: absolute; z-index: 7; font-family: "Segoe Print", "Ink Free", "Comic Sans MS", cursive;
+  color: #e2574c; font-size: 16.5px; line-height: 1.2; white-space: nowrap; }
+.arrows { position: absolute; left: 0; top: 0; z-index: 6; overflow: visible; pointer-events: none; }
+.arrows path { fill: none; stroke: #e2574c; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+/* a red ring round something the note is about */
+.ring { outline: 2.2px solid #e2574c; outline-offset: 3px; border-radius: 6px; }
+
+/* ---- a window: the admin screen being explained ------------------------ */
+.win { background: #fff; border: 1px solid #dfe7ef; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 40, 60, .05); }
+.adminbar { height: 26px; background: #1d2327; color: #c3c4c7; display: flex; align-items: center;
+  gap: 16px; padding: 0 12px; font-size: 12.5px; }
+.adminbar b { color: #f0f0f1; font-weight: 600; }
+.cap { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #8a98a6; margin: 0 0 7px 2px; }
+
+/* ---- wizard-size buttons (button-hero) --------------------------------- */
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 16px; height: 36px; border-radius: 4px;
+  font-size: 14px; font-weight: 600; white-space: nowrap; border: 1px solid #2271b1; color: #2271b1; background: #fff; }
+.btn.primary { background: #2271b1; color: #fff; }
+.btn.big { height: 44px; padding: 0 22px; font-size: 15px; }
+.btn.quiet { border-color: #c3c4c7; color: #50575e; }
+
+/* ---- wp-admin pieces --------------------------------------------------- */
+.wp { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1d2327; font-size: 13px; }
+.wpbody { display: flex; align-items: stretch; background: #f0f0f1; }
+.content { flex: 1; min-width: 0; padding: 14px 18px 18px; }
+.wph { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+.wph b { font-size: 21px; font-weight: 400; color: #1d2327; }
+.wpbtn { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border: 1px solid #2271b1;
+  border-radius: 3px; background: #f6f7f7; color: #2271b1; font-size: 13px; white-space: nowrap; }
+.wpbtn.p { background: #2271b1; color: #fff; }
+.wpbtn.dim { opacity: .45; }
+.wpbtn.gray { border-color: #c3c4c7; color: #50575e; background: #fff; }
+
+/* #adminmenu, unfolded: a dark column, the current item blue, its submenu under it */
+.amenu { flex: none; width: 158px; background: #1d2327; padding: 6px 0 14px; font-size: 13px; }
+.amenu .it { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; color: #f0f0f1; }
+.amenu .it svg { width: 17px; height: 17px; fill: #a7aaad; flex: none; }
+.amenu .it img { width: 17px; height: 16px; flex: none; }
+.amenu .it.cur { background: #2271b1; color: #fff; }
+.amenu .it.cur svg { fill: #fff; }
+.amenu .gap { height: 9px; }
+.amenu .sub { background: #2c3338; padding: 5px 0 6px; }
+.amenu .sub span { display: block; padding: 3px 10px 3px 12px; color: #c3c4c7; font-size: 12.5px; }
+.amenu .sub span.on { color: #fff; font-weight: 600; }
+
+/* metabox */
+.box { background: #fff; border: 1px solid #c3c4c7; }
+.box > .bh { display: flex; align-items: center; height: 34px; padding: 0 12px; border-bottom: 1px solid #c3c4c7;
+  font-size: 13px; font-weight: 600; }
+.box > .bh i { margin-left: auto; font-style: normal; color: #787c82; font-size: 11px; letter-spacing: 3px; }
+.box > .bb { padding: 10px 12px 12px; }
+
+/* form controls */
+.inp { display: flex; align-items: center; height: 30px; box-sizing: border-box; padding: 0 8px; border: 1px solid #8c8f94;
+  border-radius: 4px; background: #fff; font-size: 13px; color: #2c3338; white-space: nowrap; overflow: hidden; }
+.inp.ph { color: #8c8f94; }
+.rd { display: inline-block; width: 14px; height: 14px; box-sizing: border-box; border: 1px solid #8c8f94; border-radius: 50%;
+  background: #fff; position: relative; flex: none; }
+.rd.on { border-color: #2271b1; }
+.rd.on::after { content: ""; position: absolute; left: 3px; top: 3px; width: 6px; height: 6px; border-radius: 50%; background: #2271b1; }
+.cb { display: inline-block; width: 14px; height: 14px; box-sizing: border-box; border: 1px solid #8c8f94; border-radius: 3px;
+  background: #fff; position: relative; flex: none; }
+.cb.on { background: #2271b1; border-color: #2271b1; }
+.cb.on::after { content: ""; position: absolute; left: 4px; top: 1px; width: 3px; height: 7px; border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff; transform: rotate(45deg); }
+.tg { display: inline-block; width: 32px; height: 18px; border-radius: 9px; background: #c3c4c7; position: relative; flex: none; }
+.tg::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+.tg.on { background: #2271b1; }
+.tg.on::after { left: 16px; }
+.sel { display: flex; align-items: center; height: 30px; box-sizing: border-box; padding: 0 24px 0 8px; border: 1px solid #8c8f94;
+  border-radius: 4px; background: #fff; font-size: 13px; color: #2c3338; position: relative; white-space: nowrap; }
+.sel::after { content: ""; position: absolute; right: 9px; top: 10px; width: 5px; height: 5px; border-right: 1.5px solid #50575e;
+  border-bottom: 1.5px solid #50575e; transform: rotate(45deg); }
+.hint { color: #646970; font-size: 12px; line-height: 1.45; }
+.notice { background: #fff; border: 1px solid #c3c4c7; border-left: 4px solid #d63638; padding: 8px 12px;
+  font-size: 12.5px; line-height: 1.45; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+.notice.warn { border-left-color: #dba617; }
+.notice.ok { border-left-color: #00a32a; }
+
+/* ---- the setup wizard bar (colours of install_wizard/wizard.php's CSS) --- */
+.wiz { background: linear-gradient(180deg, #f6f9fc, #fff); border-bottom: 1px solid #e5eaf0; padding: 18px 24px 18px; }
+.wiz-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #2271b1;
+  background: rgba(34,113,177,.1); padding: 4px 10px; border-radius: 999px; }
+.wiz-title { font-size: 21px; font-weight: 600; color: #1d2327; }
+.steps { display: flex; align-items: center; margin-bottom: 14px; }
+.step { display: flex; align-items: center; gap: 8px; flex: 1 1 0; font-size: 12.5px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+.step:last-child { flex: 0 0 auto; }
+.step:not(:last-child)::after { content: ""; flex: 1 1 auto; height: 3px; border-radius: 2px; background: #e5e7eb; margin: 0 10px; min-width: 14px; }
+.step.done:not(:last-child)::after { background: #00a32a; }
+.step.on:not(:last-child)::after { background: linear-gradient(90deg, #00a32a 0%, #e5e7eb 100%); }
+.mk { width: 30px; height: 30px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; color: #6b7280; border: 2px solid #d1d5db; box-sizing: border-box; font-size: 13px; font-weight: 600; }
+.mk svg { width: 13px; height: 13px; }
+.step.done { color: #1d2327; }
+.step.done .mk { background: #00a32a; border-color: #00a32a; color: #fff; }
+.step.on { color: #1d2327; font-weight: 600; }
+.step.on .mk { background: #2271b1; border-color: #2271b1; color: #fff; box-shadow: 0 0 0 4px rgba(34,113,177,.15); }
+.desc { font-size: 13.5px; color: #50575e; line-height: 1.5; margin: 0 0 14px; }
+.acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.acts .fin { margin-left: 4px; }
+.lockhint { font-size: 13px; font-style: italic; color: #50575e; }
+.lockhint::before { content: "\1F512"; font-style: normal; margin-right: 8px; }

@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Categories, Locations and Tags (also linked from
+     Custom markers -> Per-category marker icons).
+     Maps listings -> Maps categories -> edit a category (term.php).
+     WordPress's own rows (Name, Slug, Parent Category, Description, Update /
+     Delete) and the row the plugin adds through {taxonomy}_edit_form_fields:
+       Marker - core/src/Categories/Manager.php render_marker_picker_mount(),
+         the React picker core/react/src/categories-marker/CategoryMarkerPicker.tsx
+         + styles.css: the preview box with the pin (colour teardrop, white disc,
+         the glyph), the Saving / Saved status, the x clear, the FA icon /
+         PNG icon / Upload tabs, Color + Filter, the icon grid. Every pick is
+         POSTed to REST at once (categories/{id}/marker), not with Update.
+     A category without a marker falls back up its parent chain
+     (core/classes/maps/marker_resolver.php, categories source).
+     Bottom: the pins on the map.
+     Examples: the term names, slugs, colours, the picked icons.
+     Liberties: the WP admin menu is left out, the Description row is cut short,
+     the FA grid shows two rows of the Font Awesome list. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .win { width: 634px; }
+  .content { padding: 14px 18px 16px; background: #f0f0f1; }
+  .wph b { font-size: 21px; }
+  .ft { width: 100%; border-collapse: collapse; }
+  .ft th { width: 134px; text-align: left; vertical-align: top; font-weight: 600; font-size: 13px; padding: 13px 10px 10px 0; }
+  .ft td { padding: 8px 0; vertical-align: top; }
+  .ft .inp, .ft .sel { width: 300px; }
+  .ft .hint { margin-top: 4px; }
+  .ta { height: 44px; align-items: flex-start; padding-top: 6px; white-space: normal; width: 100% !important; }
+  .acts2 { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+  .del { color: #b32d2e; text-decoration: underline; font-size: 13px; }
+
+  /* the picker (.rmaps-cat-marker) */
+  .cmk { font-size: 13px; width: 462px; }
+  .pv { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; }
+  .pbx { display: inline-flex; align-items: center; justify-content: center; min-width: 69px; min-height: 69px; }
+  .pin { position: relative; width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+  .pin::before { content: ""; position: absolute; left: 11%; top: 11%; width: 78%; height: 78%; border-radius: 50%; background: #fff; }
+  .pin svg { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; transform: translate(-50%, -50%) rotate(45deg); }
+  .st { font-size: 12px; color: #15803d; }
+  .clr { position: absolute; top: 5px; right: 8px; color: #9ca3af; font-size: 18px; line-height: 1; }
+  .tabs { display: flex; width: 360px; margin: 8px 0; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden; }
+  .tabs span { flex: 1; text-align: center; padding: 6px 12px; font-size: 12px; background: #f9fafb; color: #475569; border-left: 1px solid #d1d5db; }
+  .tabs span:first-child { border-left: 0; }
+  .tabs span.on { background: #2271b1; color: #fff; font-weight: 600; }
+  .pan { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px 6px; background: #fff; }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .row label { font-size: 11px; color: #6b7280; }
+  .sw { width: 34px; height: 22px; border: 1px solid #c3c4c7; border-radius: 3px; padding: 3px; box-sizing: border-box; background: #fff; }
+  .sw i { display: block; width: 100%; height: 100%; border-radius: 1px; }
+  .flt { flex: 1; height: 26px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; border: 1px solid #8c8f94; border-radius: 4px; font-size: 12px; color: #8c8f94; }
+  .ig { display: grid; grid-template-columns: repeat(10, 40px); gap: 4px; padding: 2px; }
+  .ig span { width: 40px; height: 36px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; }
+  .ig span.on { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+  .ig svg { width: 17px; height: 17px; }
+  .gt { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; margin-bottom: 5px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
+  .pg { display: flex; gap: 4px; }
+  .pg span { width: 52px; height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; }
+  .pg span.on { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+  .pg img { width: 32px; height: 32px; }
+  .plain img { width: 36px; height: 36px; }
+
+  /* front: the Categories block + the map */
+  .front { display: flex; gap: 14px; margin-top: 14px; align-items: stretch; }
+  .fcard { background: #fff; border: 1px solid #dfe7ef; border-radius: 12px; padding: 12px 14px 12px; }
+  .fcat { width: 318px; }
+  .tl { display: flex; align-items: center; gap: 10px; padding: 8px 11px; border: 1px solid #e6e8ec; border-radius: 12px; background: #fff; }
+  .ti { flex: none; width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, #2271b1 12%, #fff); display: inline-flex; align-items: center; justify-content: center; }
+  .ti img { width: 26px; height: 26px; }
+  .tn { flex: 1; font-weight: 600; font-size: 13.5px; color: #2271b1; white-space: nowrap; }
+  .tc { flex: none; padding: 1px 9px; border-radius: 999px; background: #f1f3f5; color: #667085; font-size: 11.5px; font-weight: 600; line-height: 1.7; }
+  .subs { margin: 6px 0 0; }
+  .subs .tl { border: 0; padding: 4px 10px; gap: 10px; }
+  .subs .ti { width: 26px; height: 26px; border-radius: 7px; }
+  .subs .ti img { width: 18px; height: 18px; }
+  .subs .ti.no { background: transparent; }
+  .subs .tn { font-weight: 500; font-size: 13px; }
+  .fmap { flex: 1; position: relative; padding: 0; overflow: hidden; background: url(map-light.webp) center / cover; min-height: 190px; }
+  .mp { position: absolute; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .mp::before { content: ""; position: absolute; left: 11%; top: 11%; width: 78%; height: 78%; border-radius: 50%; background: #fff; }
+  .mp svg { position: absolute; left: 50%; top: 50%; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); }
+
+  .n-parent { left: 512px; top: 256px; }
+  .n-pin    { left: 44px; top: 424px; }
+  .n-saved  { left: 360px; top: 421px; }
+  .n-tabs   { left: 680px; top: 470px; }
+  .n-icon   { left: 300px; top: 692px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+      Categories
+    </span>
+    <h1>A pin for every category</h1>
+  </div>
+  <div class="sub">Maps listings &rarr; Maps categories &rarr; edit a category</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div class="content">
+      <div class="wph"><b>Edit category</b></div>
+      <table class="ft">
+        <tr><th>Name</th><td><div class="inp">Gift shops</div><div class="hint">The name is how it appears on your site.</div></td></tr>
+        <tr><th>Slug</th><td><div class="inp">gift-shops</div></td></tr>
+        <tr><th>Parent Category</th><td><div class="sel" id="parent">Shopping</div></td></tr>
+        <tr><th>Description</th><td><div class="inp ta ph">Souvenirs, cards and presents.</div></td></tr>
+        <tr><th>Marker</th><td>
+          <div class="cmk">
+            <div class="pv">
+              <span class="pbx" id="mprev"><span class="pin" id="mpin" style="background:#d6336c"><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M20 7h-2.2A3 3 0 0 0 12 3.8 3 3 0 0 0 6.2 7H4a1 1 0 0 0-1 1v3h18V8a1 1 0 0 0-1-1zM9 5a1.5 1.5 0 0 1 1.5 1.5V7H9a1 1 0 0 1 0-2zm6 0a1 1 0 0 1 0 2h-1.5v-.5A1.5 1.5 0 0 1 15 5zM4 12v8a1 1 0 0 0 1 1h6v-9zm9 0v9h6a1 1 0 0 0 1-1v-8z"/></svg></span></span>
+              <span class="st" id="saved">Saved &#10003;</span>
+              <span class="clr">&times;</span>
+            </div>
+            <div class="tabs" id="mtabs"><span class="on">FA icon</span><span>PNG icon</span><span>Upload</span></div>
+            <div class="pan">
+              <div class="row"><label>Color</label><span class="sw"><i style="background:#d6336c"></i></span><span class="flt">Filter&hellip;</span></div>
+              <div class="ig">
+                <span class="on"><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M20 7h-2.2A3 3 0 0 0 12 3.8 3 3 0 0 0 6.2 7H4a1 1 0 0 0-1 1v3h18V8a1 1 0 0 0-1-1zM9 5a1.5 1.5 0 0 1 1.5 1.5V7H9a1 1 0 0 1 0-2zm6 0a1 1 0 0 1 0 2h-1.5v-.5A1.5 1.5 0 0 1 15 5zM4 12v8a1 1 0 0 0 1 1h6v-9zm9 0v9h6a1 1 0 0 0 1-1v-8z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v7h-2v-2H7v2H5zm2.2-1h9.6l-1-3H8.2zM7.5 12.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm9 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M3 11h18v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zm2-4h6a3 3 0 0 1 3 3v0H5a1 1 0 0 1 0-3z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M9 4h6v2h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4zm2 2h2V5.5h-2z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="#d6336c" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zm8 2.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M6 3h12a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3l1.5 2h-2L15 18H9l-1.5 2h-2L7 18a3 3 0 0 1-3-3V5a2 2 0 0 1 2-2zm0 2v5h12V5zm2 8.5a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm8 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 3 3 8v2h18V8zM5 11v6h2v-6zm4 0v6h2v-6zm4 0v6h2v-6zm4 0v6h2v-6zM3 18v2h18v-2z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 2 3 7l9 5 9-5zm-7 8.2v5.3l7 3.9 7-3.9v-5.3L12 14z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1 14H5L4 7zm2 0h6V6a3 3 0 0 0-6 0z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 21s-7.4-4.5-9.4-9.1C1.2 8.6 3 5 6.5 5c2 0 3.6 1.2 5.5 3.3C13.9 6.2 15.5 5 17.5 5c3.5 0 5.3 3.6 3.9 6.9C19.4 16.5 12 21 12 21z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="m12 2 2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M9 3v11.3A3.5 3.5 0 1 0 11 17V8h8V3zm2 2h6v1h-6z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M3 4h2.4l.6 2H21l-2 8H7.6l.5 2H19v2H6.6L4 6H3zm5 15.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm9 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M12 3 2 21h20zm-1 6h2v6h-2zm0 7.5h2v2h-2z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><circle cx="12" cy="12" r="4"/><path d="M11 1h2v4h-2zm0 18h2v4h-2zM1 11h4v2H1zm18 0h4v2h-4zM4.2 5.6l1.4-1.4 2.8 2.8L7 8.4zm11.4 11.4 1.4-1.4 2.8 2.8-1.4 1.4zM4.2 18.4 7 15.6 8.4 17l-2.8 2.8zM15.6 7l2.8-2.8 1.4 1.4L17 8.4z"/></svg></span>
+                <span><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M4 4h16v12H4zm-2 14h20v2H2z"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </td></tr>
+      </table>
+      <div class="acts2"><span class="wpbtn p">Update</span><span class="del">Delete</span></div>
+    </div>
+  </div>
+
+  <div class="front">
+    <div class="fcard fmap" id="fmap">
+      <span class="mp" style="left:92px;top:56px;background:#d6336c" id="fpin"><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M20 7h-2.2A3 3 0 0 0 12 3.8 3 3 0 0 0 6.2 7H4a1 1 0 0 0-1 1v3h18V8a1 1 0 0 0-1-1zM9 5a1.5 1.5 0 0 1 1.5 1.5V7H9a1 1 0 0 1 0-2zm6 0a1 1 0 0 1 0 2h-1.5v-.5A1.5 1.5 0 0 1 15 5zM4 12v8a1 1 0 0 0 1 1h6v-9zm9 0v9h6a1 1 0 0 0 1-1v-8z"/></svg></span>
+      <span class="mp" style="left:208px;top:112px;background:#d6336c"><svg viewBox="0 0 24 24" fill="#d6336c"><path d="M20 7h-2.2A3 3 0 0 0 12 3.8 3 3 0 0 0 6.2 7H4a1 1 0 0 0-1 1v3h18V8a1 1 0 0 0-1-1zM9 5a1.5 1.5 0 0 1 1.5 1.5V7H9a1 1 0 0 1 0-2zm6 0a1 1 0 0 1 0 2h-1.5v-.5A1.5 1.5 0 0 1 15 5zM4 12v8a1 1 0 0 0 1 1h6v-9zm9 0v9h6a1 1 0 0 0 1-1v-8z"/></svg></span>
+      <span class="mp" style="left:150px;top:30px;background:#2271b1"><svg viewBox="0 0 24 24" fill="#2271b1"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+      <span class="mp" style="left:40px;top:128px;background:#e8590c"><svg viewBox="0 0 24 24" fill="#e8590c"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.1 1.7 3.8 3.8 4V22h2.4v-9c2.1-.2 3.8-1.9 3.8-4V2h-2v7zm5-3v8h2.5v8H21V2c-2.8 0-5 2.2-5 4z"/></svg></span>
+    </div>
+  </div>
+
+  <div class="note n-parent" data-to="#parent" data-at="r.5" data-from="l.75" data-bend=".1">no marker of<br>its own? it takes<br>the parent's</div>
+  <div class="note n-pin" data-to="#mpin" data-at="l.5" data-from="r" data-bend=".1">the map pin,<br>with a live<br>preview</div>
+  <div class="note n-saved" data-to="#saved" data-at="r.5" data-from="l" data-bend=".1">saved on each click,<br>no Update needed</div>
+  <div class="note n-tabs" data-to="#mtabs" data-at="r.5" data-from="l" data-bend=".1">a Font Awesome glyph<br>in your colour, a<br>bundled PNG, or your<br>own image</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Moderation, Expiration and Renewal, the status table.
+     The Maps listings screen (edit.php?post_type=rmaps_listing), drawn from
+     core/src/Listings/Manager.php: the columns it adds (rmaps_expiration_date,
+     rmaps_status) and the status-filter dropdown (posts_filter_dropdown, the
+     `<prefix>_listing_status_filter` arg), with the badge markup + labels from
+     the rmaps_status column case and the badge colours printed by
+     core/classes/listings/listing_pause.php (.rmaps-badge +
+     .rmaps-listing-status-active / -expired / -unpaid / -stopped / -pending /
+     -draft). "Paused" is the label for `stopped` through the
+     rmaps_listing_status_label filter (listing_pause.php).
+
+     The point of the sheet is the pair of statuses a listing carries at once:
+     WordPress' post status in the title cell ("- Pending review", "- Draft")
+     and the plugin's own Status beside it. The rows are chosen so every
+     combination that confuses people is on one screen - a moderated listing
+     that is still `active`, a guest submission that is a Draft because its
+     activation email has not been clicked, and a paused one.
+
+     Liberties: the Author column is dropped (it says nothing about status); six rows, one per status (a real screen repeats `active`; `unpaid` is left out, a
+     payment status Rocket Maps alone never sets); the
+     Reviews and comment columns and the bulk-action row are left out; the
+     admin menu is cut to the three items that matter here. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .lt { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #c3c4c7; font-size: 13px; }
+  .lt th { text-align: left; font-weight: 600; color: #2c3338; padding: 8px 10px; border-bottom: 1px solid #c3c4c7; white-space: nowrap; }
+  .lt td { padding: 9px 10px; border-top: 1px solid #f0f0f1; vertical-align: middle; }
+  .lt tr:nth-child(even) td { background: #f6f7f7; }
+  .lt .ti { color: #2271b1; font-weight: 600; }
+  .lt .ps { color: #646970; font-weight: 400; }
+  .lt .nv { color: #646970; }
+  .cbx { width: 20px; }
+
+  /* the badges, as listing_pause.php prints them */
+  .bdg { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; line-height: 1.6; white-space: nowrap; }
+  .b-active  { background: #ecfdf5; color: #065f46; }
+  .b-expired { background: #fef2f2; color: #991b1b; }
+  .b-unpaid  { background: #fffbeb; color: #92400e; }
+  .b-stopped { background: #eff6ff; color: #1e40af; }
+  .b-pending { background: #f5f3ff; color: #5b21b6; }
+  .b-draft   { background: #f3f4f6; color: #374151; }
+
+  .filters { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+  .legend { margin-top: 14px; display: grid; grid-template-columns: 150px 1fr; gap: 6px 14px; font-size: 12.5px; color: #3c4858; align-items: baseline; }
+  .legend b { font-weight: 600; }
+  .content { padding-right: 200px; }   /* room for the notes down the right */
+  .lt td:nth-child(2) { white-space: nowrap; }   /* titles on one line, as on a real wide screen */
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M3 3h14v2H3zm0 4h14v2H3zm0 4h9v2H3zm0 4h9v2H3z"/></svg>
+      LISTINGS
+    </span>
+    <h1>Two statuses, one row</h1>
+  </div>
+  <p class="sub">WordPress says whether the listing is on the site. The plugin&rsquo;s Status says where it is in its life.</p>
+
+  <div class="win">
+    <div class="adminbar"><b>Rocket Maps</b><span>Maps listings</span></div>
+    <div class="wpbody">
+      <div class="amenu">
+        <div class="it cur">Maps listings</div>
+        <div class="sub"><span class="on">Maps listings</span><span>Create new listing</span><span>Maps categories</span></div>
+        <div class="gap"></div>
+        <div class="it">Maps</div>
+        <div class="it">Maps Admin</div>
+      </div>
+      <div class="content wp">
+        <div class="wph"><b>Maps listings</b><span class="wpbtn">Create new listing</span></div>
+
+        <div class="filters">
+          <span class="sel" id="stfilter">All statuses</span>
+          <span class="wpbtn gray">Filter</span>
+        </div>
+
+        <table class="lt">
+          <thead>
+            <tr><th class="cbx"></th><th>Title</th><th>Expiration date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Harbour Cafe</span></td>
+              <td>14 Mar 2027</td>
+              <td><span class="bdg b-active">active</span></td>
+            </tr>
+            <tr id="r-moderated">
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Fairview Dental</span> <span class="ps">— Pending</span></td>
+              <td>14 Mar 2027</td>
+              <td><span class="bdg b-active" id="b-active2">active</span></td>
+            </tr>
+            <tr>
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Weinstein Ltd</span> <span class="ps">— Draft</span></td>
+              <td class="nv">Never</td>
+              <td><span class="bdg b-pending" id="b-pending">awaiting activation</span></td>
+            </tr>
+            <tr>
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Visernic</span> <span class="ps">— Draft</span></td>
+              <td class="nv">Never</td>
+              <td><span class="bdg b-draft">draft</span></td>
+            </tr>
+            <tr>
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Pine Garage</span> <span class="ps">— Draft</span></td>
+              <td>2 Feb 2026</td>
+              <td><span class="bdg b-expired">expired</span></td>
+            </tr>
+            <tr>
+              <td class="cbx"><span class="cb"></span></td>
+              <td><span class="ti">Old Mill</span> <span class="ps">— Draft</span></td>
+              <td>9 Aug 2027</td>
+              <td><span class="bdg b-stopped" id="b-paused">Paused</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="left:646px;top:206px" data-to="#b-active2" data-at="r" data-bend=".18">
+    moderation holds the<br>post, not the listing
+  </div>
+  <div class="note" style="left:646px;top:292px" data-to="#b-pending" data-at="r" data-bend="-.16">
+    the guest has not<br>clicked the activation<br>email yet
+  </div>
+  <div class="note" style="left:646px;top:400px" data-to="#b-paused" data-at="r" data-bend="-.16">
+    off the site, its<br>clock stopped
+  </div>
+
+</div>
+</body>
+</html>

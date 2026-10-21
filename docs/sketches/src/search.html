@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Front-end Search.
+     Top: Maps -> edit a map, the "Search options" metabox
+     (core/src/Maps/Manager.php rmaps_mb_search, fields from
+     core/classes/settings/metaboxes/search.php: Show search form on the map,
+     the builder mounted on search_form_template, Form
+     position "Top left", Form width 400, Put the search in the URL off, Allow
+     form drag and toggle on). The builder is
+     core/react/src/admin-map-edit/SearchFormBuilder.tsx with
+     search-form-builder/components/Palette.tsx (system fields with their
+     hints, "Template fields" from the listing form with the field type as
+     the hint, fields already on the form greyed out: UNIQUE_SLOT_TYPES),
+     Canvas.tsx (grip, label, remove; "+ New row") and Properties.tsx (the
+     slot type as title, Label, Width Full / 2/3 / 1/2 / 1/3, radius Min / Max).
+     [webmap-search] shows the same form off the map.
+     Bottom: the map on the site with its form floating top left
+     (maps/components/SearchForm/SearchForm.tsx: collapse toggle top-left,
+     drag grip top-right, "Radius: N unit" label of the slider), the radius
+     circle (Map/MapRadiusCircle.tsx, "Show radius circle" on by default),
+     markers only inside it, and the chips bar placed before the listings
+     block (SearchForm/FiltersBar.tsx + filtersHost.ts: a chip per filter,
+     labels "2 km", "$0 - $150", Clear all from two chips up).
+     Liberties: the palette's Rating slot (Ratings add-on) and the metabox's
+     intro info line and field descriptions are left out, the four options
+     sit beside the palette instead of under the builder, the chips bar is
+     drawn only as wide as its chips, and the map, the listing names and the
+     photos are illustrations. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .tb { display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px; background: #f0f0f1; }
+  .tb b { font-size: 19px; font-weight: 400; }
+  .tb .inp { width: 220px; }
+  .tb .sp { flex: 1; }
+  .mbwrap { background: #f0f0f1; padding: 0 14px 12px; }
+  .mb > .bb { padding: 0; }
+  .fr { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-bottom: 1px solid #f0f0f1; font-size: 12.5px; }
+  .fr > span:first-child { width: 186px; flex: none; font-weight: 600; }
+  .fr .inp, .fr .sel { height: 28px; font-size: 12.5px; }
+  .info { margin: 10px 12px 0; padding: 7px 10px; border-left: 4px solid #2271b1; background: #f0f6fc; font-size: 12px; color: #3c434a; }
+
+  /* the builder: palette | canvas | properties (styles.css .rmaps-sfb) */
+  .sfb { display: grid; grid-template-columns: 200px 1fr 1fr; gap: 12px; padding: 10px 12px 12px; align-items: start; }
+  .pal, .props { border: 1px solid #e5e7eb; border-radius: 6px; background: #fafbfc; padding: 8px 10px; }
+  .ptitle { font-size: 11px; font-weight: 600; color: #4b5563; letter-spacing: .6px; text-transform: uppercase; margin: 0 0 6px 1px; }
+  .ptitle.mt { margin-top: 9px; color: #8a929c; }
+  .pi { display: flex; align-items: flex-start; gap: 8px; padding: 3px 8px; margin-bottom: 3px; border: 1px solid #e5e7eb;
+    border-radius: 4px; background: #fff; font-size: 12px; color: #3c434a; line-height: 1.35; }
+  .pi svg { width: 12px; height: 12px; color: #6b7280; flex: none; margin-top: 2px; }
+  .pi em { display: block; font-style: normal; font-size: 10px; color: #9ca3af; line-height: 1.2; }
+  .pi.dis { color: #b8bdc4; background: #f6f7f8; }
+  .pi.dis svg { color: #d1d5db; }
+  .pi.dis em { color: #d1d5db; }
+
+  .can { border: 1px dashed #d1d5db; border-radius: 6px; background: #fff; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .slot { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 9px; border: 1px solid #d1d5db; border-radius: 4px;
+    background: #fff; font-size: 12.5px; font-weight: 600; color: #3c434a; }
+  .slot .g { color: #b6bcc4; font-weight: 400; font-size: 11px; }
+  .slot .l { flex: 1; }
+  .slot .x { color: #9ca3af; font-weight: 400; }
+  .slot.on { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+  .newrow { border: 2px dashed #d1d5db; border-radius: 4px; text-align: center; font-size: 11.5px; color: #9ca3af; padding: 5px 0; }
+
+  .props label { display: block; font-size: 11.5px; color: #4b5563; margin: 0 0 3px; }
+  .props .in { padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; font-size: 12.5px; color: #1f2937; margin-bottom: 8px; }
+  .wb { display: flex; margin-bottom: 8px; }
+  .wb span { flex: 1; text-align: center; padding: 4px 0; border: 1px solid #d1d5db; font-size: 11.5px; color: #3c434a; background: #fff; }
+  .wb span + span { border-left: 0; }
+  .wb span:first-child { border-radius: 4px 0 0 4px; }
+  .wb span:last-child { border-radius: 0 4px 4px 0; }
+  .wb span.on { background: #2271b1; border-color: #2271b1; color: #fff; }
+  .pal { grid-row: span 2; }
+  .opts { grid-column: 2 / 4; border-top: 1px solid #f0f0f1; }
+  .opts .fr { padding: 6px 2px; }
+  .opts .fr > span:first-child { width: 172px; }
+  .opts .fr:last-child { border-bottom: 0; }
+
+  /* ---- the site ---- */
+  .site { margin-top: 18px; }
+  .sitebar { height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 12px; background: #f3f5f8; border-bottom: 1px solid #e5eaf0; }
+  .sitebar i { width: 9px; height: 9px; border-radius: 50%; background: #d7dde4; }
+  .sitebar span { margin-left: 10px; flex: 1; max-width: 360px; height: 18px; border-radius: 9px; background: #fff; border: 1px solid #e1e6ec;
+    font-size: 11px; color: #8a97a4; display: flex; align-items: center; padding: 0 10px; }
+  .map { position: relative; height: 320px; overflow: hidden;
+    background: url(map-streets.webp) -40px -385px / 920px auto no-repeat, #e8eef3; }
+  .circle { position: absolute; left: 446px; top: 12px; width: 300px; height: 300px; border-radius: 50%;
+    background: rgba(34,113,177,.13); border: 2px solid rgba(34,113,177,.75); box-sizing: border-box; }
+  .rt { position: absolute; display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #fff;
+    font: 700 11.5px/1.3 "Segoe UI", Arial, sans-serif; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,.3); white-space: nowrap; }
+  .rt::before { content: "\2605"; color: #f59e0b; }
+  .pr { position: absolute; padding: 2px 8px; border-radius: 8px; background: #fff; font: 700 11.5px/1.3 "Segoe UI", Arial, sans-serif; color: #1f2937;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .centre { position: absolute; left: 591px; top: 152px; width: 10px; height: 10px; border-radius: 50%; background: #2271b1; border: 2px solid #fff; box-shadow: 0 0 0 1px #2271b1; }
+
+  .sf { position: absolute; left: 40px; top: 24px; width: 300px; box-sizing: border-box; background: #fff; border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(20,40,60,.22); padding: 24px 12px 12px; }
+  .sf .tog, .sf .grip { position: absolute; top: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #9ca3af; }
+  .sf .tog { left: 3px; } .sf .grip { right: 3px; }
+  .sf svg.i { width: 14px; height: 14px; }
+  .ff { margin-bottom: 9px; }
+  .fl { font-size: 12px; color: #374151; margin: 0 0 3px; }
+  .fi { display: flex; align-items: center; gap: 7px; height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #e5e7eb;
+    border-radius: 8px; background: #fff; font-size: 13px; color: #1f2937; }
+  .fi.ph { color: #9ca3af; }
+  .fi svg { width: 13px; height: 13px; color: #9ca3af; flex: none; }
+  .fi .s { flex: 1; }
+  .fi.dd::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid #6b7280; border-bottom: 1.5px solid #6b7280; transform: translateY(-2px) rotate(45deg); }
+  .bar { position: relative; height: 4px; border-radius: 2px; background: #dde5ed; margin: 9px 7px 5px; }
+  .bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; background: #2271b1; }
+  .bar b { position: absolute; top: -6px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #2271b1; box-shadow: 0 0 0 3px #fff inset; border: 1px solid #2271b1; box-sizing: border-box; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
+  .fb { height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .fb.p { background: #2271b1; color: #fff; }
+  .fb.o { border: 1px solid #d1d5db; color: #374151; }
+
+  .below { padding: 12px 14px 14px; width: 560px; }
+  .chips { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 7px 10px; background: rgba(0,0,0,.03); border-radius: 4px;
+    font-size: 12.5px; margin-bottom: 12px; }
+  .chip { padding: 2px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 999px; background: #fff; white-space: nowrap; }
+  .clear { padding: 2px 4px; opacity: .6; text-decoration: underline; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .card { border: 1px solid #e5eaf0; border-radius: 10px; overflow: hidden; background: #fff; }
+  .card .ph { height: 58px; background: center / cover; }
+  .card .t { padding: 8px 10px 10px; }
+  .card .t b { display: block; font-size: 13px; white-space: nowrap; color: #1e6fa8; }
+  .card .t span { font-size: 11.5px; color: #6b7a89; }
+  .tags { display: flex; gap: 4px; margin-top: 5px; }
+  .tag { padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #eaf5fb; color: #15699b; }
+  .tag.v { background: #f2eeff; color: #5b34d6; }
+
+  /* notes */
+  .n-pal  { left: 330px; top: 209px; }
+  .n-prop { left: 610px; top: 516px; }
+  .n-url  { left: 610px; top: 610px; }
+  .n-form { left: 500px; top: 734px; }
+  .n-circ { left: 650px; top: 1150px; }
+  .n-chip { left: 434px; top: 1099px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
+      Search
+    </span>
+    <h1>Build the search form, visitors search the map</h1>
+  </div>
+  <div class="sub">Maps &rarr; edit a map &rarr; Search options; [webmap-search] shows the same form off the map</div>
+
+  <!-- ===== admin: Edit Map, Search options ===== -->
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span></div>
+    <div class="tb">
+      <b>Edit Map</b>
+      <span class="inp">Brooklyn listings</span>
+      <span class="sp"></span>
+      <span class="wpbtn p">Update</span>
+    </div>
+    <div class="mbwrap">
+      <div class="box mb">
+        <div class="bh">Search options<i>&#9650;&#9660;</i></div>
+        <div class="bb">
+          <div class="fr"><span>Show search form on the map</span><span class="tg on"></span></div>
+
+          <div class="sfb">
+            <div class="pal" id="pal">
+              <div class="ptitle">Fields</div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg><span>Address<em>Autocomplete + radius</em></span></div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="8"/></svg><span>Radius<em>Slider, overrides default</em></span></div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg><span>Keyword</span></div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg><span>Categories</span></div>
+              <div class="pi" id="pi-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3 3 3 14 0 17M12 3.5c-3 3-3 14 0 17"/></svg><span>Locations</span></div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5M11 8v6M8 11h6"/></svg><span>Search button</span></div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Reset button</span></div>
+              <div class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2.4H3zm0 5.3h18v2.4H3zm0 5.3h18v2.4H3z"/></svg><span>More filters<em>Collapsible separator</em></span></div>
+              <div class="ptitle mt">Template fields</div>
+              <div class="pi dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2.5v19M16.5 6.5c-.8-1.3-2.5-2-4.5-2-2.8 0-4.5 1.4-4.5 3.3 0 4.7 9.5 2.6 9.5 7.7 0 2-1.9 3.5-5 3.5-2.2 0-4-.8-5-2.2"/></svg><span>Price<em>price</em></span></div>
+              <div class="pi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h3v3H3zm5 .5h13v2H8zM3 10.5h3v3H3zm5 .5h13v2H8zM3 16h3v3H3zm5 .5h13v2H8z"/></svg><span>Methods of Payment<em>list</em></span></div>
+              <div class="pi" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><span>Opening hours<em>opening_hours</em></span></div>
+            </div>
+
+            <div class="can" id="can">
+              <div class="slot"><span class="g">&#10303;</span><span class="l">Keyword</span><span class="x">&times;</span></div>
+              <div class="slot"><span class="g">&#10303;</span><span class="l">Address</span><span class="x">&times;</span></div>
+              <div class="slot on" id="slot-radius"><span class="g">&#10303;</span><span class="l">Radius</span><span class="x">&times;</span></div>
+              <div class="r2" id="row-half">
+                <div class="slot"><span class="g">&#10303;</span><span class="l">Categories</span><span class="x">&times;</span></div>
+                <div class="slot"><span class="g">&#10303;</span><span class="l">Price</span><span class="x">&times;</span></div>
+              </div>
+              <div class="r2">
+                <div class="slot"><span class="g">&#10303;</span><span class="l">Search</span><span class="x">&times;</span></div>
+                <div class="slot"><span class="g">&#10303;</span><span class="l">Reset</span><span class="x">&times;</span></div>
+              </div>
+              <div class="newrow">+ New row</div>
+            </div>
+
+            <div class="props" id="props">
+              <div class="ptitle">Radius</div>
+              <label>Label</label><div class="in">Radius</div>
+              <label>Width</label>
+              <div class="wb" id="width"><span class="on">Full</span><span>2/3</span><span>1/2</span><span>1/3</span></div>
+              <label>Min</label><div class="in">0</div>
+              <label>Max</label><div class="in" id="max" style="margin-bottom:0">50</div>
+            </div>
+            <div class="opts">
+              <div class="fr"><span>Form position</span><span class="sel" id="pos" style="width:120px">Top left</span></div>
+              <div class="fr"><span>Form width</span><span class="inp" style="width:60px">400</span></div>
+              <div class="fr"><span>Put the search in the URL</span><span class="tg" id="url"></span></div>
+              <div class="fr"><span>Allow form drag and toggle</span><span class="tg on"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== the site: the map with its form, the circle, the results ===== -->
+  <div class="win site">
+    <div class="sitebar"><i></i><i></i><i></i><span>example.com/brooklyn/</span></div>
+    <div class="map" id="map">
+      <div class="circle" id="circle"></div>
+      <span class="centre"></span>
+      <span class="rt" style="left:520px;top:74px">4.4 (11)</span>
+      <span class="pr" style="left:640px;top:92px">$129</span>
+      <span class="rt" style="left:604px;top:182px">4.1 (23)</span>
+      <span class="pr" style="left:500px;top:204px">$74</span>
+      <span class="rt" style="left:560px;top:260px">3.9 (8)</span>
+
+      <div class="sf" id="sf">
+        <span class="tog"><svg class="i" viewBox="0 0 14 14"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="grip" id="grip"><svg class="i" viewBox="0 0 14 14" fill="currentColor"><circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/><circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/></svg></span>
+        <div class="ff"><div class="fi ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg><span class="s">Keyword</span></div></div>
+        <div class="ff"><div class="fi"><span class="s">Downtown Brooklyn, NY</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></div></div>
+        <div class="ff"><div class="fl">Radius: 2 km</div><div class="bar"><i style="left:0;width:4%"></i><b style="left:4%"></b></div></div>
+        <div class="ff two">
+          <div class="fi dd ph"><span class="s">Categories</span></div>
+          <div><div class="fl">Price: $0 &ndash; $150</div><div class="bar"><i style="left:0;width:50%"></i><b style="left:0"></b><b style="left:50%"></b></div></div>
+        </div>
+        <div class="two"><div class="fb p">Search</div><div class="fb o">Reset</div></div>
+      </div>
+    </div>
+    <div class="below">
+      <div class="chips" id="chips">
+        <span class="chip">Downtown Brooklyn, NY</span><span class="chip">2 km</span><span class="chip">$0 &ndash; $150</span>
+        <span class="clear">Clear all</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="ph" style="background-image:url(photo-relax-inn.webp)"></div><div class="t"><b>Fulton Street Inn</b><span>Fulton St, Brooklyn</span><div class="tags"><span class="tag">Hotels</span><span class="tag v">$129</span></div></div></div>
+        <div class="card"><div class="ph" style="background-image:url(photo-shopping.webp)"></div><div class="t"><b>Atlantic Ave Market</b><span>Atlantic Ave, Brooklyn</span><div class="tags"><span class="tag">Shopping</span><span class="tag v">$74</span></div></div></div>
+        <div class="card"><div class="ph" style="background-image:url(photo-auto-show.webp)"></div><div class="t"><b>Borough Hall Tours</b><span>Court St, Brooklyn</span><div class="tags"><span class="tag">Tours</span><span class="tag v">$35</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-pal" data-block data-to="#can" data-at="t.7" data-from="b.6" data-bend=".2">click or drag a field onto the form</div>
+  <div class="note n-prop" data-block data-to="#props" data-at="b.5" data-from="t.5" data-bend=".1">each field's label,<br>width and range</div>
+  <div class="note n-url" data-to="#url" data-at="r" data-from="l.5" data-bend=".2">on: a search becomes<br>a link to share</div>
+  <div class="note n-form" data-to="#grip" data-at="r" data-from="l.5" data-bend="-.25">visitors drag or fold the form</div>
+  <div class="note n-circ" data-block data-to="#circle" data-at="b.5" data-from="t.3" data-bend=".1">only listings inside<br>the radius</div>
+  <div class="note n-chip" data-to="#chips" data-at="r" data-from="l" data-bend=".2">a chip per active filter</div>
+</div>
+</body>
+</html>

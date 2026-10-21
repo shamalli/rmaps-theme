@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> CSV Import and Export, the EXPORT tab.
+     Maps Admin -> CSV Import/Export -> Export (core/react/src/csv-manager/
+     Export/ExportPanel.tsx, styles from csv-manager.css): the four sections it
+     has - Columns (with All / None / Defaults and the column slugs), Filters,
+     Format and Bundle - and the Export button.
+     Column labels and slugs are the shipped ones, from
+     Csv/Manager::build_collation_fields().
+     Liberties: the column grid stops after twelve of the forty-one (the rest
+     are named in the line under it), and the counts in the header and next to
+     the button are an example site. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .page { padding: 14px 18px 20px; background: #f0f0f1; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid #c3c4c7; margin-bottom: 12px; }
+  .tabs span { padding: 6px 16px; font-size: 13px; color: #2c3338; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; }
+  .tabs span.on { background: #fff; border-color: #c3c4c7; margin-bottom: -1px; font-weight: 600; }
+
+  .sep { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 28px; box-sizing: border-box;
+    border: 1px solid #8c8f94; border-radius: 3px; background: #fff; font-family: Consolas, monospace; font-size: 13px; }
+
+  .xp { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; padding: 11px 13px 13px; }
+  .xp h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .xp .lead { margin: 0 0 10px; color: #50575e; font-size: 12px; line-height: 1.45; }
+  .xp .lead code { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f1; padding: 1px 4px; border-radius: 2px; }
+  .xs + .xs { margin-top: 12px; }
+  .xh { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; font-size: 12.5px; font-weight: 600; }
+  .xh .btns { margin-left: auto; display: flex; gap: 5px; }
+  .xh .btns span { border: 1px solid #c3c4c7; border-radius: 3px; background: #f6f7f7; color: #2c3338; font-size: 11px;
+    font-weight: 400; padding: 2px 8px; }
+  .xcols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px 16px; }
+  .xc { display: flex; align-items: center; gap: 6px; font-size: 12px; min-width: 0; }
+  .xc span.l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xc code { font-family: Consolas, monospace; font-size: 10.5px; color: #8c8f94; white-space: nowrap; }
+  .xf { display: flex; gap: 18px; align-items: flex-start; }
+  .xf > div { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #50575e; }
+  .ta { width: 260px; height: 38px; box-sizing: border-box; border: 1px solid #8c8f94; border-radius: 3px; background: #fff;
+    padding: 6px 8px; font-size: 12px; color: #8c8f94; }
+  .xmore { color: #8c8f94; font-size: 11.5px; margin: 6px 0 0; }
+  .xrun { margin-top: 13px; display: flex; align-items: center; gap: 10px; }
+  .xrun .hint { font-size: 11.5px; }
+
+  /* notes */
+  .n-round { left: 430px; top: 150px; }
+  .n-zip { left: 392px; top: 586px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 15V3.5M12 15l-4-4M12 15l4-4"/><path d="M4 16.5v2.2c0 .7.6 1.3 1.3 1.3h13.4c.7 0 1.3-.6 1.3-1.3v-2.2"/></svg>
+      CSV export
+    </span>
+    <h1>Everything out, in a file that imports back</h1>
+  </div>
+  <div class="sub">Maps Admin &rarr; CSV Import/Export &rarr; Export</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div class="page">
+      <div class="wph"><b>CSV Import / Export</b></div>
+      <div class="tabs"><span>Import</span><span class="on">Export</span><span>Demo</span></div>
+      <div class="xp">
+        <h3>Export listings to CSV</h3>
+        <p class="lead" id="lead">Exports listings in a format the import side can round-trip back in. List-type fields render as labels (not internal IDs), taxonomies as <code>parent &gt; child</code> chains.</p>
+
+        <div class="xs">
+          <div class="xh">Columns (17 of 41)<span class="btns"><span>All</span><span>None</span><span>Defaults</span></span></div>
+          <div class="xcols">
+            <label class="xc"><span class="cb on"></span><span class="l">Post ID</span><code>post_id</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Title*</span><code>title</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Author</span><code>user</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Status</span><code>status</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Categories</span><code>categories_list</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Tags</span><code>listing_tags</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Description</span><code>content</code></label>
+            <label class="xc"><span class="cb"></span><span class="l">Summary</span><code>excerpt</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Locations</span><code>locations_list</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Latitude</span><code>latitude</code></label>
+            <label class="xc"><span class="cb on"></span><span class="l">Images files</span><code>images</code></label>
+          </div>
+          <p class="xmore">&hellip; and every custom field of the listing form, the per-marker address columns, the expiration date, the contact email.</p>
+        </div>
+
+        <div class="xs">
+          <div class="xh">Filters (optional)</div>
+          <div class="xf">
+            <div><span>Status</span><span class="sel" style="width:160px">&mdash; Any &mdash;</span></div>
+            <div><span>Specific post IDs</span><span class="ta">123, 456, 789 &mdash; or leave blank for all</span></div>
+          </div>
+        </div>
+
+        <div class="xs">
+          <div class="xh">Format</div>
+          <div class="xf">
+            <div><span>Columns separator</span><span class="sep">,</span></div>
+            <div><span>Values separator (inside cell)</span><span class="sep">;</span></div>
+          </div>
+        </div>
+
+        <div class="xs">
+          <div class="xh">Bundle</div>
+          <label class="xc"><span class="cb on"></span><span class="l" id="bundle">Pack image files into a ZIP for direct re-import</span></label>
+        </div>
+
+        <div class="xrun"><span class="wpbtn p">Export CSV</span><span class="hint">2,480 listings &middot; places-export.csv + images.zip</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-round" data-to="#lead" data-at="t.62" data-from="b.3" data-bend=".14" data-block>labels, not ids &mdash;<br>the file reads like a table</div>
+  <div class="note n-zip" data-to="#bundle" data-at="r" data-from="l" data-bend=".14">the ZIP imports<br>straight back</div>
+
+</div>
+</body>
+</html>

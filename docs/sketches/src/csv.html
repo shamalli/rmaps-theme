@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> CSV Import and Export.
+     Maps Admin -> CSV Import/Export, the IMPORT tab (core/react/src/
+     csv-manager, styles from csv-manager.css): Step1Upload, Step2Mapping and
+     Step3Run. The Export tab is sketch-csv-export.png and the Demo tab
+     sketch-csv-demo.png, so both are only tabs here.
+     Labels are the shipped ones: the mapping targets come from
+     Csv/Manager::build_collation_fields(); the Step 3 counters and "Pause after current batch" from
+     Step3Run.tsx; the Step 1 rows, hints and server limits
+     from Step1Upload.tsx.
+     Liberties: the three steps are open at once (the real wizard keeps one
+     expanded), the mapping table stops after eight rows, the "Failed rows ... errors.csv" line under Step 3 is
+     left out, and the longest hint is cut with an ellipsis. The CSV columns
+     and sample values are an example file. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .page { padding: 14px 18px 16px; background: #f0f0f1; }
+  .page.exp { padding-bottom: 20px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid #c3c4c7; margin-bottom: 12px; }
+  .tabs span { padding: 6px 16px; font-size: 13px; color: #2c3338; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; }
+  .tabs span.on { background: #fff; border-color: #c3c4c7; margin-bottom: -1px; font-weight: 600; }
+
+  /* .rmaps-csv__step */
+  .stp { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+  .stp + .stp, .cols { margin-top: 10px; }
+  .stp.on { border-color: #2271b1; }
+  .sh { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .stp.on .sh { background: #f0f6fc; border-bottom: 1px solid #c3c4c7; }
+  .stp.done .sh { border-bottom: 1px solid #e5e7eb; }
+  .sn { width: 22px; height: 22px; border-radius: 50%; background: #6b7280; color: #fff; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; flex: none; }
+  .stp.on .sn { background: #2271b1; }
+  .stp.done .sn { background: #16a34a; }
+  .st { flex: 1; font-size: 13.5px; font-weight: 600; }
+  .tick { color: #16a34a; font-size: 15px; }
+  .sb { padding: 10px 12px 12px; }
+
+  /* Step 1 - the real rows: label column, control, hint under it */
+  .fr { display: grid; grid-template-columns: 196px 1fr; gap: 0 14px; align-items: start; padding: 9px 0; }
+  .fr + .fr { border-top: 1px solid #f0f0f1; }
+  .fl { font-size: 12.5px; font-weight: 600; color: #1d2327; padding-top: 2px; }
+  .fl em { font-weight: 400; font-style: italic; color: #1d2327; }
+  .ff { min-width: 0; font-size: 12.5px; }
+  .ro { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+  .ro em { font-style: italic; color: #1d2327; }
+  .fin { display: flex; align-items: center; gap: 9px; }
+  .browse { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; box-sizing: border-box;
+    border: 1px solid #adadad; border-radius: 3px; background: linear-gradient(180deg, #f3f3f3, #e3e3e3);
+    font-size: 12px; color: #1d2327; }
+  .fin span { color: #50575e; font-size: 12.5px; }
+  .fh { margin: 5px 0 0; color: #646970; font-size: 11.5px; line-height: 1.5; }
+  .fh code { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f1; padding: 1px 4px; border-radius: 2px; color: #1d2327; }
+  .sep { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 28px; box-sizing: border-box;
+    border: 1px solid #8c8f94; border-radius: 3px; background: #fff; font-family: Consolas, monospace; font-size: 13px; }
+  .lim { margin-top: 12px; border: 1px solid #c3c4c7; border-left: 4px solid #72aee6; background: #fff; border-radius: 2px;
+    padding: 7px 11px; font-size: 12px; color: #1d2327; }
+  .lim b { font-weight: 600; }
+  .lim code { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f1; padding: 1px 4px; border-radius: 2px; }
+  .go { margin-top: 12px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 296px; gap: 12px; align-items: start; }
+
+  /* widefat striped mapping table */
+  .mt { width: 100%; border-collapse: collapse; border: 1px solid #c3c4c7; font-size: 11.5px; table-layout: fixed; }
+  .mt th { text-align: left; font-weight: 400; color: #2c3338; padding: 4px 6px; border-bottom: 1px solid #c3c4c7; font-size: 11px; white-space: nowrap; }
+  .mt td { padding: 3px 6px; vertical-align: middle; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .mt tr:nth-child(even) td { background: #f6f7f7; }
+  .mt code { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f1; padding: 1px 4px; border-radius: 2px; color: #1d2327; }
+  .mt .sm { color: #50575e; }
+  .msel { display: flex; align-items: center; height: 24px; box-sizing: border-box; padding: 0 20px 0 6px; border: 1px solid #8c8f94;
+    border-radius: 3px; background: #fff; font-size: 11px; color: #2c3338; position: relative; overflow: hidden; white-space: nowrap; }
+  .msel span { overflow: hidden; text-overflow: ellipsis; }
+  .msel::after { content: ""; position: absolute; right: 7px; top: 8px; width: 5px; height: 5px; border-right: 1.5px solid #50575e;
+    border-bottom: 1.5px solid #50575e; transform: rotate(45deg); }
+  .opt { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; }
+  .opt b { font-weight: 600; margin-right: 4px; }
+
+  /* Step 3 - run */
+  .prog { position: relative; height: 26px; background: #f3f4f6; border: 1px solid #c3c4c7; border-radius: 4px; overflow: hidden; }
+  .prog i { display: block; height: 100%; background: #2271b1; }
+  .prog b { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 12px; color: #fff; }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .stat { flex: 1 1 108px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 5px 9px; }
+  .stat b { display: block; font-size: 16px; font-weight: 600; color: #111827; line-height: 1.25; }
+  .stat small { font-size: 10px; text-transform: uppercase; color: #6b7280; letter-spacing: .4px; }
+  .stat.txt { flex-basis: 100%; }
+  .stat.txt b { font-size: 12.5px; }
+  .run { margin-top: 10px; }
+  .errs { margin: 9px 0 0; font-size: 11.5px; color: #50575e; line-height: 1.45; }
+  .errs code { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f1; padding: 0 3px; border-radius: 2px; }
+
+  /* Export panel */
+  .xp { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; padding: 11px 13px 13px; }
+  .xp h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .xp .lead { margin: 0 0 10px; color: #50575e; font-size: 12px; line-height: 1.45; }
+  .xs + .xs { margin-top: 10px; }
+  .xh { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; }
+  .xh .btns { margin-left: auto; display: flex; gap: 5px; }
+  .xh .btns span { border: 1px solid #c3c4c7; border-radius: 3px; background: #f6f7f7; color: #2c3338; font-size: 11px;
+    font-weight: 400; padding: 2px 8px; }
+  .xcols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 16px; }
+  .xc { display: flex; align-items: center; gap: 6px; font-size: 12px; min-width: 0; }
+  .xc span.l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xc code { font-family: Consolas, monospace; font-size: 10.5px; color: #8c8f94; white-space: nowrap; }
+  .xf { display: flex; gap: 14px; align-items: flex-start; }
+  .xf > div { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #50575e; }
+  .ta { width: 236px; height: 36px; box-sizing: border-box; border: 1px solid #8c8f94; border-radius: 3px; background: #fff;
+    padding: 5px 7px; font-size: 12px; color: #8c8f94; }
+  .xmore { color: #8c8f94; font-size: 11.5px; margin: 4px 0 0; }
+  .xrun { margin-top: 11px; display: flex; align-items: center; gap: 10px; }
+  .xrun .hint { font-size: 11.5px; }
+
+  /* notes */
+  .n-mode { left: 470px; top: 158px; }
+  .n-pause { left: 556px; top: 1176px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5V20"/></svg>
+      CSV import / export
+    </span>
+    <h1>Listings in and out, by the thousand</h1>
+  </div>
+  <div class="sub">Maps Admin &rarr; CSV Import/Export</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+
+    <div class="page">
+      <div class="wph"><b>CSV Import / Export</b></div>
+      <div class="tabs"><span class="on">Import</span><span>Export</span><span>Demo</span></div>
+
+      <div class="stp done">
+        <div class="sh"><span class="sn">1</span><span class="st">Step 1 &mdash; Upload</span><span class="tick">&#10003;</span></div>
+        <div class="sb">
+          <div class="fr">
+            <div class="fl">What to import</div>
+            <div class="ff">
+              <div class="ro"><span class="rd on"></span>listings</div>
+              <div class="ro"><span class="rd"></span>categories</div>
+              <div class="ro"><span class="rd"></span>locations</div>
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fl">Mode</div>
+            <div class="ff">
+              <div class="ro"><span class="rd on"></span>Create new listings</div>
+              <div class="ro"><span class="rd"></span>Update existing listings <em id="upd">(post_id column required)</em></div>
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fl">CSV file(s) or ZIP</div>
+            <div class="ff">
+              <div class="fin"><span class="browse">Choose Files</span><span>No file chosen.</span></div>
+              <p class="fh">Multiple files allowed &mdash; CSVs are concatenated (headers must match exactly). You can also upload a ZIP archive containing one or more CSVs; any non-CSV files inside the ZIP are kept as an additional images archive&hellip;</p>
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fl">Images ZIPs <em>(optional, multiple)</em></div>
+            <div class="ff">
+              <div class="fin"><span class="browse">Choose Files</span><span>No file chosen.</span></div>
+              <p class="fh">Reference image filenames in a CSV column. Pick multiple ZIPs if your image set exceeds the server's per-file upload cap &mdash; all archives extract into the same folder server-side.</p>
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fl">Columns separator</div>
+            <div class="ff">
+              <span class="sep">,</span>
+              <p class="fh">Default: <code>,</code>. Auto-detected if your file uses <code>;</code> or tab.</p>
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fl">Multi-value separator</div>
+            <div class="ff">
+              <span class="sep">;</span>
+              <p class="fh">Default: <code>;</code> &mdash; between independent items in one cell (<code>Cat A;Cat B</code>). Hierarchy uses <code>&gt;</code> within each item: <code>Cat A &gt; Sub;Cat B &gt; Sub</code>.</p>
+            </div>
+          </div>
+          <div class="lim"><b>Server limits:</b> upload_max_filesize <code>512M</code> &middot; post_max_size <code>516M</code> &middot; max_input_time <code>60s</code></div>
+          <div class="go"><span class="wpbtn p">Upload &amp; continue</span></div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="stp done">
+          <div class="sh"><span class="sn">2</span><span class="st">Step 2 &mdash; Map columns</span><span class="tick">&#10003;</span></div>
+          <div class="sb">
+            <table class="mt" id="maptable">
+              <colgroup><col style="width:92px"><col style="width:104px"><col></colgroup>
+              <tr><th>CSV column</th><th>Sample value</th><th>Plugin field</th></tr>
+              <tr><td><code>title</code></td><td class="sm">Relax Inn Burbank</td><td><span class="msel"><span>Title*</span></span></td></tr>
+              <tr><td><code>status</code></td><td class="sm">active</td><td><span class="msel"><span>Status (active, expired, unpaid)</span></span></td></tr>
+              <tr><td><code>category</code></td><td class="sm">Hotels &gt; Motels</td><td><span class="msel"><span>Categories</span></span></td></tr>
+              <tr><td><code>street</code></td><td class="sm">630 S San Fernando Blvd</td><td><span class="msel"><span>Address line 1 (per-marker; separate by values_separator)</span></span></td></tr>
+              <tr><td><code>images</code></td><td class="sm">relax-1.jpg;relax-2.jpg</td><td><span class="msel"><span>Images files</span></span></td></tr>
+            </table>
+            <div class="opt"><b>Geocoding</b><span class="cb on"></span>Convert addresses to lat/lng when missing</div>
+            <div class="opt"><b>Term creation</b><span class="cb on"></span>Create new terms when not found</div>
+            <div class="opt"><b>WebP</b><span class="cb on"></span>Convert images to WebP on import</div>
+          </div>
+        </div>
+
+        <div class="stp on">
+          <div class="sh"><span class="sn">3</span><span class="st">Step 3 &mdash; Run import</span></div>
+          <div class="sb">
+            <div class="prog"><i style="width:75%"></i><b>930 / 1,240&nbsp;&nbsp;(75%)</b></div>
+            <div class="stats">
+              <div class="stat"><b>918</b><small>Created</small></div>
+              <div class="stat"><b>0</b><small>Updated</small></div>
+              <div class="stat"><b>12</b><small>Skipped</small></div>
+              <div class="stat"><b>0</b><small>Errors</small></div>
+              <div class="stat txt"><b>50 rows &middot; 7.9s &middot; next 50</b><small>Last batch</small></div>
+            </div>
+            <div class="run"><span class="wpbtn" id="pause">Pause after current batch</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-mode" data-to="#upd" data-at="t.4" data-from="b.2" data-bend=".12">updating? the file needs<br>a post_id column</div>
+  <div class="note n-pause" data-to="#pause" data-at="b.6" data-from="t.3" data-bend="-.16">stop here, resume later</div>
+
+</div>
+</body>
+</html>

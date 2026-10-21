@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Installation -> 3. Enter your purchase code (and the map engine).
+     Maps Admin -> Settings, General settings tab, as the live Redux panel
+     draws it (core/classes/settings/redux_settings.php): the red "not verified"
+     notice (redux_license_notice), the header with the version, the tab list
+     (maps.salephpscripts.com, 1.5.6), Purchase code* with its description and
+     "Check for updates now", and Map engine: Google Maps (the default),
+     Mapbox GL JS, MapLibre GL + MapTiler. The Google key description is cut;
+     the full text names Geocoding, Maps JavaScript, Maps Static, Routes and
+     Places API (New). -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .win { width: 612px; }
+  .notice { margin: 12px 14px 0; }
+  .rx { margin: 12px 14px 14px; border: 1px solid #c3c4c7; background: #fff; }
+  .rxhead { height: 58px; display: flex; align-items: center; gap: 10px; padding: 0 16px; color: #fff;
+    background: linear-gradient(90deg, rgba(16,28,44,.92) 0%, rgba(16,28,44,.55) 50%, rgba(16,28,44,.1) 100%),
+                url(redux-header-bg.jpg) 0 40% / 1100px auto no-repeat, #1e293b; }
+  .rxhead b { font-size: 16px; font-weight: 600; }
+  .rxhead small { font-size: 10.5px; background: rgba(255,255,255,.18); border-radius: 3px; padding: 1px 6px; }
+  .rxbody { display: flex; align-items: stretch; }
+  .tabs { flex: none; width: 146px; background: #dfe5ea; padding: 6px 0 12px; border-right: 1px solid #c3c4c7; }
+  .tabs div { display: flex; align-items: center; gap: 7px; height: 27px; padding: 0 10px; color: #50575e; font-size: 12px; }
+  .tabs div svg { width: 13px; height: 13px; fill: #787c82; flex: none; }
+  .tabs div.on { background: #8c9aa8; color: #fff; font-weight: 600; }
+  .tabs div.on svg { fill: #fff; }
+  .main { flex: 1; min-width: 0; }
+  .bar { display: flex; justify-content: flex-end; gap: 6px; padding: 8px 10px; border-bottom: 1px solid #dcdcde; background: #f6f7f7; }
+  .bar .wpbtn { height: 28px; font-size: 12.5px; padding: 0 9px; }
+  .sec { padding: 11px 14px 5px; font-size: 14.5px; font-weight: 600; }
+  .fr { display: flex; gap: 12px; padding: 11px 14px; border-top: 1px solid #f0f0f1; }
+  .fr > label { flex: none; width: 112px; font-weight: 600; font-size: 12.5px; padding-top: 6px; line-height: 1.35; }
+  .fr > div { flex: 1; min-width: 0; }
+  .fr .inp, .fr .sel { width: 100%; }
+  .fr .hint { margin-top: 5px; }
+  .radios div { display: flex; align-items: center; gap: 8px; height: 24px; font-size: 13px; }
+  .keys { background: #fbfcfd; }
+  .keys .fr { padding: 8px 14px; }
+  .keys .fr > label { padding-top: 5px; }
+  .code { font-family: Consolas, monospace; font-size: 12px; letter-spacing: .2px; }
+
+  /* notes: the right-hand margin (No maps: beside its radio) */
+  .n-notice { left: 640px; top: 112px; }
+  .n-code { left: 640px; top: 318px; }
+  .n-check { left: 640px; top: 424px; }
+  .n-nomaps { left: 462px; top: 482px; }
+  .n-keys { left: 640px; top: 620px; }
+  .n-test { left: 640px; top: 944px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm5.7-4A6 6 0 1 0 12.7 14H16v3h3v-3h2v-4z"/></svg>
+      Settings
+    </span>
+    <h1>Purchase code first, then the map engine</h1>
+  </div>
+  <div class="sub">Maps Admin &rarr; Settings &rarr; General settings, the wizard's Settings step</div>
+
+  <div class="win wp">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div class="notice" id="notice"><b>Your installation of Rocket Maps was not verified.</b> Any changes in the settings below will not be saved. To verify license information take purchase code from purchase email.</div>
+    <div class="rx">
+      <div class="rxhead"><b>Rocket Maps Settings</b><small>1.5.6</small></div>
+      <div class="rxbody">
+        <div class="tabs">
+          <div class="on"><svg viewBox="0 0 20 20"><path d="M10 3 2 10h2.5v7h4.5v-4.5h2V17h4.5v-7H18z"/></svg>General settings</div>
+          <div><svg viewBox="0 0 20 20"><path d="M3 4h2v2H3zm4 0h10v2H7zM3 9h2v2H3zm4 0h10v2H7zm-4 5h2v2H3zm4 0h10v2H7z"/></svg>Listings</div>
+          <div><svg viewBox="0 0 20 20"><path d="m10 2 2.4 5 5.6.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.6-.8z"/></svg>Ratings</div>
+          <div><svg viewBox="0 0 20 20"><path d="M8.5 3a5.5 5.5 0 0 1 4.4 8.8l4 4-1.4 1.4-4-4A5.5 5.5 0 1 1 8.5 3zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>Search settings</div>
+          <div><svg viewBox="0 0 20 20"><path d="M10 2a5 5 0 0 0-5 5c0 4 5 11 5 11s5-7 5-11a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>Address settings</div>
+          <div><svg viewBox="0 0 20 20"><path d="M2 5h16v10H2zm2 2v.5l6 4 6-4V7l-6 4z"/></svg>Email notifications</div>
+          <div><svg viewBox="0 0 20 20"><path d="M9 2h2l.5 2.2 1.6.7 2-1.2 1.4 1.4-1.2 2 .7 1.6L18 9v2l-2.2.5-.7 1.6 1.2 2-1.4 1.4-2-1.2-1.6.7L11 18H9l-.5-2.2-1.6-.7-2 1.2-1.4-1.4 1.2-2-.7-1.6L2 11V9l2.2-.5.7-1.6-1.2-2 1.4-1.4 2 1.2 1.6-.7zM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>Advanced settings</div>
+          <div><svg viewBox="0 0 20 20"><path d="M14 2l4 4-7 7-4-4zM6 10l4 4c-1 3-4 4-7 4 1-2 0-5 3-8z"/></svg>Customization</div>
+          <div><svg viewBox="0 0 20 20"><path d="m10 2 1.8 4.6L16.5 8l-4.7 1.4L10 14l-1.8-4.6L3.5 8l4.7-1.4zM15 12l.9 2.1L18 15l-2.1.9L15 18l-.9-2.1L12 15l2.1-.9z"/></svg>AI features</div>
+          <div><svg viewBox="0 0 20 20"><path d="M3 3h14v14H3zm2 2v10h10V5zm2 6h2v2H7zm0-4h6v2H7z"/></svg>Diagnostics</div>
+        </div>
+        <div class="main">
+          <div class="bar"><span class="wpbtn p" id="save">Save Changes</span><span class="wpbtn gray">Reset Section</span><span class="wpbtn gray">Reset All</span></div>
+          <div class="sec">General settings</div>
+          <div class="fr">
+            <label>Purchase code*</label>
+            <div>
+              <div class="inp code" id="code">1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d</div>
+              <div class="hint">You should receive purchase (license) code after purchase</div>
+              <div style="margin-top:10px"><span class="wpbtn" id="check">Check for updates now</span></div>
+            </div>
+          </div>
+          <div class="fr">
+            <label>Map engine</label>
+            <div class="radios">
+              <div><span class="rd on"></span><span id="google">Google Maps</span></div>
+              <div><span class="rd"></span>Mapbox GL JS</div>
+              <div><span class="rd"></span>MapLibre GL + MapTiler</div>
+              <div class="hint" style="height:auto;margin-top:4px">Switching engines requires the corresponding API key/token to be set below.</div>
+            </div>
+          </div>
+          <div class="keys" id="keys">
+            <div class="fr">
+              <label>Google browser API key*</label>
+              <div><div class="inp code" id="gkey">AIzaSyB&hellip;</div>
+                <div class="hint">Required when "Map engine" is set to Google Maps. Following APIs must be enabled in the console: Geocoding API, Maps JavaScript API, Maps Static API, Routes API and Places API (New).</div></div>
+            </div>
+            <div class="fr"><label>Google server API key</label><div><div class="inp"></div></div></div>
+            <div class="fr"><label>Map language</label><div><div class="sel">Automatic (browser / site language)</div></div></div>
+            <div class="fr"><label>Mapbox access token</label><div><div class="inp"></div></div></div>
+            <div class="fr"><label>MapTiler API key</label><div><div class="inp"></div></div></div>
+            <div class="fr"><label>Test map engine keys</label><div><span class="wpbtn" id="test">Test map engine keys</span>
+              <div class="hint">Tests the values currently in the form (no Save needed).</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-notice" data-to="#notice" data-at="r" data-from="l" data-bend=".15">until the code<br>checks out, Save<br>keeps nothing</div>
+  <div class="note n-code" data-to="#code" data-at="r" data-from="l" data-bend=".12">on CodeCanyon:<br>Downloads &rarr; License<br>certificate &amp; purchase<br>code</div>
+  <div class="note n-check" data-to="#check" data-at="r" data-from="l" data-bend="-.08">asks the update<br>server right now</div>
+  <div class="note n-nomaps" data-to="#google" data-at="r" data-from="l.3" data-bend=".1">the default engine;<br>switch any time</div>
+  <div class="note n-keys" data-to="#gkey" data-at="r" data-from="l" data-bend="-.15">the key for the<br>engine you picked</div>
+  <div class="note n-test" data-to="#test" data-at="r" data-from="l" data-bend=".08">tries the keys<br>before you save</div>
+</div>
+</body>
+</html>

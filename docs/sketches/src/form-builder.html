@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Submit Form and Custom Fields (Form Builder).
+     Maps Admin -> Form Builder (the one "Listing Form" template), the
+     React builder in core/react/src/content-fields, drawn from its Tailwind
+     markup:
+       - Toolbar (components/Toolbar/Toolbar.tsx): "Form Builder", the
+         one-selection hint "Ctrl+click more fields to create a group",
+         Undo / Redo / Save.
+       - Palette (Palette/Palette.tsx, PaletteField.tsx): the nine core fields
+         (Map only with a map engine), greyed once the form has them ("Already
+         in this form"), then the ten field types with their type tags.
+       - Canvas (Canvas/Canvas.tsx, CanvasField.tsx, CanvasGroup.tsx,
+         SlotControls.tsx): the six-sixths grid; field cards with grip, icon,
+         name, slug, type badge (shared/FieldTypeBadge.tsx), required star,
+         "locked" on Title; a group in a dashed box, indigo when selected, its
+         header carrying the width buttons Full / ⅔ / ½ / ⅓ and, with an empty
+         equal-width slot below, "Extend down" (▼+); empty slots show "+";
+         "+ New row" at the foot.
+       - Properties (Properties/PropertiesPanel.tsx, GroupProps and
+         CategoryDependency): Name, Width (Full / 2/3 / 1/2 / 1/3), "Hide from
+         anonymous users" with its hint, Category dependency with "Show for all
+         categories" unticked, the category tree, "N selected", Select all /
+         Deselect all, Remove group.
+     Examples: the "Menu" group and its fields, the Phone / Email fields, the
+     category names.
+     Liberties: the WordPress admin menu and the panel's resize handle are left out; the panes are
+     narrower than the live screen, so the canvas text is a little smaller. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .app { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1e293b; }
+
+  /* toolbar */
+  .tb { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+  .tb h2 { margin: 0 4px 0 0; font-size: 17px; font-weight: 600; color: #1f2937; white-space: nowrap; }
+  .tb .nm { flex: 1; min-width: 0; height: 30px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;
+    display: flex; align-items: center; }
+  .tb .sl { width: 118px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 4px; background: #f9fafb;
+    color: #6b7280; font-size: 13px; display: flex; align-items: center; }
+  .tb .hintx { flex: 1; font-size: 11.5px; color: #9ca3af; font-style: italic; white-space: nowrap; margin-left: 4px; }
+  .tb .b { height: 30px; display: inline-flex; align-items: center; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 4px;
+    font-size: 12.5px; color: #374151; white-space: nowrap; background: #fff; }
+  .tb .b.dim { opacity: .4; }
+  .tb .save { height: 30px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 4px; background: #2563eb;
+    color: #fff; font-size: 13px; font-weight: 500; }
+
+  .panes { display: grid; grid-template-columns: 172px 1fr 192px; align-items: stretch; }
+  .pal { padding: 10px 7px 14px; border-right: 1px solid #e5e7eb; background: #fff; }
+  .can { padding: 8px 8px 14px; background: #f9fafb; }
+  .prop { padding: 13px 10px 14px; border-left: 4px solid #e5e7eb; background: #fff; }
+
+  /* FieldIcon */
+  .ic { width: 21px; height: 21px; border-radius: 4px; background: #e5e7eb; color: #4b5563; flex: none;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .ic svg { width: 11px; height: 11px; }
+
+  /* palette rows */
+  .pi { display: flex; align-items: center; gap: 6px; height: 27px; box-sizing: border-box; padding: 0 6px; margin-bottom: 3px;
+    border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; font-size: 11px; color: #374151; white-space: nowrap; }
+  .pi > span.l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .pi small { font-size: 7.5px; color: #9ca3af; text-transform: uppercase; }
+  .pi.off { background: #f9fafb; border-color: #f3f4f6; color: #d1d5db; }
+  .pi.off .ic { opacity: .45; }
+  .pi.off small { color: #d1d5db; }
+  .pgap { height: 9px; }
+
+  /* the canvas grid: six sixths */
+  .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 4px; row-gap: 6px; }
+  .s6 { grid-column: span 6; } .s4 { grid-column: span 4; } .s3 { grid-column: span 3; } .s2 { grid-column: span 2; }
+
+  .fc { display: flex; align-items: flex-start; gap: 5px; padding: 8px 7px; border: 1px solid #e5e7eb; border-radius: 8px;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.05); min-width: 0; height: 100%; box-sizing: border-box; }
+  .gr { color: #d1d5db; font-size: 11px; line-height: 21px; }
+  .fn { flex: 1; min-width: 0; }
+  .fn b { display: block; font-size: 12.5px; font-weight: 500; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+  .fn i { display: block; font-style: normal; font-size: 9.5px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bd { padding: 1px 4px; border-radius: 3px; background: #f3f4f6; color: #6b7280; font-size: 8.5px; font-weight: 500;
+    text-transform: uppercase; white-space: nowrap; margin-top: 3px; }
+  .rq { color: #f87171; font-size: 12px; margin-top: 2px; }
+  .lk { font-size: 9px; color: #9ca3af; margin-top: 4px; }
+  .x { color: #d1d5db; font-size: 14px; line-height: 20px; }
+  .empty { border: 2px dashed #e5e7eb; border-radius: 8px; color: #d1d5db; font-size: 18px; display: flex;
+    align-items: center; justify-content: center; min-height: 48px; }
+
+  /* group */
+  .grp { border: 2px dashed #d1d5db; border-radius: 8px; background: rgba(249,250,251,.5); }
+  .grp.on { border-color: #818cf8; background: rgba(238,242,255,.55); box-shadow: 0 0 0 2px #c7d2fe; }
+  .gh { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid rgba(229,231,235,.7); white-space: nowrap; }
+  .gh .gl { font-size: 9.5px; font-weight: 600; color: #4f46e5; letter-spacing: .07em; text-transform: uppercase; }
+  .gh .gn { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 500; color: #374151; overflow: hidden; text-overflow: ellipsis; }
+  .gh .gc { font-size: 9px; color: #9ca3af; }
+  .wc { display: flex; gap: 2px; }
+  .wc span { padding: 0 4px; border: 1px solid #e5e7eb; border-radius: 3px; font-size: 9.5px; line-height: 15px; color: #6b7280; background: #fff; }
+  .wc span.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .gb { padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+  .newrow { margin-top: 8px; border: 2px dashed #d1d5db; border-radius: 8px; color: #9ca3af; font-size: 12.5px; text-align: center; padding: 11px 0; }
+
+  /* properties */
+  .prop h3 { margin: 0 0 12px; font-size: 10.5px; font-weight: 600; color: #6b7280; letter-spacing: .07em; text-transform: uppercase; }
+  .pl { display: block; font-size: 11px; font-weight: 500; color: #4b5563; margin: 0 0 4px; }
+  .pin { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 13px; color: #1e1e1e; margin-bottom: 13px; }
+  .wb { display: flex; gap: 4px; margin-bottom: 14px; }
+  .wb span { flex: 1; text-align: center; padding: 3px 0; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 11px; color: #4b5563; }
+  .wb span.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .ck { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #374151; white-space: nowrap; }
+  .ck .cb { width: 13px; height: 13px; }
+  .ck .cb.on::after { left: 3.5px; top: 0.5px; }
+  .ph { margin: 4px 0 13px 20px; font-size: 9.5px; color: #9ca3af; line-height: 1.4; }
+  .dep { border-top: 1px solid #e5e7eb; padding-top: 11px; }
+  .tree { border: 1px solid #e5e7eb; border-radius: 4px; padding: 5px 7px; margin-top: 7px; }
+  .tree .ck { padding: 2px 0; }
+  .tree .ck.c { padding-left: 17px; color: #4b5563; }
+  .tf { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9.5px; color: #9ca3af; }
+  .tf b { font-weight: 400; color: #2563eb; }
+  .rmg { margin-top: 14px; text-align: center; padding: 5px 0; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;
+    color: #dc2626; font-size: 12px; }
+
+  /* notes */
+  .n-merge { left: 330px; top: 58px; }
+  .n-grow { left: 214px; top: 602px; }
+  .n-pal { left: 214px; top: 694px; }
+  .n-cat { left: 500px; top: 610px; }
+  .n-anon { left: 672px; top: 316px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="3.5" width="18" height="6" rx="1.5"/><rect x="3" y="14.5" width="8" height="6" rx="1.5"/><rect x="13" y="14.5" width="8" height="6" rx="1.5"/></svg>
+      Form builder
+    </span>
+    <h1>Fields and groups on a six-part grid</h1>
+  </div>
+  <div class="sub">Maps Admin &rarr; Form Builder</div>
+
+  <div class="win app">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div class="tb">
+      <h2>Form Builder</h2>
+      <span class="hintx" id="hint">Ctrl+click more fields to create a group</span>
+      <span class="b">&#8630; Undo</span>
+      <span class="b dim">&#8631; Redo</span>
+      <span class="save">Save</span>
+    </div>
+
+    <div class="panes">
+
+      <!-- palette -->
+      <div class="pal">
+        <div class="pi off" id="p-title"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h2.6v6.4h8.8V4H19v16h-2.6v-6.6H7.6V20H5z"/></svg></span><span class="l">Title</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l5 5v15H6V2zm2 9v2h8v-2zm0 4v2h8v-2z"/></svg></span><span class="l">Content</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2.4H3zm0 5.3h12v2.4H3zm0 5.3h18v2.4H3z"/></svg></span><span class="l">Excerpt</span><small>core</small></div>
+        <div class="pi off"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><span class="l">Categories</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><span class="l">Tags</span><small>core</small></div>
+        <div class="pi off"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.3 7 13 7 13s7-7.7 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></span><span class="l">Address</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 5l6-2 8 3 6-2v15l-6 2-8-3-6 2zm6 0v13l8 3V8z"/></svg></span><span class="l">Map</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v14H3V5zm2 2v8.6l4-4.4 3 3.2 2.6-2.6L19 16V7H5zm10.5 1.5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z"/></svg></span><span class="l">Images &amp; Videos</span><small>core</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18v16H3zm2 2v12h14V6zm2 2h4v4H7zm6 0h4v1.6h-4zm0 3h4v1.6h-4zM7 14h10v1.6H7z"/></svg></span><span class="l">Contact info</span><small>core</small></div>
+        <div class="pgap"></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z"/></svg></span><span class="l">Phone</span><small>phone</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2.4H3zm0 5.3h18v2.4H3zm0 5.3h12v2.4H3z"/></svg></span><span class="l">Text/string</span><small>textarea</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 4 7 20M17 4l-2 16M4 9h16M3.5 15h16"/></svg></span><span class="l">Number</span><small>number</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h3v3H3zm5 .5h13v2H8zM3 10.5h3v3H3zm5 .5h13v2H8zM3 16h3v3H3zm5 .5h13v2H8z"/></svg></span><span class="l">List (select/radio/checkbox)</span><small>list</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg></span><span class="l">Website URL</span><small>website</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v14H3V5zm2 2.2v.4l7 5 7-5v-.4H5zm0 2.8V17h14v-7l-7 5-7-5z"/></svg></span><span class="l">Email</span><small>email</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zm-1 7v10h12V9H6zm2 2h3v3H8v-3z"/></svg></span><span class="l">Date-Time</span><small>datetime</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2.5v19M16.5 6.5c-.8-1.3-2.5-2-4.5-2-2.8 0-4.5 1.4-4.5 3.3 0 4.7 9.5 2.6 9.5 7.7 0 2-1.9 3.5-5 3.5-2.2 0-4-.8-5-2.2"/></svg></span><span class="l">Price</span><small>price</small></div>
+        <div class="pi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg></span><span class="l">Opening hours</span><small>hours</small></div>
+        <div class="pi" id="p-file"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11.5 12 19.5a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7"/></svg></span><span class="l">File upload</span><small>fileupload</small></div>
+      </div>
+
+      <!-- canvas: a six-sixths grid -->
+      <div class="can">
+        <div class="grid">
+          <div class="s6"><div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h2.6v6.4h8.8V4H19v16h-2.6v-6.6H7.6V20H5z"/></svg></span><span class="fn"><b>Title</b><i>title</i></span><span class="bd">title</span><span class="rq">*</span><span class="lk">locked</span></div></div>
+
+          <div class="s3"><div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8l10 10-8 8L3 11V3zm4.5 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><span class="fn"><b>Categories</b><i>categories</i></span><span class="bd">categories</span><span class="rq">*</span><span class="x">&times;</span></div></div>
+          <div class="s3"><div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.3 7 13 7 13s7-7.7 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></span><span class="fn"><b>Address</b><i>address</i></span><span class="bd">address</span><span class="rq">*</span><span class="x">&times;</span></div></div>
+
+          <div class="s4">
+            <div class="grp on" id="grp">
+              <div class="gh"><span class="gr">&#10303;</span><span class="gl" id="glabel">Group</span><span class="gn">Menu</span><span class="gc">3 fields</span>
+                <span class="wc" id="wc"><span>Full</span><span class="on">&#8532;</span><span>&frac12;</span><span>&#8531;</span></span>
+                <span class="wc"><span id="grow">&#9660;+</span></span></div>
+              <div class="gb">
+                <div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h3v3H3zm5 .5h13v2H8zM3 10.5h3v3H3zm5 .5h13v2H8zM3 16h3v3H3zm5 .5h13v2H8z"/></svg></span><span class="fn"><b>Cuisine</b><i>list</i></span><span class="bd">list</span><span class="x">&times;</span></div>
+                <div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2.5v19M16.5 6.5c-.8-1.3-2.5-2-4.5-2-2.8 0-4.5 1.4-4.5 3.3 0 4.7 9.5 2.6 9.5 7.7 0 2-1.9 3.5-5 3.5-2.2 0-4-.8-5-2.2"/></svg></span><span class="fn"><b>Average price</b><i>price</i></span><span class="bd">price</span><span class="x">&times;</span></div>
+                <div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg></span><span class="fn"><b>Opening hours</b><i>hours</i></span><span class="bd">hours</span><span class="x">&times;</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="s2"><div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z"/></svg></span><span class="fn"><b>Phone</b><i>phone</i></span><span class="bd">phone</span><span class="x">&times;</span></div></div>
+
+          <div class="s4"><div class="empty" id="slot">+</div></div>
+          <div class="s2"><div class="fc"><span class="gr">&#10303;</span><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v14H3V5zm2 2.2v.4l7 5 7-5v-.4H5zm0 2.8V17h14v-7l-7 5-7-5z"/></svg></span><span class="fn"><b>Email</b><i>email</i></span><span class="bd">email</span><span class="x">&times;</span></div></div>
+        </div>
+        <div class="newrow">+ New row</div>
+      </div>
+
+      <!-- properties of the selected group -->
+      <div class="prop">
+        <h3>Group properties</h3>
+        <span class="pl">Name</span>
+        <div class="pin">Menu</div>
+        <span class="pl">Width</span>
+        <div class="wb" style="margin-bottom:66px"><span>Full</span><span class="on">2/3</span><span>1/2</span><span>1/3</span></div>
+        <div class="ck"><span class="cb on" id="anon"></span>Hide from anonymous users</div>
+        <p class="ph">Visitors who are not logged in see the group title and a prompt to log in instead of its fields.</p>
+        <div class="dep">
+          <span class="pl" style="margin-bottom:7px">Category dependency</span>
+          <div class="ck"><span class="cb"></span>Show for all categories</div>
+          <div class="tree" id="tree">
+            <div class="ck"><span class="cb"></span>Hotels</div>
+            <div class="ck"><span class="cb on"></span>Restaurants</div>
+            <div class="ck c"><span class="cb on"></span>Bakeries</div>
+            <div class="ck c"><span class="cb on"></span>Cafes</div>
+            <div class="ck c"><span class="cb on"></span>Pizza</div>
+            <div class="ck"><span class="cb"></span>Services</div>
+            <div class="ck"><span class="cb"></span>Shopping</div>
+          </div>
+          <div class="tf"><b>4 selected</b><span>Select all &nbsp; Deselect all</span></div>
+        </div>
+        <div class="rmg">Remove group</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="note n-merge" data-to="#hint" data-at="t.5" data-from="b.2" data-bend=".15">Ctrl+click fields, then Merge into group</div>
+  <div class="note n-grow" data-to="#slot" data-at="b.3" data-from="t.3" data-bend=".1">Full, &#8532;, &frac12;, &#8531; set the width;<br>&#9660;+ stretches the group<br>into this empty cell</div>
+  <div class="note n-pal" data-to="#p-file" data-at="r" data-from="l" data-bend="-.15">drag a type in, or click it;<br>grey: already in the form</div>
+  <div class="note n-cat" data-block data-to="#tree" data-at="l.6" data-from="r.3" data-bend="-.1">shown only for<br>these categories</div>
+  <div class="note n-anon" data-to="#anon" data-at="t.5" data-from="b.05" data-bend="0">guests see the title<br>and a log in prompt</div>
+</div>
+</body>
+</html>

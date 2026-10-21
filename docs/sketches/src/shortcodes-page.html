@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Shortcodes -> [webmap], [webmap-search], [webmap-listings].
+     Left: a page as visitors see it, top to bottom:
+       [webmap-search]   the map's own search form, drawn off the map
+                         (Search_Controller -> rmaps-react-search-mount, which
+                         binds to the first [webmap] on the page and loads its
+                         saved form): SearchForm.tsx + search-form.css, 38px
+                         inputs, "Radius: 20 miles" over a 4px track
+       [webmap id=12]    the map (Map_Controller), map-light.webp
+       [webmap-listings] the map's listing list as cards (ListingsApp: with a
+                         [webmap] on the page it shows that map's listings,
+                         same fields and order; no toolbar in Rocket Maps),
+                         pagination when there are two pages or more
+     A page with [webmap-search] / [webmap-listings] makes the map drop its
+     own on-map form / sidebar (MapApp.tsx).
+     Right: the page editor with the three shortcodes.
+     Examples: the page, the form fields and the cards.
+     Liberties: the theme's header and footer are left out. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .lay { display: flex; gap: 14px; align-items: flex-start; }
+  .site { flex: none; width: 572px; }
+  .side { flex: 1; min-width: 0; padding-top: 0; }
+
+  /* browser chrome */
+  .bb2 { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; background: #f1f3f5; border-bottom: 1px solid #e5eaf0; }
+  .bb2 i { width: 9px; height: 9px; border-radius: 50%; background: #d4dae1; flex: none; }
+  .bb2 .url { margin-left: 8px; flex: 1; height: 20px; border-radius: 10px; background: #fff; border: 1px solid #e1e6ec;
+    display: flex; align-items: center; padding: 0 10px; font-size: 11.5px; color: #6b7a89; }
+  .pgx { padding: 14px 16px 16px; font-size: 13px; color: #1f2937; }
+  .el { margin-bottom: 14px; }
+  .el:last-child { margin-bottom: 0; }
+
+  /* buttons */
+  .bts { display: flex; gap: 8px; }
+  .bts span { padding: 5px 13px; border: 1px solid #2271b1; border-radius: 4px; color: #2271b1; font-size: 12.5px; background: #fff; }
+  /* title */
+  .ptl { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.1; color: #111827; }
+
+  /* search form (search-form.css + directory-front.css: the in-flow form) */
+  .sf { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+  .sr { display: flex; gap: 8px; }
+  .sr > * { flex: 1 1 0; min-width: 0; }
+  .fi { display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 14px; border: 1px solid #e5e7eb;
+    border-radius: 8px; background: #fff; font-size: 13px; color: #9ca3af; }
+  .fi svg { width: 14px; height: 14px; color: #9ca3af; flex: none; }
+  .fi .sp { flex: 1; }
+  .fi .ca { color: #9ca3af; font-size: 10px; }
+  /* .rmaps-search-form__range: label over a 4px grey track, 16px primary disc */
+  .rg { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #4b5563; }
+  .rg > span { font-weight: 500; }
+  .rg .trk { position: relative; height: 16px; }
+  .rg .trk::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: #d1d5db; }
+  .rg .trk b { position: absolute; top: 0; width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; background: #2271b1;
+    border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+  .fb { height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500;
+    box-sizing: border-box; border: 1px solid #e5e7eb; color: #1f2937; background: #fff; }
+  .fb.p { background: #2271b1; border-color: #2271b1; color: #fff; }
+
+  /* map */
+  .map { position: relative; height: 176px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+  .map img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* categories (directory-front.css term-grid cards) */
+  .tg3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 16px; }
+  .term { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid #e6e8ec; border-radius: 12px;
+    background: #fff; line-height: 1.3; font-size: 13px; }
+  .term .ic { width: 40px; height: 40px; border-radius: 10px; flex: none; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, #2271b1 12%, #fff); }
+  .term .ic img { width: 26px; height: 26px; }
+  .term .nm { flex: 1 1 auto; min-width: 0; font-weight: 600; color: #2271b1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .term .ct { flex: none; padding: 2px 10px; border-radius: 999px; background: #f1f3f5; color: #667085; font-size: 12px; font-weight: 600; }
+
+  /* listings */
+  .ltb { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .ltb .found { font-size: 12.5px; color: #6b7a89; }
+  .ltb .found b { color: #1f2937; font-size: 13.5px; }
+  .vs { display: inline-flex; margin-left: 4px; }
+  .vs span { width: 26px; height: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid #d1d5db; background: #fff; color: #6b7280; }
+  .vs span:first-child { border-radius: 5px 0 0 5px; }
+  .vs span:last-child { border-radius: 0 5px 5px 0; border-left: 0; }
+  .vs span.on { background: #2271b1; border-color: #2271b1; color: #fff; }
+  .vs svg { width: 12px; height: 12px; }
+  .srt { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7a89; }
+  .srt .s { display: flex; align-items: center; gap: 10px; padding: 3px 9px; border: 1px solid #d1d5db; border-radius: 5px; color: #1f2937; background: #fff; }
+  .srt .s::after { content: ""; width: 5px; height: 5px; border-right: 1.5px solid #6b7280; border-bottom: 1.5px solid #6b7280; transform: translateY(-2px) rotate(45deg); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .card .cb2 { padding: 7px 8px 9px; }
+  .card .t { font-size: 13px; font-weight: 600; color: #2271b1; line-height: 1.25; }
+  .card .chip { display: inline-block; margin: 4px 0 4px; padding: 1px 7px; border-radius: 999px; background: #f1f3f5; color: #475467; font-size: 10.5px; }
+  .card .ad { font-size: 11px; color: #4b5563; }
+
+  /* the page editor */
+  .edw { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .ebar { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-bottom: 1px solid #e5eaf0; font-size: 12px; }
+  .ebar .chip2 { flex: 1; text-align: center; }
+  .ebar .chip2 span { background: #f0f0f1; border-radius: 4px; padding: 3px 14px; }
+  .ebar .pub { color: #00a32a; font-weight: 600; font-size: 11.5px; }
+  .pgc { padding: 12px 14px 14px; }
+  .pgc .t { font: 400 22px/1.2 Georgia, "Times New Roman", serif; margin-bottom: 8px; color: #1d2327; }
+  .pgc .c { margin-bottom: 6px; font: 13px/1.4 Consolas, "Courier New", monospace; color: #1d2327; }
+
+  .pgn { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+  .pgn span { min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid #d1d5db; border-radius: 5px; font-size: 12px; color: #374151; background: #fff; }
+  .pgn span.on { background: #2271b1; border-color: #2271b1; color: #fff; }
+  /* notes */
+  .n-all   { left: 616px; top: 258px; }
+  .n-srch  { left: 610px; top: 336px; }
+  .n-map   { left: 610px; top: 440px; }
+  .n-list  { left: 610px; top: 560px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.6 5 3 12l5.6 7 1.5-1.3L5.6 12l4.5-5.7zm6.8 0-1.5 1.3 4.5 5.7-4.5 5.7 1.5 1.3L21 12z"/></svg>
+      Shortcodes
+    </span>
+    <h1>A map, its search form and its listings</h1>
+  </div>
+  <div class="sub">[webmap] draws the map; [webmap-search] and [webmap-listings] move its form and list onto the page</div>
+
+  <div class="lay">
+    <div class="win site" id="site">
+      <div class="bb2"><i></i><i></i><i></i><span class="url">example.com/hotels-map/</span></div>
+      <div class="pgx">
+        <div class="el"><h2 class="ptl"><span id="ptitle">Hotels map</span></h2></div>
+
+        <div class="el sf" id="search">
+          <div class="sr">
+            <div class="fi"><span class="sp">Address</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></div>
+            <div class="rg"><span>Radius: 20 miles</span><div class="trk"><b style="left:calc(10% - 1.6px)"></b></div></div>
+            <div class="fi"><span class="sp">Keyword</span></div>
+          </div>
+          <div class="sr">
+            <div class="fi"><span class="sp">Categories</span><span class="ca">&#9662;</span></div>
+            <div class="fi"><span class="sp">Locations</span><span class="ca">&#9662;</span></div>
+          </div>
+          <div class="sr"><div class="fb p">Search</div><div class="fb">Reset</div></div>
+        </div>
+
+        <div class="el map" id="map">
+          <img src="map-light.webp" alt="">
+        </div>
+
+        <div class="el" id="lists">
+          <div class="grid">
+            <div class="card"><img src="photo-relax-inn.webp" alt=""><div class="cb2"><div class="t">Relax Inn Burbank</div><span class="chip">Hotels</span><div class="ad">2201 W Olive Ave</div></div></div>
+            <div class="card"><img src="photo-shopping.webp" alt=""><div class="cb2"><div class="t">Town Center Mall</div><span class="chip">Shops</span><div class="ad">201 E Magnolia Blvd</div></div></div>
+            <div class="card"><img src="photo-auto-show.webp" alt=""><div class="cb2"><div class="t">Classic Car Show</div><span class="chip">Events</span><div class="ad">135 E Palm Ave</div></div></div>
+          </div>
+          <div class="pgn" id="pgn"><span class="on">1</span><span>2</span><span>3</span><span>&rsaquo;</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="win edw" id="editor">
+        <div class="ebar"><span class="chip2"><span>Hotels map &middot; Page</span></span><span class="pub">Published</span></div>
+        <div class="pgc">
+          <div class="t">Hotels map</div>
+          <div class="c" id="sc1">[webmap-search]</div>
+          <div class="c" id="sc">[webmap id=12]</div>
+          <div class="c" id="sc3">[webmap-listings]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-all" data-to="#sc3" data-at="b.4" data-from="t.3" data-bend="-.2">the three shortcodes<br>that draw the page<br>on the left</div>
+  <div class="note n-srch" data-block data-to="#search" data-at="r" data-from="l" data-bend=".2">[webmap-search]<br>the map's own form,<br>off the map</div>
+  <div class="note n-map" data-block data-to="#map" data-at="r" data-from="l" data-bend="-.2">[webmap id=12]<br>the map</div>
+  <div class="note n-list" data-block data-to="#lists" data-at="r" data-from="l" data-bend="-.2">[webmap-listings]<br>the map's listings,<br>page by page</div>
+</div>
+</body>
+</html>

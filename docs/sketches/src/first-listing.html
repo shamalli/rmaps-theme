@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Installation -> 6. Your first listing.
+     Maps listings -> Create new listing: the Listing Form box (the React form
+     from the "Listing Form" template: Title*, Description, Categories, Tags,
+     Address, Images) and the side boxes Listing Info ("Expire on: ... (default)",
+     classes/listings/listing_expiration_override.php; the date is an example
+     of a site with an active period set), Publish ("Create Listing",
+     core/src/Listings/Manager.php) and Listing history ("Created", as the live
+     maps.salephpscripts.com screen shows it).
+     Liberties: Excerpt, Videos, Map, Slug and Author are left out, the Address
+     field is cut after its first inputs. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .mwin { width: auto; }
+  .content { padding: 14px 14px 14px; }
+  .cols { display: flex; gap: 14px; align-items: flex-start; }
+  .main { flex: 1; min-width: 0; }
+  .side { flex: none; width: 290px; display: flex; flex-direction: column; gap: 10px; }
+  .f { margin-bottom: 13px; }
+  .f > label { display: block; font-weight: 600; font-size: 12.5px; margin-bottom: 5px; }
+  .f > label b { color: #d63638; font-weight: 600; }
+  .ta { height: 58px; border: 1px solid #8c8f94; border-radius: 4px; padding: 6px 8px; box-sizing: border-box; color: #2c3338; font-size: 13px; line-height: 1.4; }
+  .empty { border: 1px solid #dcdcde; border-radius: 4px; height: 38px; display: flex; align-items: center; justify-content: center; color: #8c8f94; font-size: 12px; }
+  .zero { color: #2271b1; font-size: 11.5px; margin-top: 3px; }
+  .addr { border: 1px solid #dcdcde; border-radius: 4px; background: #fafafa; padding: 8px; }
+  .addr small { display: block; font-size: 11px; color: #50575e; margin-bottom: 5px; }
+  .addr .inp { margin-bottom: 6px; height: 28px; }
+  .drop { border: 1px dashed #c3c4c7; border-radius: 4px; padding: 10px; text-align: center; font-size: 12px; color: #50575e; }
+  .drop .wpbtn { height: 24px; font-size: 11.5px; padding: 0 8px; margin: 5px 2px 4px; }
+  .drop small { display: block; color: #8c8f94; font-size: 11px; }
+  .big { display: flex; justify-content: center; align-items: center; height: 34px; border-radius: 3px; background: #2271b1; color: #fff; font-weight: 600; font-size: 13px; }
+  .side .bb { font-size: 12.5px; }
+  .side .ln { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; color: #1d2327; }
+  .side .ln a { color: #2271b1; text-decoration: underline; }
+  .side .ln svg { width: 13px; height: 13px; fill: #8c8f94; flex: none; }
+  .side .desc2 { color: #646970; font-size: 11.5px; line-height: 1.45; margin: 5px 0 9px; }
+
+  .gbody { padding: 22px 26px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 11px; background: #fff; }
+  .gbody h3 { margin: 0; font-size: 17px; font-weight: 600; }
+  .gbody p { margin: 0; color: #646970; font-size: 12.5px; line-height: 1.5; max-width: 400px; }
+  .gctl { width: 100%; max-width: 380px; text-align: left; font-size: 12.5px; }
+  .gctl .lst { border: 1px solid #dcdcde; border-radius: 4px; padding: 5px 8px; margin: 6px 0 8px; }
+  .gctl .lst div, .gctl .all { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  .gctl .all { font-weight: 600; }
+  .gctl .pl { font-weight: 600; margin: 8px 0 4px; }
+
+  /* notes */
+  .n-title { left: 122px; top: 211px; }
+  .n-create { left: 700px; top: 368px; }
+  .n-all { left: 700px; top: 452px; }
+  .n-addr { left: 600px; top: 660px; }
+  .n-gate { left: 540px; top: 900px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+      First listing
+    </span>
+    <h1>Add a listing by hand</h1>
+  </div>
+  <div class="sub">Maps listings &rarr; Create new listing; the fields come from your listing form</div>
+
+  <div class="win wp mwin">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+    <div class="content" style="background:#f0f0f1">
+      <div class="wph"><b>Create new listing</b></div>
+      <div class="cols">
+        <div class="main">
+          <div class="box">
+            <div class="bh">Listing Form<i>&#9650;&#9660;</i></div>
+            <div class="bb">
+              <div class="f"><label><span id="title-l">Title <b>*</b></span></label><div class="inp" id="title">Blue Door Coffee</div></div>
+              <div class="f"><label>Description</label><div class="ta">Small-batch roastery with a garden terrace, two minutes from the station.</div></div>
+              <div class="f"><label>Categories</label><div class="empty" id="cats">No categories available.</div><div class="zero">0 selected</div></div>
+              <div class="f"><label>Tags</label><div class="inp ph">Type to search or create tags...</div></div>
+              <div class="f"><label>Address</label>
+                <div class="addr" id="addr"><small>Address 1</small><div class="inp" id="addr1">12 Harbour Street</div><div class="inp ph">Address line 2</div><div class="inp ph" style="width:150px;margin-bottom:0">ZIP / Postal code</div></div></div>
+              <div class="f"><label>Images</label>
+                <div class="drop">Drag images here or<br><span class="wpbtn">Browse files</span><span class="wpbtn">My uploads</span><small>JPEG, PNG, WebP &middot; max 5.0 MB per file &middot; up to 10 images</small></div></div>
+              <div class="big">Create Listing</div>
+            </div>
+          </div>
+        </div>
+        <div class="side">
+          <div class="box"><div class="bh">Listing Info<i>&#9650;&#9660;</i></div>
+            <div class="bb"><div class="ln" style="margin:0"><svg viewBox="0 0 20 20"><path d="M3 4h14v13H3zm2 4v7h10V8zM6 2h2v3H6zm6 0h2v3h-2z"/></svg>Expire on: <b>25/11/2026 11:06</b> (default) <a>Edit</a></div></div></div>
+          <div class="box"><div class="bh">Publish<i>&#9650;&#9660;</i></div>
+            <div class="bb">
+              <div class="ln"><svg viewBox="0 0 20 20"><path d="M10 2a5 5 0 0 0-5 5c0 4 5 11 5 11s5-7 5-11a5 5 0 0 0-5-5z"/></svg>Status: <b>Draft</b> <a>Edit</a></div>
+              <div class="ln"><svg viewBox="0 0 20 20"><path d="M10 5c-4 0-7 5-7 5s3 5 7 5 7-5 7-5-3-5-7-5zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>Visibility: <b>Public</b> <a>Edit</a></div>
+              <div class="ln"><svg viewBox="0 0 20 20"><path d="M3 4h14v13H3zm2 4v7h10V8zM6 2h2v3H6zm6 0h2v3h-2z"/></svg>Publish <b>immediately</b> <a>Edit</a></div>
+              <span class="wpbtn p" id="create" style="margin-top:4px">Create Listing</span>
+            </div></div>
+          <div class="box"><div class="bh">Listing history<i>&#9650;&#9660;</i></div>
+            <div class="bb"><div style="font-weight:600">Created</div><div class="desc2" style="margin:0">1 second ago</div></div></div>        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-title" data-to="#title-l" data-at="r.5" data-from="l" data-bend=".1">the one required field</div>
+  <div class="note n-create" data-to="#create" data-at="r.5" data-from="l" data-bend=".1">publishes it<br>at once</div>
+  <div class="note n-addr" data-to="#addr1" data-at="r.5" data-from="l.15" data-bend="-.1">the address puts the<br>listing on the map</div>
+</div>
+</body>
+</html>

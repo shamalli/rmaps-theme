@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: the setup wizard (Installation -> 4. Run the setup wizard).
+     Drawn from core/classes/install_wizard/wizard.php on a fresh install: the
+     wizard bar on its last step, "Create a map" (Step 4 of 4: Settings, Form
+     Builder, Demo content, Create a map), over the Edit map toolbar it opens
+     (core/src/Admin/Admin.php: Edit map, Create new map, Map name, url-slug,
+     Undo, Redo, Export, Save, "+ Create page with this map" - shown once the
+     map is saved). Below, the page that button publishes (map_step.php
+     handle_create_page: the map's title, [webmap id=N], published, opened in
+     a new tab), as visitors see it: map-light.webp.
+     Liberties: the Export button, the metaboxes and the live preview under the toolbar are left
+     out. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .wiz { padding-top: 48px; }
+  .tb { display: flex; align-items: center; gap: 8px; margin: 0; padding: 9px 12px; background: #fff;
+    border-top: 1px solid #dcdcde; border-bottom: 1px solid #dcdcde; }
+  .tb b { font-size: 18px; font-weight: 600; }
+  .tb .nb { font-size: 12.5px; padding: 3px 9px; border: 1px solid #2271b1; color: #2271b1; border-radius: 4px; white-space: nowrap; }
+  .tb .inp { height: 30px; font-size: 14px; }
+  .tb .wpbtn { height: 28px; font-size: 12.5px; padding: 0 9px; }
+  .stub { height: 38px; background: #f0f0f1; }
+
+  .site { margin-top: 40px; }
+  .url { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; background: #f1f3f5; border-bottom: 1px solid #dfe3e8; font-size: 13px; color: #3c434a; }
+  .url .dots { display: inline-flex; gap: 5px; }
+  .url .dots i { width: 10px; height: 10px; border-radius: 50%; background: #d0d5db; }
+  .url .addr { flex: 1; background: #fff; border: 1px solid #dfe3e8; border-radius: 14px; padding: 4px 12px; }
+  .pg { background: #fff; padding: 18px 22px 22px; }
+  .pg h2 { display: inline-block; margin: 0 0 12px; font-size: 26px; font-weight: 700; color: #1d2327; }
+  .mapimg { display: block; width: 100%; height: 250px; object-fit: cover; border-radius: 6px; }
+
+  .n-mig { left: 152px; top: 122px; }
+  .n-fin { left: 290px; top: 306px; }
+  .n-cp { left: 612px; top: 402px; }
+  .n-save { left: 400px; top: 404px; }
+  .n-sc { left: 250px; top: 520px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+      Setup wizard
+    </span>
+    <h1>Four steps from activation to a map on a page</h1>
+  </div>
+  <div class="sub">the wizard bar sits on top of each real admin screen; Next opens the next one</div>
+
+  <div class="win">
+    <div class="adminbar"><b>W</b><span>My WordPress Website</span><span>+ New</span><span style="margin-left:auto">Howdy, admin</span></div>
+
+    <div class="wiz">
+      <div class="wiz-head"><span class="eyebrow" id="eyebrow">Step 4 of 4</span><span class="wiz-title">Create a map</span></div>
+      <div class="steps">
+        <div class="step done" id="s1"><span class="mk"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M13.485 4.43L6.5 11.414 2.515 7.43 3.93 6.015l2.57 2.57 5.57-5.57z"/></svg></span>Settings</div>
+        <div class="step done"><span class="mk"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M13.485 4.43L6.5 11.414 2.515 7.43 3.93 6.015l2.57 2.57 5.57-5.57z"/></svg></span>Form Builder</div>
+        <div class="step done"><span class="mk"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M13.485 4.43L6.5 11.414 2.515 7.43 3.93 6.015l2.57 2.57 5.57-5.57z"/></svg></span>Demo content</div>
+        <div class="step on"><span class="mk">4</span>Create a map</div>
+      </div>
+      <p class="desc">Build your first map. After saving, you can create a page with the map shortcode in one click.</p>
+      <div class="acts">
+        <span class="btn quiet">&larr; Back</span>
+        <span class="btn primary" id="finish">Finish setup &#10003;</span>
+      </div>
+    </div>
+
+    <div class="tb">
+      <b>Edit map</b>
+      <span class="nb">Create new map</span>
+      <span class="inp" style="flex:1">Hotels map</span>
+      <span class="inp" style="width:86px;color:#646970;font-size:13px">hotels-map</span>
+      <span class="wpbtn gray dim">&#8630; Undo</span>
+      <span class="wpbtn gray dim">&#8631; Redo</span>
+      <span class="wpbtn p" id="save">Save</span>
+      <span class="wpbtn" id="cp">+ Create page with this map</span>
+    </div>
+    <div class="stub"></div>
+  </div>
+
+  <div class="win site">
+    <div class="url"><span class="dots"><i></i><i></i><i></i></span><span class="addr" id="addr">mysite.com/hotels-map/</span></div>
+    <div class="pg">
+      <h2 id="ptitle">Hotels map</h2>
+      <img class="mapimg" id="map" src="map-light.webp" alt="">
+    </div>
+  </div>
+
+  <div class="note n-mig" data-to="#eyebrow" data-at="t.85" data-from="l" data-bend=".15">old data on the site? Migration comes first</div>
+  <div class="note n-fin" data-to="#finish" data-at="r" data-from="l" data-bend="0">lands on the Maps list</div>
+  <div class="note n-save" data-to="#save" data-at="b" data-from="t.5" data-bend=".15">save the map first</div>
+  <div class="note n-cp" data-to="#cp" data-at="b" data-from="t.6" data-bend="-.15">publishes a page with<br>[webmap id=N] and opens it</div>
+  <div class="note n-sc" data-to="#ptitle" data-at="r" data-from="l" data-bend=".1">named after the map</div>
+
+</div>
+</body>
+</html>

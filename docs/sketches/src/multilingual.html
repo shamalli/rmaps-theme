@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Multilingual & RTL.
+     Top: the Settings language bar (core/src/I18n/LocalizedSettings.php
+     language_bar) over Maps Admin -> Settings -> Email notifications with
+     French picked: a per-language field carries the "Per language: can
+     differ in each language." note (LocalizedSettings.php:427). The French
+     subject is an example.
+     Bottom: one listing as a sidebar card in English, French and Arabic, the
+     Arabic one mirrored (the card CSS uses inline-start / inline-end).
+     Examples: the names, terms and address. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .sheet { padding-bottom: 60px; }
+  /* ---- admin ------------------------------------------------------------- */
+  .adm { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #3c434a; font-size: 13px; }
+  /* .rmaps-settings-langbar - inline styles of language_bar() */
+  .lbar { padding: 9px 14px; background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #2271b1; line-height: 1.5; }
+  .lbar strong { color: #1d2327; }
+  .lbar .l { margin: 0 8px; color: #2271b1; text-decoration: underline; }
+  .lbar .cur { margin: 0 8px; font-weight: 600; color: #1d2327; }
+  .lbar p { margin: 6px 0 0; color: #50575e; font-size: 12.5px; line-height: 1.45; }
+
+  .rx { margin-top: 10px; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .rx-hd { height: 36px; display: flex; align-items: center; padding: 0 14px;
+    background: linear-gradient(90deg, rgba(30,41,59,.94) 0%, rgba(30,41,59,.82) 28%, rgba(51,65,85,.55) 62%, rgba(51,65,85,.3) 100%),
+                url(redux-header-bg.jpg) 0 40% / 1300px auto no-repeat, #1e293b; }
+  .rx-hd .t { color: #f1f5f9; font-size: 15px; font-weight: 600; }
+  .rx-hd .tab { margin-left: 10px; padding-left: 10px; border-left: 1px solid rgba(241,245,249,.35); color: #cbd5e1; font-size: 13px; }
+  .rx-main { padding: 12px 16px 14px; }
+  /* .rmaps-plans-translate */
+  .intro { margin: 0 0 10px; color: #50575e; font-size: 12.5px; line-height: 1.45; }
+  .intro strong { color: #1d2327; }
+  .plan { border: 1px solid #dcdcde; border-radius: 6px; padding: 12px 14px 4px; background: #fff; }
+  .plan h3 { margin: 0 0 9px; font-size: 15px; font-weight: 600; color: #1d2327; }
+  .fl { display: block; margin-bottom: 10px; }
+  .fl .lb { display: block; font-weight: 600; color: #1d2327; margin-bottom: 4px; }
+  .fl .in { box-sizing: border-box; width: 380px; height: 30px; display: flex; align-items: center; padding: 0 8px; border: 1px solid #8c8f94; border-radius: 4px;
+    font-size: 13.5px; color: #2c3338; background: #fff; }
+  .fl .hm { display: block; margin-top: 2px; color: #8c8f94; font-size: 12px; }
+
+  /* ---- front: the same card in three languages (listings.html) ---------- */
+  .front { margin-top: 14px; background: #fff; border: 1px solid #dfe7ef; border-radius: 12px; padding: 10px 12px 12px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .lg { display: flex; align-items: center; gap: 5px; margin: 0 2px 6px; font-size: 12px; font-weight: 600; color: #6b7a89; }
+  .lg svg { width: 12px; height: 12px; }
+  .card { position: relative; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .img { position: relative; aspect-ratio: 4 / 3; background: url(photo-relax-inn.webp) center / cover; }
+  .sb { position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: rgba(0,0,0,.55);
+    color: #fff; font-size: 11px; line-height: 22px; text-align: center; }
+  .sb.s { inset-inline-start: 6px; } .sb.e { inset-inline-end: 6px; }
+  /* chevrons point outwards in both directions: RTL swaps the buttons and
+     flips their glyphs with scaleX(-1) */
+  .sb svg { display: block; width: 12px; height: 12px; margin: 5px; }
+  /* .w2dc-sticky-badge - inset-inline-end, so top left on an RTL page */
+  .badge { position: absolute; inset-inline-end: 6px; top: 6px; z-index: 3; padding: 3px; border-radius: 3px; background: #e8452c; color: #fff;
+    font-size: 10px; font-weight: 700; line-height: 1; letter-spacing: .04em; text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  [dir="rtl"] .badge { letter-spacing: 0; font-size: 11px; padding: 2px 4px; }
+  .x-cb { padding: 8px 9px 9px; }
+  .ct { font-size: 13.5px; font-weight: 600; color: #2271b1; line-height: 1.25; }
+  .rt { font-size: 12px; color: #6b7a89; margin: 3px 0 5px; }
+  .rt s { text-decoration: none; color: #f5a623; letter-spacing: -1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+  .chip { padding: 1px 7px; border-radius: 999px; background: #f1f3f5; color: #475467; font-size: 10.5px; }
+  .ad { display: flex; gap: 5px; font-size: 11px; color: #374151; line-height: 1.35; margin-bottom: 7px; }
+  .ad svg { width: 10px; height: 10px; color: #6b7280; flex: none; margin-top: 2px; }
+  .price { border-top: 1px solid #e5e7eb; padding-top: 8px; }
+  .price .acc { background: linear-gradient(#2271b1, #2271b1) no-repeat left top / 3px 100%; padding-inline-start: 10px; }
+  [dir="rtl"] .price .acc { background-position: right top; }
+  .price span { display: inline-block; padding: 2px 10px; border-radius: 6px; background: rgba(34,113,177,.12);
+    color: #2271b1; font-size: 20px; font-weight: 600; line-height: 1.3; }
+  .price small { font-size: .65em; vertical-align: .45em; margin: 0 .08em; }
+
+  /* notes */
+  .n-lang { left: 406px; top: 96px; }
+  .n-badge { left: 470px; top: 250px; }
+  .n-rtl { left: 560px; top: 785px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>
+      Multilingual &amp; RTL
+    </span>
+    <h1>One map, every language</h1>
+  </div>
+  <div class="sub">WPML or Polylang, right-to-left included</div>
+
+  <!-- ===== admin: Settings > Email notifications, in French ===== -->
+  <div class="adm">
+    <div class="lbar" id="lbar">
+      <strong>Settings language:</strong> <span class="l">English (main)</span><span class="cur" id="curlang">Fran&ccedil;ais</span><span class="l" dir="rtl" id="arlang">العربية</span>
+      <p>Fields marked "per language" are saved for this language; while one keeps the main language's value, it follows the main language. Every other setting is shared by all languages.</p>
+    </div>
+    <div class="rx">
+      <div class="rx-hd"><span class="t">Rocket Maps Settings</span><span class="tab">Email notifications</span></div>
+      <div class="rx-main">
+        <div class="plan">
+          <h3>Pre-expiration email</h3>
+          <label class="fl"><span class="lb">Subject</span><span class="in" id="frsubj">Votre annonce expire bient&ocirc;t</span><span class="hm">Per language: can differ in each language.</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== front: one listing, three languages ===== -->
+  <div class="front">
+    <div class="grid">
+      <div>
+        <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>English</div>
+        <div class="card">
+          <div class="img"><span class="sb s"><svg viewBox="0 0 10 10"><path d="M6.2 2.2 3.4 5l2.8 2.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sb e"><svg viewBox="0 0 10 10"><path d="M3.8 2.2 6.6 5 3.8 7.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="x-cb">
+            <div class="ct">Relax Inn Burbank</div>
+            <div class="rt"><s>&#9733;&#9733;&#9733;&#9733;</s> 4.1 (56)</div>
+            <div class="chips"><span class="chip">Hotels</span><span class="chip">Pet friendly</span></div>
+            <div class="ad"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>2201 W Olive Ave, Burbank</div>
+            <div class="price"><div class="acc"><span><small>$</small>74</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>Fran&ccedil;ais</div>
+        <div class="card">
+          <div class="img"><span class="sb s"><svg viewBox="0 0 10 10"><path d="M6.2 2.2 3.4 5l2.8 2.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sb e"><svg viewBox="0 0 10 10"><path d="M3.8 2.2 6.6 5 3.8 7.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="x-cb">
+            <div class="ct">Relax Inn Burbank</div>
+            <div class="rt"><s>&#9733;&#9733;&#9733;&#9733;</s> 4.1 (56)</div>
+            <div class="chips"><span class="chip" id="frchip">H&ocirc;tels</span><span class="chip">Animaux accept&eacute;s</span></div>
+            <div class="ad"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>2201 W Olive Ave, Burbank</div>
+            <div class="price"><div class="acc"><span><small>$</small>74</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div dir="rtl" id="rtlcol">
+        <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>العربية</div>
+        <div class="card">
+          <div class="img"><span class="sb s"><svg viewBox="0 0 10 10"><path d="M3.8 2.2 6.6 5 3.8 7.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sb e"><svg viewBox="0 0 10 10"><path d="M6.2 2.2 3.4 5l2.8 2.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="x-cb">
+            <div class="ct">ريلاكس إن بوربانك</div>
+            <div class="rt"><s>&#9733;&#9733;&#9733;&#9733;</s> 4.1 (56)</div>
+            <div class="chips"><span class="chip">فنادق</span><span class="chip">مسموح بالحيوانات الأليفة</span></div>
+            <div class="ad"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>2201 غرب شارع أوليف، بوربانك</div>
+            <div class="price" id="rtlprice"><div class="acc"><span><small>$</small>74</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-lang" data-to="#arlang" data-at="r" data-from="l" data-bend=".12">pick a language, edit its texts</div>
+  <div class="note n-badge" data-to="#frsubj" data-at="r" data-from="l" data-bend=".12">this text for French only</div>
+  <div class="note n-rtl" data-to="#rtlprice" data-at="b.4" data-from="t.3" data-bend="-.14">mirrored for RTL</div>
+
+</div>
+</body>
+</html>

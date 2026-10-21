@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Translation & Localization (Method 1 Loco Translate, Method 2
+     Poedit, Where your translation files belong, File naming).
+     Third-party screens, redrawn generic (no logos): Loco Translate's
+     "New language" form (WordPress language select, Custom / Author / System
+     locations with their paths) and its editor (toolbar, Source text list,
+     the source and "German translation" boxes); a Poedit window on a
+     catalogue made from the template.
+     Plugin facts from the code (salephp-platform dist/rocket-maps):
+       - text domain rmaps, Domain Path /core/languages (rocket-maps.php header);
+       - load_plugin_textdomain('rmaps', ...) from core/languages (Plugin.php) on init
+         (core/src/Plugin.php load_textdomains), so WordPress reads
+         wp-content/languages/plugins/rmaps-{locale}.mo first, then the plugin's
+         core/languages/;
+       - the template is core/languages/rmaps.pot (tools/make-pot.php), about
+         1,830 msgids; the strings in the lists are real msgids from it
+         ("Get directions" core/classes/maps/maps_manager.php, "Accept cookies
+         in the cookie bar to load the map." from the React bundles);
+       - React screens get their strings as a PHP-translated dictionary
+         (wp_localize_script 'rmapsI18n' = react_i18n_dict(),
+         core/classes/i18n_react_strings.php), so there are no .json files.
+     Examples: German, the German translations, the counts on screen. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .panel { position: relative; }
+  .gap { height: 12px; }
+  .panel > .cap.right { margin-left: 298px; }
+  .lw { width: 540px; }
+  .lw.right { margin-left: 296px; }
+
+  /* ---- Loco Translate pieces --------------------------------------------- */
+  .lh { padding: 12px 16px 0; }
+  .crumb { font-size: 12px; color: #2271b1; }
+  .crumb span { color: #50575e; }
+  .lt { font-size: 19px; font-weight: 400; margin: 4px 0 10px; }
+  .ltabs { display: flex; gap: 2px; border-bottom: 1px solid #c3c4c7; margin: 0 -16px; padding: 0 16px; }
+  .ltabs span { padding: 6px 11px; font-size: 12.5px; color: #50575e; border: 1px solid transparent; border-bottom: 0; margin-bottom: -1px; }
+  .ltabs span.on { background: #fff; border-color: #c3c4c7; color: #1d2327; font-weight: 600; }
+  .lbody { background: #f0f0f1; padding: 12px 16px 14px; }
+  .lform { background: #fff; border: 1px solid #c3c4c7; padding: 10px 14px 12px; }
+  .lform h4 { margin: 0 0 7px; font-size: 13.5px; font-weight: 600; }
+  .opt { display: flex; align-items: center; gap: 8px; height: 24px; font-size: 13px; }
+  .opt .sel { height: 26px; width: 220px; font-size: 12.5px; }
+  .opt code, .path { font-family: Consolas, monospace; font-size: 11.5px; color: #50575e; }
+  .opt b { font-weight: 600; width: 52px; }
+  .opt.sysrow { background: #f0f6fc; margin: 0 -6px; padding: 0 6px; border-radius: 3px; }
+
+  /* the editor */
+  .tbar { display: flex; align-items: center; gap: 5px; padding: 8px 10px; background: #f6f7f7; border-bottom: 1px solid #c3c4c7; }
+  .tbar .wpbtn { height: 26px; font-size: 12px; padding: 0 9px; }
+  .tbar .inp { height: 26px; width: 120px; margin-left: auto; font-size: 12px; }
+  .prog { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 11.5px; color: #50575e; background: #fff; border-bottom: 1px solid #dcdcde; }
+  .prog i { flex: none; width: 120px; height: 6px; border-radius: 3px; background: #dcdcde; position: relative; overflow: hidden; }
+  .prog i::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6%; background: #00a32a; }
+  .grid { background: #fff; font-size: 12.5px; }
+  .grid .r { display: flex; border-bottom: 1px solid #f0f0f1; height: 22px; align-items: center; }
+  .grid .r span { flex: 1 1 0; min-width: 0; padding: 0 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grid .r span + span { border-left: 1px solid #f0f0f1; }
+  .grid .r.th { background: #f6f7f7; font-weight: 600; color: #50575e; font-size: 12px; border-bottom: 1px solid #c3c4c7; }
+  .grid .r.pick { background: #2271b1; color: #fff; }
+  .grid .r.pick span + span { border-left-color: #4f8fc6; }
+  .grid .r .em { color: #b32d2e; }
+  .ed { background: #f6f7f7; border-top: 1px solid #c3c4c7; padding: 8px 10px 10px; }
+  .ed label { display: block; font-size: 11.5px; font-weight: 600; color: #50575e; margin: 0 0 3px; }
+  .ta { border: 1px solid #8c8f94; border-radius: 3px; background: #fff; padding: 6px 8px; font-size: 13px; min-height: 18px; }
+  .ta.ro { background: #f6f7f7; border-color: #dcdcde; }
+  .ta.on { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+
+  /* ---- Poedit ------------------------------------------------------------ */
+  .pe { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1d2327; font-size: 12.5px; }
+  .ptitle { display: flex; align-items: center; height: 30px; padding: 0 12px; background: #f3f3f3; border-bottom: 1px solid #e1e1e1; font-size: 12px; color: #444; }
+  .ptitle .dots { display: flex; gap: 14px; margin-left: auto; color: #777; font-size: 13px; }
+  .ptool { display: flex; gap: 18px; padding: 7px 14px; background: #fafafa; border-bottom: 1px solid #e1e1e1; font-size: 11.5px; color: #444; }
+  .ptool span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .ptool span i { width: 18px; height: 14px; border-radius: 3px; background: #d6dbe0; display: block; }
+  .pe .grid .r.th { background: #fafafa; }
+  .pe .grid .r.pick { background: #3b82d6; }
+  .ped { padding: 8px 12px 10px; border-top: 1px solid #e1e1e1; background: #fff; }
+  .ped label { display: block; font-size: 11px; color: #777; margin: 0 0 2px; }
+  .ped .txt { font-size: 13px; padding: 2px 0 7px; }
+  .ped .tx { border: 1px solid #3b82d6; border-radius: 3px; padding: 5px 7px; font-size: 13px; }
+  .pstat { padding: 5px 12px; background: #f3f3f3; border-top: 1px solid #e1e1e1; font-size: 11px; color: #666; }
+
+  /* the folder the files land in */
+  .fold { position: absolute; left: 560px; top: 22px; width: 250px; background: #fff; border: 1px solid #dfe7ef; border-radius: 10px; padding: 10px 12px 12px; }
+  .fold .fp { font-family: Consolas, monospace; font-size: 12px; font-weight: 700; color: #24303c; margin-bottom: 7px; }
+  .fold .f { display: flex; align-items: center; gap: 7px; height: 24px; font-family: Consolas, monospace; font-size: 12.5px; }
+  .fold .f svg { width: 13px; height: 15px; flex: none; }
+  .fold .f small { margin-left: auto; font-family: "Segoe UI", sans-serif; font-size: 11px; color: #8a98a6; }
+
+  /* ---- notes ----------------------------------------------------------- */
+  .n-author { left: 118px; top: 180px; text-align: right; }
+  .n-sys { left: 138px; top: 290px; text-align: right; }
+  .n-save { left: 70px; top: 26px; text-align: right; }
+  .n-click { left: 120px; top: 132px; text-align: right; }
+  .n-type { left: 120px; top: 228px; text-align: right; }
+  .n-files { left: 570px; top: 120px; }
+  .n-json { left: 600px; top: 196px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.9 15.1 10.4 12.6l.1-.1A17 17 0 0 0 14 6h3V4h-7V2H8v2H1v2h11.2A15.6 15.6 0 0 1 9 11.4 15.6 15.6 0 0 1 6.7 8h-2a17.5 17.5 0 0 0 3 4.6l-5.1 5L4 19l5-5 3.1 3.1zM18.5 10h-2L12 22h2l1.1-3h4.8l1.1 3h2zm-2.6 7 1.6-4.3 1.6 4.3z"/></svg>
+      Translation
+    </span>
+    <h1>One template, one .po / .mo pair per language</h1>
+  </div>
+  <div class="sub">start from rmaps.pot in Loco Translate or Poedit; keep the result in wp-content/languages/plugins</div>
+
+  <!-- ===== 1. Loco Translate: New language ================================ -->
+  <div class="panel">
+    <div class="cap right">Loco Translate &rarr; Plugins &rarr; Rocket Maps &rarr; New language</div>
+    <div class="win wp lw right">
+      <div class="lh">
+        <div class="crumb">Plugins <span>/</span> Rocket Maps <span>/ New language</span></div>
+        <div class="lt">New language</div>
+      </div>
+      <div class="lbody">
+        <div class="lform">
+          <h4>1. Choose a language:</h4>
+          <div class="opt"><span class="rd on"></span>WordPress language <span class="sel" id="lang">German (de_DE)</span></div>
+          <div class="opt"><span class="rd"></span>Custom language</div>
+          <h4 style="margin-top:10px">2. Choose a location:</h4>
+          <div class="opt"><span class="rd"></span><b>Custom</b><code>languages/loco/plugins/rmaps-de_DE.po</code></div>
+          <div class="opt" id="author"><span class="rd"></span><b>Author</b><code>plugins/rocket-maps/core/languages/rmaps-de_DE.po</code></div>
+          <div class="opt sysrow ring" id="sys"><span class="rd on"></span><b>System</b><code>languages/plugins/rmaps-de_DE.po</code></div>
+          <div style="margin-top:11px"><span class="wpbtn p">Start translating</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note n-sys" data-to="#sys" data-at="l" data-from="r.25" data-bend="-.1">pick System:<br>plugin updates<br>never touch it</div>
+    <div class="note n-author" data-to="#author" data-at="l" data-from="r.75" data-bend=".1">inside the plugin:<br>the next update<br>wipes it</div>
+  </div>
+
+  <div class="gap"></div>
+
+  <!-- ===== 2. Loco Translate: the editor ================================= -->
+  <div class="panel">
+    <div class="cap right">Loco Translate &rarr; Rocket Maps &rarr; German, the editor</div>
+    <div class="win wp lw right">
+      <div class="tbar">
+        <span class="wpbtn p" id="lsave">Save</span><span class="wpbtn gray" id="sync">Sync</span><span class="wpbtn gray">Revert</span><span class="wpbtn gray">Fuzzy</span>
+        <span class="inp ph">Filter translations</span>
+      </div>
+      <div class="prog"><i></i>8% translated, 1,834 strings, 1,692 untranslated</div>
+      <div class="grid">
+        <div class="r th"><span>Source text</span><span>German translation</span></div>
+        <div class="r"><span>Accept cookies in the cookie bar to load the map.</span><span>Cookies akzeptieren, um die Karte zu laden.</span></div>
+        <div class="r"><span>Maps listings</span><span>Karteneinträge</span></div>
+        <div class="r pick" id="row"><span>Get directions</span><span>Route berechnen</span></div>
+        <div class="r"><span>Search listings</span><span class="em"></span></div>
+        <div class="r"><span>Submit new listing</span><span class="em"></span></div>
+      </div>
+      <div class="ed">
+        <label>Source text:</label>
+        <div class="ta ro">Get directions</div>
+        <label style="margin-top:7px">German translation:</label>
+        <div class="ta on" id="tbox">Route berechnen</div>
+      </div>
+    </div>
+    <div class="note n-save" data-to="#lsave" data-at="l" data-from="r" data-bend=".15">Save writes the<br>.po and the .mo</div>
+    <div class="note n-click" data-to="#row" data-at="l" data-from="r" data-bend="-.12">click a string</div>
+    <div class="note n-type" data-to="#tbox" data-at="l" data-from="r" data-bend=".12">type its<br>translation</div>
+  </div>
+
+  <div class="gap"></div>
+
+  <!-- ===== 3. Poedit + the folder ========================================== -->
+  <div class="panel">
+    <div class="cap">Poedit: File &rarr; New from POT/PO file &rarr; rmaps.pot</div>
+    <div class="win pe lw">
+      <div class="ptitle">rmaps-de_DE.po<span class="dots"><span>&ndash;</span><span>&#9633;</span><span>&times;</span></span></div>
+      <div class="ptool"><span><i></i>Validate</span><span><i></i>Pre-translate</span><span><i></i>Update from POT</span></div>
+      <div class="grid">
+        <div class="r th"><span>Source text &ndash; English</span><span>Translation &ndash; German</span></div>
+        <div class="r"><span>Address</span><span>Adresse</span></div>
+        <div class="r pick"><span>Featured</span><span>Hervorgehoben</span></div>
+        <div class="r"><span>Get directions</span><span>Route berechnen</span></div>
+      </div>
+      <div class="ped">
+        <label>Source text</label><div class="txt">Featured</div>
+        <label>Translation</label><div class="tx">Hervorgehoben</div>
+      </div>
+      <div class="pstat">Translated: 142 of 1,834 (8 %)</div>
+    </div>
+
+    <div class="fold" id="fold">
+      <div class="fp">wp-content/languages/plugins/</div>
+      <div class="f" id="fpo"><svg viewBox="0 0 13 15"><path d="M1 1h7l4 4v9H1z" fill="#fff" stroke="#8a98a6"/><path d="M8 1v4h4" fill="none" stroke="#8a98a6"/></svg>rmaps-de_DE.po<small>you edit</small></div>
+      <div class="f" id="fmo"><svg viewBox="0 0 13 15"><path d="M1 1h7l4 4v9H1z" fill="#e8f1fa" stroke="#2271b1"/><path d="M8 1v4h4" fill="none" stroke="#2271b1"/></svg>rmaps-de_DE.mo<small id="fmo-reads">WordPress reads</small></div>
+    </div>
+    <div class="note n-files" data-to="#fmo" data-at="b.3" data-from="t.2" data-bend=".2">name: rmaps-{locale},<br>upload both here</div>
+    <div class="note n-json" data-to="#fmo-reads" data-at="b.5" data-from="t.8" data-bend=".12">no .json files:<br>map and form builder<br>use the same .mo</div>
+  </div>
+
+</div>
+</body>
+</html>

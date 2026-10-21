@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Shortcodes -> [webmap-submit] and [webmap-dashboard]
+     (also Features -> Front-end Submission and Dashboard).
+     Top: a page with [webmap-submit] (the demo's /submit-new-markers/): the
+     core header core/templates/dashboard/submit_page.tpl.php ("Submit a
+     listing", "Logged in as ..."), and the React form: ai/FillAllBar.tsx
+     ("Write N empty fields with AI", AI Assistant Add-on), ai/GenerateButton.tsx
+     ("Write with AI"), components/SubmitBar.tsx (Submit Listing + Save as draft,
+     the draft button only for a signed-in author, listing_form_assets.php
+     canSaveDraft). One screen: no plan or payment step in Rocket Maps.
+     Bottom: the dashboard, core/templates/dashboard/_chrome.tpl.php (header with
+     Submit new listing / Log out; tabs My listings, Profile) and
+     tab_listings.tpl.php (columns Title, Status, Created, Expires; Draft tag;
+     Never; the badge prints the raw status, so a paused listing reads
+     "stopped"), badge colours from core/resources/css/dashboard.css. Right: the
+     listing opened from its title, listing_detail.tpl.php side column: Listing
+     info (Status, Expire on) and Actions: Renew listing (inside the 7-day renew
+     window, Allow listings to renew on), Pause listing
+     (core/classes/listings/listing_pause.php), Update listing.
+     Liberties: the form is cut to three fields and its middle is folded away;
+     Listing info's Sorting date and History rows and the detail view's edit
+     form are left out; the browser chrome is a plain address strip. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .fr { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1e293b; font-size: 13px; }
+  .url { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 12px; background: #f1f4f8; border-bottom: 1px solid #e2e8f0; }
+  .url .dots { display: flex; gap: 5px; }
+  .url .dots i { width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; }
+  .url .bar { flex: 0 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 3px 14px; font-size: 12.5px; color: #64748b; }
+  .url .bar b { color: #1e293b; font-weight: 600; }
+
+  /* ---- submit wizard ---- */
+  .wizp { padding: 4px 26px 20px; }
+  .ssteps { display: flex; align-items: center; justify-content: space-around; margin: 14px 40px 16px; font-size: 18px; color: #64748b; }
+  .ssteps .s { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .ssteps .num { width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; color: #475569; font-size: 16px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .ssteps .done .num { background: #2eaf5c; color: #fff; font-size: 18px; }
+  .ssteps .cur { color: #0f172a; font-weight: 600; }
+  .ssteps .cur .num { background: #2271b1; color: #fff; }
+  .ssteps .sep { position: relative; width: 64px; height: 2px; background: #cbd5e1; border-radius: 2px; }
+  .ssteps .sep::after { content: ""; position: absolute; right: 0; top: 50%; width: 11px; height: 11px; border-top: 2px solid #cbd5e1;
+    border-right: 2px solid #cbd5e1; transform: translateY(-50%) rotate(45deg); }
+  .fcol { width: 540px; }
+  .selplan { display: flex; gap: 10px; padding: 9px 14px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; font-size: 13px; }
+  .selplan a { color: #2271b1; font-weight: 600; }
+  .ptitle { margin-top: 14px; font-size: 22px; font-weight: 600; line-height: 1.2; }
+  .puser { font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+  .puser a { color: #2271b1; }
+  .aibar { display: flex; align-items: center; gap: 10px; margin: 14px 0 12px; }
+  .ai { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 6px;
+    background: linear-gradient(135deg, #7c4dff, #158ac9); color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .ai.sm { padding: 3px 9px; font-size: 12px; }
+  .aibar .h { font-size: 12px; color: #6b7280; }
+  .lr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; min-height: 24px; }
+  .lr label { font-size: 13.5px; font-weight: 500; color: #364153; }
+  .lr label s { text-decoration: none; color: #ef4444; }
+  .fi { border: 1px solid #d1d5db; border-radius: 8px; height: 38px; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center;
+    font-size: 13.5px; background: #fff; margin-bottom: 12px; }
+  .fi.ph { color: #9ca3af; }
+  .fi.area { height: 54px; align-items: flex-start; padding-top: 9px; }
+  .fold { border-top: 2px dashed #d7dee7; margin: 4px 0 14px; position: relative; }
+  .fold span { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); background: #fff; padding: 0 10px; font-size: 11.5px; color: #94a3b8; }
+  .sbar { display: flex; gap: 12px; }
+  .sbar span { display: flex; align-items: center; justify-content: center; height: 42px; border-radius: 6px; font-size: 13.5px; font-weight: 600; }
+  .sbar .pri { flex: 2; background: #2271b1; color: #fff; }
+  .sbar .sec { flex: 1; background: #fff; color: #2271b1; border: 1px solid #2271b1; box-sizing: border-box; }
+
+  /* ---- dashboard ---- */
+  .row2 { display: flex; gap: 14px; align-items: flex-start; margin-top: 18px; }
+  .dash { flex: none; width: 556px; }
+  .dpad { padding: 14px 16px 16px; }
+  .dhead { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .duser { display: flex; align-items: center; gap: 10px; }
+  .av { width: 36px; height: 36px; border-radius: 50%; background: #c7d2fe; color: #3730a3; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .duser b { display: block; font-weight: 600; }
+  .duser em { font-style: normal; color: #6b7280; font-size: 12px; }
+  .db { display: inline-flex; align-items: center; padding: 6px 12px; font-size: 12.5px; font-weight: 500; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; white-space: nowrap; }
+  .db.p { background: #2271b1; border-color: #2271b1; color: #fff; }
+  .db.blk { display: flex; justify-content: center; }
+  .db.off { color: #9ca3af; background: #f9fafb; }
+  .dacts { display: flex; gap: 8px; }
+  .dtabs { display: flex; gap: 2px; border-bottom: 1px solid #e5e7eb; margin: 22px 0 12px; }
+  .dtabs span { padding: 8px 15px; color: #6b7280; font-size: 13.5px; font-weight: 500; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; position: relative; top: 1px; }
+  .dtabs span.on { color: #2271b1; background: #fff; border-color: #e5e7eb; }
+  table.dt { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; font-size: 12.5px; }
+  .dt th { background: #f9fafb; text-align: left; font-size: 10.5px; letter-spacing: .4px; text-transform: uppercase; color: #475569; font-weight: 600; padding: 8px 10px; }
+  .dt td { padding: 8px 10px; border-top: 1px solid #f3f4f6; white-space: nowrap; }
+  .dt td.th { width: 34px; padding-right: 0; }
+  .dt td.th img { display: block; width: 34px; height: 34px; border-radius: 4px; object-fit: cover; }
+  .dt td.th i { display: block; width: 34px; height: 34px; }
+  .dt a { color: #2271b1; font-weight: 500; }
+  .tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-size: 10px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .bd { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+  .bd.active { background: #dcfce7; color: #166534; }
+  .bd.expired { background: #fee2e2; color: #991b1b; }
+  .bd.stopped { background: #f3f4f6; color: #475569; }
+  .bd.pending { background: #fef3c7; color: #92400e; }
+  .bd.draft { background: #e0e7ff; color: #3730a3; }
+  .muted { color: #9ca3af; font-style: italic; }
+
+  .det { flex: 1; min-width: 0; }
+  .det .dpad { padding: 12px 14px 14px; }
+  .crumb { font-size: 12.5px; color: #6b7280; }
+  .dtitle { font-size: 18px; font-weight: 600; margin: 2px 0 10px; }
+  .mb { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px 6px; margin-bottom: 10px; }
+  .mb h3 { margin: 0 0 4px; font-size: 11.5px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: .4px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
+  .mrow { display: flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 12.5px; }
+  .mrow + .mrow { border-top: 1px solid #f3f4f6; }
+  .mrow > .l { color: #6b7280; font-weight: 500; }
+  .mrow.col { flex-direction: column; align-items: stretch; }
+  .mrow.col > * { width: 100%; box-sizing: border-box; }
+  .mrow .lab { font-weight: 600; }
+  .dsel { position: relative; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 10px; font-size: 12.5px; color: #6b7280; }
+  .dsel::after { content: ""; position: absolute; right: 11px; top: 10px; width: 5px; height: 5px; border-right: 1.5px solid #475569; border-bottom: 1.5px solid #475569; transform: rotate(45deg); }
+
+  .sheet { padding-bottom: 70px; }
+  /* ---- notes ---- */
+  .n-addr  { left: 470px; top: 98px; }
+  .n-ai    { left: 300px; top: 364px; }
+  .n-draft { left: 606px; top: 508px; }
+  .n-title { left: 34px;  top: 990px; }
+  .n-exp   { left: 230px; top: 990px; }
+  .n-renew { left: 600px; top: 975px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Submit &amp; dashboard
+    </span>
+    <h1>Members add listings and look after them</h1>
+  </div>
+  <div class="sub">[webmap-submit] to add a listing, [webmap-dashboard] to manage them</div>
+
+  <div class="win fr">
+    <div class="url"><span class="dots"><i></i><i></i><i></i></span><span class="bar" id="addr">example.com/<b>submit-new-markers/</b></span></div>
+    <div class="wizp">
+      <div class="fcol">
+        <div class="ptitle">Submit a listing</div>
+        <div class="puser">Logged in as Marta K. &middot; <a>Dashboard</a> &middot; <a>Log out</a></div>
+        <div class="aibar"><span class="ai" id="ai">&#10022; Write 5 empty fields with AI</span><span class="h">Fields you have already filled in are left untouched.</span></div>
+        <div class="lr"><label>Title <s>*</s></label></div>
+        <div class="fi">Corner Loaf Bakery</div>
+        <div class="lr"><label>Description</label><span class="ai sm">&#10022; Write with AI</span></div>
+        <div class="fi area ph">Tell visitors about the place...</div>
+        <div class="lr"><label>Address</label></div>
+        <div class="fi">14 W 14th St, New York</div>
+        <div class="fold"><span>categories, images, more fields</span></div>
+        <div class="sbar"><span class="pri">Submit Listing</span><span class="sec" id="draft">Save as draft</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="win fr dash">
+      <div class="url"><span class="dots"><i></i><i></i><i></i></span><span class="bar">example.com/<b>dashboard/</b></span></div>
+      <div class="dpad">
+        <div class="dhead">
+          <div class="duser"><span class="av">M</span><div><b>Marta K.</b><em>marta@example.com</em></div></div>
+          <div class="dacts"><span class="db p">Submit new listing</span><span class="db">Log out</span></div>
+        </div>
+        <div class="dtabs"><span class="on">My listings</span><span>Profile</span></div>
+        <table class="dt">
+          <thead><tr><th>Title</th><th>Status</th><th>Created</th><th id="expth">Expires</th></tr></thead>
+          <tbody>
+            <tr><td><a id="t1">Corner Loaf Bakery</a></td><td><span class="bd active">active</span></td><td>Oct 5, 2025</td><td>Oct 5, 2026</td></tr>
+            <tr><td><a>Relax Inn</a></td><td><span class="bd expired">expired</span></td><td>Jun 2, 2025</td><td>Sep 2, 2026</td></tr>
+            <tr><td><a>City Auto Show</a></td><td><span class="bd stopped">stopped</span></td><td>Mar 9, 2026</td><td>Mar 9, 2027</td></tr>
+            <tr><td><a id="t4">Green Market</a><span class="tag">Draft</span></td><td><span class="bd draft" id="st4">draft</span></td><td>Sep 28, 2026</td><td><span class="muted">Never</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="win fr det">
+      <div class="dpad">
+        <div class="crumb">&lsaquo; My listings</div>
+        <div class="dtitle">Corner Loaf Bakery</div>
+        <div class="mb">
+          <h3>Listing info</h3>
+          <div class="mrow"><span class="l">Status:</span><span class="bd active">active</span></div>
+                    <div class="mrow"><span class="l">Expire on:</span><b>Oct 5, 2026</b></div>
+        </div>
+        <div class="mb" id="acts">
+          <h3>Actions</h3>
+          <div class="mrow col"><span class="db p blk" id="renew">Renew listing</span></div>
+          <div class="mrow col"><span class="db blk">Pause listing</span></div>
+          <div class="mrow col"><span class="db p blk">Update listing</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-addr" data-to="#addr" data-at="r" data-from="l" data-bend=".2">any page with [webmap-submit]</div>
+  <div class="note n-ai" data-to="#ai" data-at="b.85" data-from="l" data-bend="-.12">fills every empty field</div>
+  <div class="note n-draft" data-to="#draft" data-at="r" data-from="l" data-bend=".2">signed in: finish it later,<br>not published or dated</div>
+  <div class="note n-title" data-to="#t4" data-at="b.3" data-from="t.4" data-bend=".2">open one<br>to edit it</div>
+  <div class="note n-exp" data-to="#st4" data-at="b.4" data-from="t.4" data-bend="-.2">status and<br>expiry date</div>
+  <div class="note n-renew" data-to="#acts" data-block data-at="b.5" data-from="t.4" data-bend="-.1">Renew opens 7 days<br>before the expiry date</div>
+
+</div>
+</body>
+</html>

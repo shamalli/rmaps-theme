@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Features -> Addresses.
+     Ported from the CodeCanyon description image (salephp-platform
+     codecanyon/w2dc/banners/src/addresses.html (the w2dc sketch; the screens are the shared engine's), 680 wide) to the documentation
+     column: laid out at 880 and scaled to 808 by render.py, with the shared
+     _sketch.css and arrows drawn by _sketch.js from each note's data-to. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .sheet { padding-bottom: 60px; }
+  /* ---- the listing form --------------------------------------------------- */
+  .form { display: grid; grid-template-columns: 1fr 1.08fr; gap: 14px; background: #fff; border: 1px solid #dfe7ef; border-radius: 12px; padding: 12px 14px 14px; }
+  .lbl { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: #1f2937; margin-bottom: 6px; }
+  .lbl svg { width: 13px; height: 13px; color: #6b7280; }
+  .abox { position: relative; padding: 8px; border-radius: 8px; background: #f9fafb; border: 1px solid #e5e7eb; }
+  .abox + .abox { margin-top: 8px; }
+  .sub2 { font-size: 11.5px; font-weight: 500; color: #6b7280; margin: 0 0 6px 1px; }
+  .in { position: relative; display: flex; align-items: center; height: 34px; box-sizing: border-box; padding: 0 30px 0 10px; margin-bottom: 5px;
+    border: 1px solid #d1d5db; border-radius: 8px; background: #fff; font-size: 13px; color: #111827; }
+  .in.foc { border-color: #2271b1; box-shadow: 0 0 0 3px rgba(34,113,177,.15); }
+  .in .ph { color: #9ca3af; }
+  .in .caret { display: inline-block; width: 1px; height: 15px; background: #111827; margin-left: 1px; }
+  .in .bt { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 16px; line-height: 1; }
+  .in .bt svg { width: 14px; height: 14px; }
+  .in.short { width: 58%; }
+  .mc { font-size: 11.5px; color: #9ca3af; margin: 2px 0 0; }
+  /* the provider's suggestion list */
+  .ac { position: absolute; z-index: 5; left: 8px; right: 8px; top: 64px; margin: 0; padding: 4px 0; list-style: none; background: #fff;
+    border: 1px solid #d1d5db; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: 12.5px; color: #1f2937; }
+  .ac li { padding: 5px 11px; line-height: 1.35; }
+  .ac li.hv { background: #f3f4f6; }
+  .ac b { font-weight: 600; }
+
+  .map { position: relative; height: 100%; min-height: 200px; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden;
+    background: url(map-streets.webp) -250px -130px / 900px auto no-repeat, #e8eef3; }
+  .ctl { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .ctl i { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 15px; color: #444; }
+  .ctl i + i { border-top: 1px solid #e5e7eb; }
+  .pin { position: absolute; width: 28px; height: 34px; }
+  .hand { position: absolute; width: 17px; height: 21px; }
+
+  /* ---- admin: Address settings ------------------------------------------- */
+  .rx { margin-top: 14px; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #3c434a; }
+  .rx-hd { height: 34px; display: flex; align-items: center; padding: 0 12px;
+    background: linear-gradient(90deg, rgba(30,41,59,.94) 0%, rgba(30,41,59,.82) 28%, rgba(51,65,85,.55) 62%, rgba(51,65,85,.3) 100%),
+                url(redux-header-bg.jpg) 0 40% / 1300px auto no-repeat, #1e293b; }
+  .rx-hd .t { color: #f1f5f9; font-size: 14px; font-weight: 600; }
+  .rx-hd .tab { margin-left: 9px; padding-left: 9px; border-left: 1px solid rgba(241,245,249,.35); color: #cbd5e1; font-size: 12.5px; }
+  .rx-main { padding: 6px 14px 10px; }
+  .sec { margin: 2px 0 6px; font-size: 14px; font-weight: 600; color: #1e293b; }
+  .sec + .sec, .ft + .sec { margin-top: 12px; padding-top: 8px; border-top: 1px solid #e5e7eb; }
+  /* .rmaps-addrtpl */
+  .tl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 7px; border: 1px dashed #d1d5db; border-radius: 6px; background: #fff; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 3px; border-radius: 4px; border: 1px solid transparent; font-size: 11.5px; line-height: 18px; white-space: nowrap; }
+  .chip .hd { color: #9ca3af; font-size: 11px; letter-spacing: -2px; line-height: 12px; }
+  .chip .x { color: #9ca3af; font-size: 14px; line-height: 16px; padding: 0 1px; }
+  .chip.tok { background: #eff6ff; color: #1e40af; }
+  .chip.sep { background: #fef3c7; color: #92400e; }
+  .chip.sep b { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; font-weight: 600; }
+  .chip.drag { opacity: .35; }
+  .drop { width: 2px; align-self: stretch; background: #2563eb; border-radius: 1px; }
+  .tbar { display: flex; gap: 6px; margin: 6px 0; }
+  .tbar span { padding: 4px 10px; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; color: #374151; font-size: 11.5px; font-weight: 500; }
+  .pv { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb; }
+  .pv .pl { font-size: 10.5px; font-weight: 600; color: #6b7280; letter-spacing: .04em; }
+  .pv .pl span { font-weight: 400; color: #9ca3af; letter-spacing: 0; }
+  .pv .pb { margin-top: 2px; font-size: 12.5px; color: #1f2937; }
+
+  .ft { width: 100%; border-collapse: collapse; }
+  .ft tr { border-bottom: 1px solid #e7e7e7; }
+  .ft tr:last-child { border-bottom: 0; }
+  .ft th { width: 50%; text-align: left; vertical-align: middle; padding: 5px 12px 5px 0; font-size: 12px; font-weight: 500; color: #1e293b; line-height: 1.35; }
+  .ft td { vertical-align: middle; padding: 5px 0; font-size: 12.5px; }
+  .s2 { display: flex; align-items: center; justify-content: space-between; width: 200px; height: 28px; box-sizing: border-box; padding: 0 8px;
+    border: 1px solid #d1d5db; border-radius: 5px; font-size: 12.5px; color: #333; background: #fff; }
+  .s2::after { content: ""; border: 4px solid transparent; border-top: 5px solid #888; margin-top: 4px; }
+  .sw { display: inline-flex; font-size: 12.5px; font-weight: 700; line-height: 26px; vertical-align: middle; }
+  .sw span { padding: 0 10px; background: #f5f5f5; border: 1px solid #ccc; color: #333; }
+  .sw span:first-child { border-radius: 3px 0 0 3px; border-right: 0; }
+  .sw span:last-child { border-radius: 0 3px 3px 0; }
+  .sw span.on1 { background: #2271b1; border-color: #2271b1; color: #fff; }
+  .ft td em { font-style: normal; color: #94a3b8; font-size: 11.5px; margin-left: 8px; }
+
+  /* notes */
+  .n-sug { left: 218px; top: 100px; }
+  .n-pin { left: 584px; top: 388px; }
+  .n-fmt { left: 672px; top: 478px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+      Addresses
+    </span>
+    <h1>Type an address, or drop a pin</h1>
+  </div>
+  <div class="sub">autocomplete, &ldquo;Get my location&rdquo; and a format you arrange</div>
+
+  <!-- ===== the listing form: Address + Map ===== -->
+  <div class="form">
+    <div>
+      <div class="lbl"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>Address</div>
+      <div class="abox">
+        <div class="sub2">Address 1</div>
+        <div class="in foc">120 Hud<span class="caret"></span><span class="bt">&times;</span></div>
+        <ul class="ac" id="ac">
+          <li class="hv"><b>120 Hudson Street</b>, New York, New York 10013, United States</li>
+          <li><b>120 Hudson Street</b>, Hoboken, New Jersey 07030, United States</li>
+          <li><b>120 Hudson Avenue</b>, Albany, New York 12210, United States</li>
+        </ul>
+        <div class="in"><span class="ph">Address line 2</span></div>
+        <div class="in short"><span class="ph">ZIP / Postal code</span></div>
+        <div class="mc">&#9656; Manual coordinates</div>
+      </div>
+      <div class="abox">
+        <div class="sub2">Address 2</div>
+        <div class="in" style="margin:0"><span class="ph">Address</span><span class="bt"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.4 7 11.2 7.3 11.5.4.3 1 .3 1.4 0C13 21.2 20 15.4 20 10c0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/></svg></span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="lbl">Map</div>
+      <div class="map" style="flex:1">
+        <div class="ctl"><i>+</i><i>&minus;</i></div>
+        <svg class="pin" id="pin" style="left:150px;top:128px" viewBox="0 0 28 34"><path d="M14 1C7 1 1.5 6.4 1.5 13.2 1.5 22 14 33 14 33s12.5-11 12.5-19.8C26.5 6.4 21 1 14 1z" fill="#2eaf5c" stroke="#fff" stroke-width="1.5"/><circle cx="14" cy="13" r="5" fill="#fff"/></svg>
+        <svg class="hand" style="left:166px;top:148px" viewBox="0 0 15 20"><path d="M5 1.5c.8 0 1.4.6 1.4 1.4V8l.6-.1c.7 0 1.2.5 1.3 1.1l.6-.1c.7 0 1.3.5 1.3 1.2l.5-.1c.8 0 1.4.6 1.4 1.4v3.4c0 2.6-2 4.7-4.6 4.7H6.6c-1.4 0-2.7-.7-3.5-1.8L.9 14.6c-.4-.6-.2-1.3.3-1.7.5-.3 1.2-.2 1.6.2l.8 1V2.9c0-.8.6-1.4 1.4-1.4z" fill="#fff" stroke="#111" stroke-width="1.1" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== admin: Settings > Address settings ===== -->
+  <div class="rx">
+    <div class="rx-hd"><span class="t">Rocket Maps Settings</span><span class="tab">Address settings</span></div>
+    <div class="rx-main">
+      <div class="sec">Address format</div>
+      <div class="tl" id="fmt">
+        <span class="chip tok"><span class="hd">&#8942;&#8942;</span>Address Line 1<span class="x">&times;</span></span>
+        <span class="chip sep"><span class="hd">&#8942;&#8942;</span><b>,</b><span class="x">&times;</span></span>
+        <span class="chip tok"><span class="hd">&#8942;&#8942;</span>Address Line 2<span class="x">&times;</span></span>
+        <span class="chip sep"><span class="hd">&#8942;&#8942;</span><b>,</b><span class="x">&times;</span></span>
+        <span class="drop"></span>
+        <span class="chip tok"><span class="hd">&#8942;&#8942;</span>Full location chain<span class="x">&times;</span></span>
+        <span class="chip sep"><span class="hd">&#8942;&#8942;</span><b>&#9251;</b><span class="x">&times;</span></span>
+        <span class="chip tok drag" id="dragchip"><span class="hd">&#8942;&#8942;</span>Zip / postal index<span class="x">&times;</span></span>
+      </div>
+      <div class="tbar"><span>+ Field</span><span>+ Text</span><span>+ Separator</span></div>
+      <div class="pv"><div class="pl">PREVIEW <span>&middot; Statue of Liberty, New York</span></div>
+        <div class="pb">Liberty Island, Ferry Pier, United States, New York, New York City 10004</div></div>
+
+      <div class="sec" style="margin-top:10px;padding-top:7px;border-top:1px solid #e5e7eb">Address input</div>
+      <table class="ft">
+        <tr><th>Restriction of address fields for one specific country (autocomplete submission and search fields)</th><td><span class="s2">United States</span></td></tr>
+        <tr><th>Enable autocomplete on addresses fields</th><td><span class="sw"><span class="on1">On</span><span>Off</span></span></td></tr>
+        <tr><th>Enable "Get my location" button on addresses fields</th><td><span class="sw"><span class="on1">On</span><span>Off</span></span><em>Requires https</em></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="note n-sug" data-to="#ac" data-at="t.82" data-from="b.25" data-bend=".12" data-block>suggests as you type</div>
+  <div class="note n-pin" data-to="#pin" data-at="b.5" data-from="t.3" data-bend="-.14">drag the pin to the door</div>
+  <div class="note n-fmt" data-to="#dragchip" data-at="r" data-from="l" data-bend=".12">drag to rearrange</div>
+
+</div>
+</body>
+</html>
