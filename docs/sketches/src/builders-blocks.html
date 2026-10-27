@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Docs sketch: Page builders -> Block editor (Gutenberg).
+     The block editor with the inserter open on the plugin's group and a Map
+     block selected, its settings in the sidebar. Strings from the block spec
+     in core/src/Blocks/Blocks.php (core_spec: Map, Search form, Listings,
+     User dashboard, Submit listing; the group title is the brand, "Rocket
+     Maps"; the Map param's "— Choose a map —" list of the site's maps). The
+     placeholder and the sidebar are core/resources/js/blocks-editor.js.
+     Layout from the block editor in a WordPress 6.8 Playground.
+     Liberties: dashicons redrawn as simple glyphs; "City map" is a demo map
+     name; the editor is narrower than a real screen. -->
+<link rel="stylesheet" href="_sketch.css">
+<script src="_sketch.js"></script>
+<style>
+  .ed { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1e1e1e; font-size: 13px; }
+  .tb { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 10px; border-bottom: 1px solid #e0e0e0; background: #fff; }
+  .tb .plus { width: 30px; height: 30px; border-radius: 2px; background: #1e1e1e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; }
+  .tb .ttl { flex: 1; display: flex; justify-content: center; }
+  .tb .ttl span { background: #f0f0f0; border-radius: 2px; padding: 6px 60px; font-size: 13px; }
+  .tb .save { background: #3858e9; color: #fff; border-radius: 2px; padding: 7px 12px; font-size: 13px; }
+  .bd { display: flex; align-items: stretch; height: 470px; }
+
+  /* inserter */
+  .ins { flex: none; width: 262px; border-right: 1px solid #e0e0e0; background: #fff; }
+  .tabs { display: flex; gap: 18px; padding: 0 14px; height: 44px; align-items: center; border-bottom: 1px solid #e0e0e0; }
+  .tabs span { padding: 12px 0; }
+  .tabs .on { box-shadow: inset 0 -2px 0 #3858e9; font-weight: 500; }
+  .srch { margin: 14px; height: 38px; border: 1px solid #949494; border-radius: 2px; display: flex; align-items: center; padding: 0 10px; color: #757575; gap: 8px; }
+  .srch svg { width: 16px; height: 16px; }
+  .gh { margin: 4px 14px 6px; font-size: 11px; font-weight: 500; text-transform: uppercase; color: #757575; letter-spacing: .3px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 8px 6px; }
+  .tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 2px 10px; text-align: center; font-size: 12.5px; line-height: 1.25; border-radius: 2px; }
+  .tile svg { width: 22px; height: 22px; fill: #1e1e1e; }
+  .tile.hl { background: #f6f7fd; color: #3858e9; }
+  .tile.hl svg { fill: #3858e9; }
+
+  /* canvas */
+  .cv { flex: 1; min-width: 0; background: #fff; padding: 26px 22px; }
+  .cv .pt { font: 400 34px/1.1 Georgia, "Times New Roman", serif; margin: 0 0 18px; }
+  .blk { position: relative; margin-bottom: 16px; }
+  .ph { box-shadow: inset 0 0 0 1px #1e1e1e; border-radius: 2px; padding: 16px 18px; }
+  .blk.cur .ph { box-shadow: inset 0 0 0 1px #1e1e1e, 0 0 0 1.5px #3858e9; }
+  .ph .lb { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 10px; }
+  .ph .lb svg { width: 18px; height: 18px; fill: #1e1e1e; }
+  .ph .ds { line-height: 1.45; margin-bottom: 8px; }
+  .ph ul { margin: 6px 0 0; padding-left: 18px; }
+  .ph li { line-height: 1.6; }
+  .ph .nt { margin-top: 8px; font-size: 12px; color: #757575; }
+  .btb { position: absolute; left: 0; top: -40px; display: flex; height: 34px; border: 1px solid #1e1e1e; border-radius: 2px; background: #fff; }
+  .btb span { width: 34px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #e0e0e0; }
+  .btb span:last-child { border-right: 0; }
+  .btb svg { width: 17px; height: 17px; fill: #1e1e1e; }
+
+  /* sidebar */
+  .sb { flex: none; width: 248px; border-left: 1px solid #e0e0e0; background: #fff; }
+  .sb .tabs { justify-content: flex-start; }
+  .card { display: flex; gap: 10px; padding: 16px; border-bottom: 1px solid #e0e0e0; }
+  .card svg { width: 22px; height: 22px; fill: #1e1e1e; flex: none; }
+  .card b { display: block; font-weight: 600; margin-bottom: 4px; }
+  .card p { margin: 0; line-height: 1.45; color: #1e1e1e; }
+  .pan { padding: 0 16px 16px; }
+  .pan .phd { display: flex; align-items: center; height: 46px; font-weight: 500; }
+  .pan .phd i { margin-left: auto; width: 7px; height: 7px; border-left: 1.5px solid #1e1e1e; border-top: 1.5px solid #1e1e1e; transform: rotate(45deg) translate(2px, 2px); }
+  .lbl { font-size: 11px; font-weight: 500; text-transform: uppercase; margin: 2px 0 8px; }
+  .gsel { height: 40px; border: 1px solid #949494; border-radius: 2px; display: flex; align-items: center; padding: 0 12px; position: relative; margin-bottom: 18px; }
+  .gsel::after { content: ""; position: absolute; right: 14px; top: 15px; width: 6px; height: 6px; border-right: 1.5px solid #1e1e1e; border-bottom: 1.5px solid #1e1e1e; transform: rotate(45deg); }
+  .tgl { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .tgl .tg { width: 36px; height: 18px; border-radius: 9px; background: #fff; border: 1px solid #1e1e1e; box-sizing: border-box; }
+  .tgl .tg::after { left: 2px; top: 2px; width: 12px; height: 12px; background: #1e1e1e; }
+  .help { font-size: 12px; color: #757575; line-height: 1.45; }
+
+  .n-ph   { left: 400px; top: 440px; }
+  .n-grp  { left: 56px;  top: 470px; }
+  .n-set  { left: 640px; top: 440px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <span class="pill">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+      Page builders
+    </span>
+    <h1>Maps, search, listings and member pages as blocks</h1>
+  </div>
+  <div class="sub">The block editor: insert, then set it up in the sidebar</div>
+
+  <div class="win ed">
+    <div class="tb"><span class="plus">&#215;</span><span class="ttl"><span>Find a store &middot; Page</span></span><span class="save">Save</span></div>
+    <div class="bd">
+      <div class="ins">
+        <div class="tabs"><span class="on">Blocks</span><span>Patterns</span><span>Media</span></div>
+        <div class="srch"><svg viewBox="0 0 24 24" fill="#757575"><path d="M10 3a7 7 0 1 0 4.2 12.6l5 5 1.4-1.4-5-5A7 7 0 0 0 10 3zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg>Search</div>
+        <div class="gh"><span id="g1">Rocket Maps</span></div>
+        <div class="tiles" id="rtiles">
+          <div class="tile hl" id="t-map"><svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8.2A2.2 2.2 0 1 1 12 5.8a2.2 2.2 0 0 1 0 4.4zM3 21h18v1.5H3z"/></svg>Map</div>
+          <div class="tile"><svg viewBox="0 0 24 24"><path d="M10 3a7 7 0 1 0 4.2 12.6l5 5 1.4-1.4-5-5A7 7 0 0 0 10 3zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg>Search form</div>
+          <div class="tile"><svg viewBox="0 0 24 24"><path d="M3 5h3v3H3zm5 0h13v3H8zM3 10.5h3v3H3zm5 0h13v3H8zM3 16h3v3H3zm5 0h13v3H8z"/></svg>Listings</div>
+          <div class="tile"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-7 17c0-4 3.5-6.5 7-6.5s7 2.5 7 6.5z"/></svg>User dashboard</div>
+          <div class="tile" id="t-sub"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v4h4v2h-4v4h-2v-4H7v-2h4V7z"/></svg>Submit listing</div>
+        </div>
+      </div>
+
+      <div class="cv">
+        <div class="pt">Find a store</div>
+        <div class="blk cur" id="blk" style="margin-top:52px">
+          <div class="btb"><span><svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8.2A2.2 2.2 0 1 1 12 5.8a2.2 2.2 0 0 1 0 4.4zM3 21h18v1.5H3z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M9 4h2v2H9zm4 0h2v2h-2zM9 9h2v2H9zm4 0h2v2h-2zm-4 5h2v2H9zm4 0h2v2h-2zm-4 5h2v2H9zm4 0h2v2h-2z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M4 11h16v2H4zm0-5h16v2H4zm0 10h16v2H4z"/></svg></span></div>
+          <div class="ph" id="ph">
+            <div class="lb"><svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8.2A2.2 2.2 0 1 1 12 5.8a2.2 2.2 0 0 1 0 4.4zM3 21h18v1.5H3z"/></svg>Map</div>
+            <div class="ds">One of your maps, with its markers, search and sidebar as set on the map.</div>
+            <ul id="phsum"><li><b>Map:</b> City map</li></ul>
+            <div class="nt">Shown on the published page.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb">
+        <div class="tabs"><span>Page</span><span class="on">Block</span></div>
+        <div class="card"><svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8.2A2.2 2.2 0 1 1 12 5.8a2.2 2.2 0 0 1 0 4.4zM3 21h18v1.5H3z"/></svg><div><b>Map</b><p>One of your maps, with its markers, search and sidebar as set on the map.</p></div></div>
+        <div class="pan" id="pan">
+          <div class="phd">Settings<i></i></div>
+          <div class="lbl">Map</div>
+          <div class="gsel" id="dsel">City map</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note n-grp" data-block data-to="#rtiles" data-at="b.5" data-from="t.4" data-bend=".2">one block per shortcode</div>
+  <div class="note n-ph" data-block data-to="#ph" data-at="b.6" data-from="t.4" data-bend=".2">a placeholder: what it is<br>and what is set on it</div>
+  <div class="note n-set" data-to="#dsel" data-at="b.5" data-from="t.5" data-bend="-.2">the map to show:<br>[webmap id=&hellip;]</div>
+</div>
+</body>
+</html>
